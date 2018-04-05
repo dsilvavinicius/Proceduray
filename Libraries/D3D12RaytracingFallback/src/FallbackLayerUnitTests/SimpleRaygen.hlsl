@@ -9,13 +9,17 @@
 //
 //*********************************************************
 #include "Validate.hlsli"
-float4 ReadData();
 
-RWByteAddressBuffer outputBuffer : register(u0);
+RaytracingAccelerationStructure AS : register(t0);
 
-[shader("miss")]
-void miss(inout EmptyPayload payload : SV_RayPayload)
+[shader("raygeneration")]
+void raygen()
 {
-    float4 color0 = ReadData();
-    outputBuffer.Store4(0, asuint(color0));
+    EmptyPayload payload = { 0 };
+    RayDesc ray = { 
+        float3(1, 0, 0),
+        0.0f,
+        float3(1, 0, 0),
+        0.0f };
+    TraceRay(AS, 0, ~0, 0, 1, 0, ray, payload);
 }

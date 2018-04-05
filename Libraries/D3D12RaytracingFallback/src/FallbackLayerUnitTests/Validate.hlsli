@@ -8,14 +8,8 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
-#include "Validate.hlsli"
-float4 ReadData();
 
-RWByteAddressBuffer outputBuffer : register(u0);
-
-[shader("miss")]
-void miss(inout EmptyPayload payload : SV_RayPayload)
+struct EmptyPayload
 {
-    float4 color0 = ReadData();
-    outputBuffer.Store4(0, asuint(color0));
-}
+    uint i;
+};

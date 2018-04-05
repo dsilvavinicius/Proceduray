@@ -8,6 +8,8 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
+#include "Validate.hlsli"
+
 RWByteAddressBuffer outputBuffer : register(u0);
 cbuffer Constants : register(b0)
 {
@@ -26,8 +28,8 @@ cbuffer Constants : register(b2)
     float4 color2;
 }
 
-[numthreads(1, 1, 1)]
-void main( uint3 DTid : SV_DispatchThreadID )
+[shader("miss")]
+void miss(inout EmptyPayload payload : SV_RayPayload)
 {
     outputBuffer.Store4(0, asuint(color0));
     outputBuffer.Store4(16, asuint(color1));
