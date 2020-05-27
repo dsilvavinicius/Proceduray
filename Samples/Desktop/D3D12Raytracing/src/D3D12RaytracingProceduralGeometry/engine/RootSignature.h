@@ -27,7 +27,7 @@ namespace RtxEngine
 
 		using DescriptorRange = pair<CD3DX12_DESCRIPTOR_RANGE, ShaderStruct>;
 
-		RootSignature(const DevicePtr& device);
+		RootSignature(const DeviceResourcesPtr& device);
 
 		template<typename T>
 		DescriptorRange createRange(SimpleEntry type, UINT baseReg, UINT numRegs, UINT space) const;
@@ -51,7 +51,7 @@ namespace RtxEngine
 		void createLowLvl();
 		void bind();
 
-		DevicePtr m_device;
+		DeviceResourcesPtr m_device;
 		vector<CD3DX12_ROOT_PARAMETER> m_params;
 		ComPtr<ID3D12RootSignature> m_buildedRoot;
 	};

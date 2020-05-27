@@ -2,7 +2,7 @@
 
 namespace RtxEngine
 {
-	RootSignature::RootSignature(const DevicePtr& device)
+	RootSignature::RootSignature(const DeviceResourcesPtr& device)
 		: m_device(device),
 		m_buildedRoot(nullptr)
 	{}
