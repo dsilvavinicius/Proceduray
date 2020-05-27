@@ -4,6 +4,9 @@
 namespace RtxEngine
 {
 	using namespace std;
+	using namespace DX;
 
-	using DevicePtr = shared_ptr<DX::DeviceResources>;
+	using DxrDevicePtr = ComPtr<ID3D12Device5>;
+	using DxrCommandListPtr = ComPtr<ID3D12GraphicsCommandList5>;
+	using DeviceResourcesPtr = shared_ptr<DeviceResources>;
 }

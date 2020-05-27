@@ -16,10 +16,10 @@ namespace RtxEngine
 		/**
 		* @param missShader: miss shader entry point.
 		*/
-		Ray(const string& missShader, Payload);
+		Ray(const string& missShader, Payload) : m_missShader(missShader) {}
 	
 	private:
-
+		string m_missShader;
 	};
 
 	using RayPtr = shared_ptr<Ray>;
