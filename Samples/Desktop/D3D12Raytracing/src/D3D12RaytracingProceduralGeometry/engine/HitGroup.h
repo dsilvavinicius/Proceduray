@@ -8,16 +8,16 @@ namespace RtxEngine
 {
 	using namespace std;
 
-	class HitGroup
+	struct HitGroup
 	{
 	public:
-		HitGroup(const string& anyHit, const string& closestHit, const string& intersection);
-	private:
-		string m_anyHit;
-		string m_closestHit;
-		string m_intersection;
+		HitGroup(const wstring& anyHit, const wstring& closestHit = L"", const wstring& intersection = L"");
+
+		wstring m_anyHit;
+		wstring m_closestHit;
+		wstring m_intersection;
 	};
 
 	using HitGroupPtr = shared_ptr<HitGroup>;
-	using HitGroupMap = unordered_map<string, HitGroupPtr>;
+	using HitGroupMap = unordered_map<wstring, HitGroupPtr>;
 }

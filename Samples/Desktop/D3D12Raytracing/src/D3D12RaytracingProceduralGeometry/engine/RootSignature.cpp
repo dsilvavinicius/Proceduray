@@ -4,7 +4,7 @@ namespace RtxEngine
 {
 	RootSignature::RootSignature(const DeviceResourcesPtr& device)
 		: m_device(device),
-		m_buildedRoot(nullptr)
+		m_builded(nullptr)
 	{}
 
 	template<typename T>
@@ -47,9 +47,13 @@ namespace RtxEngine
 		m_params.push_back(param);
 	}
 
-	void RootSignature::build()
+	ComPtr<ID3D12RootSignature>& RootSignature::getBuilded()
 	{
-		createLowLvl();
+		if (m_builded == nullptr)
+		{
+			createLowLvl();
+		}
+		return m_builded;
 	}
 
 
@@ -63,6 +67,6 @@ namespace RtxEngine
 		ComPtr<ID3DBlob> error;
 
 		ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<wchar_t*>(error->GetBufferPointer()) : nullptr);
-		ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*m_buildedRoot))));
+		ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*m_builded))));
 	}
 }

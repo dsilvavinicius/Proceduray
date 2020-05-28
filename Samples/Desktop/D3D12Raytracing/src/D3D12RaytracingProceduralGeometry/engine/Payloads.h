@@ -1,6 +1,6 @@
 #pragma once
 
-struct IlluminationPayload
+struct RadiancePayload
 {
 };
 

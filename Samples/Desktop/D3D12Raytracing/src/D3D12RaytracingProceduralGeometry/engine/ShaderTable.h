@@ -1,31 +1,31 @@
 #pragma once
 
-#include "Ray.h"
-#include "Geometry.h"
-#include "HitGroup.h"
-#include "RootSignature.h"
-#include <memory>
+#include "StaticScene.h"
+#include "ShaderTableEntry.h"
 
 namespace RtxEngine
 {
 	class ShaderTable
 	{
 	public:
-		ShaderTable(DeviceResourcesPtr& deviceResources) : m_deviceResources(deviceResources) {}
+		ShaderTable(const StaticScenePtr& scene, DeviceResourcesPtr& deviceResources);
 		/** Add a ray generation shader entry. */
-		void addEntry(const string& rayGenShader);
+		void addRayGen(const string& rayGenShader);
 		/** Add a miss shader entry. */
-		void addEntry(const RayPtr& ray);
+		void addMiss(const string& rayId);
 		/** Add a common entry. */
-		void addEntry(const RayPtr& ray, const GeometryPtr& geometry, const HitGroupPtr& hitgroup, const RootSignaturePtr& rootSignature);
+		void addCommonEntry(const ShaderTableEntry& entry);
+		
+		const ShaderTableEntriesPtr& getCommonEntries() const { return m_commonEntries; }
+		
 		void build();
 
 	private:
-		using Entry = tuple<RayPtr, GeometryPtr, HitGroupPtr, RootSignaturePtr>;
-		string m_rayGenEntry;
-		vector<RayPtr> m_missEntries;
-		vector<Entry> m_commonEntries;
+		StaticScenePtr m_scene;
 		DeviceResourcesPtr m_deviceResources;
+		string m_rayGenEntry;
+		vector<string> m_missEntries;
+		ShaderTableEntriesPtr m_commonEntries;
 	};
 
 	using ShaderTablePtr = shared_ptr<ShaderTable>;

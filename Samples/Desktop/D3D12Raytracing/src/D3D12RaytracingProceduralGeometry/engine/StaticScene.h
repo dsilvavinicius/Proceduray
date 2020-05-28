@@ -23,7 +23,9 @@ namespace RtxEngine
 
 		const GeometryMap& getGeometry() const { return m_geometry; }
 		const HitGroupMap& getHitGroups() const { return m_hitGroups; }
+		RootSignature& getGlobalSignature() const { return *m_globalSignature; }
 		const RootSignatureMap& getLocalSignatures() const { return m_localSignatures; }
+		UINT getMaxRecursion() const { return m_maxRecursion; }
 
 		// Build the scene.
 		void build();
@@ -39,6 +41,8 @@ namespace RtxEngine
 		
 		// Hitgroups.
 		HitGroupMap m_hitGroups;
+
+		UINT m_maxRecursion = 3;
 	};
 
 	using StaticScenePtr = shared_ptr<StaticScene>;

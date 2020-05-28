@@ -2,20 +2,25 @@
 
 namespace RtxEngine
 {
-	void ShaderTable::addEntry(const string& rayGenShader)
+	ShaderTable::ShaderTable(const StaticScenePtr& scene, DeviceResourcesPtr& deviceResources)
+		: m_scene(scene),
+		m_deviceResources(deviceResources),
+		m_commonEntries(make_shared<ShaderTableEntries>())
+	{}
+
+	void ShaderTable::addRayGen(const string& rayGenShader)
 	{
 		m_rayGenEntry = rayGenShader;
 	}
 
-	void ShaderTable::addEntry(const RayPtr& ray)
+	void ShaderTable::addMiss(const string& rayId)
 	{
-		m_missEntries.push_back(ray);
+		m_missEntries.push_back(rayId);
 	}
 
-	void ShaderTable::addEntry(const RayPtr& ray, const GeometryPtr& geometry, const HitGroupPtr& hitgroup, const RootSignaturePtr& rootSignature)
+	void ShaderTable::addCommonEntry(const ShaderTableEntry& entry)
 	{
-		Entry entry = {ray, geometry, hitgroup, rootSignature};
-		m_commonEntries.push_back(entry);
+		m_commonEntries->push_back(entry);
 	}
 
 	// TODO: CONTINUE HERE AFTER CREATING THE STATE OBJECT!

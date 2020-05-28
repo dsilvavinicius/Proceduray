@@ -8,6 +8,8 @@ struct Vertex
 	XMFLOAT3 normal;
 };
 
-struct Placeholder0;
+#define MAX_RAY_RECURSION_DEPTH 3
 
-struct Placeholder1;
+struct Placeholder0 {};
+
+struct Placeholder1 {};

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../util/HlslCompat.h"
 #include "../stdafx.h"
+#include "../util/HlslCompat.h"
 #include "ShaderCompatUtils.h"
 #include "DeviceHelper.h"
+#include <d3dx12.h>
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <d3dx12.h>
 
 namespace RtxEngine
 {
@@ -16,6 +16,7 @@ namespace RtxEngine
 	/** Root Signature. Add components using the add* methods and build() it. The resulting device root signature will have entries in the same order they are added.*/
 	class RootSignature
 	{
+	public:
 		enum SimpleEntry
 		{
 			Constant,
@@ -42,8 +43,7 @@ namespace RtxEngine
 		/** Adds a static sampler to the heap.*/
 		void addStaticSampler();
 
-		// Build the root signature.
-		void build();
+		ComPtr<ID3D12RootSignature>& getBuilded();
 	private:
 		void createResources();
 		// REMEMBER: ONE HEAP FOR SAMPLERS AND ANOTHER FOR THE REST!
@@ -53,7 +53,7 @@ namespace RtxEngine
 
 		DeviceResourcesPtr m_device;
 		vector<CD3DX12_ROOT_PARAMETER> m_params;
-		ComPtr<ID3D12RootSignature> m_buildedRoot;
+		ComPtr<ID3D12RootSignature> m_builded;
 	};
 
 	using RootSignaturePtr = shared_ptr<RootSignature>;
