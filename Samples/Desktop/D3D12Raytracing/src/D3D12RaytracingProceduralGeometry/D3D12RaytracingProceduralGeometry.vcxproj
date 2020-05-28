@@ -124,6 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>util;..\..\..\..\..\Libraries\D3DX12\;$(IntDir);..\libs\slang-0.15.5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -165,10 +166,12 @@
     <ClInclude Include="AnalyticPrimitives.hlsli" />
     <ClInclude Include="DirectXRaytracingHelper.h" />
     <ClInclude Include="engine\AccelerationStructure.h" />
+    <ClInclude Include="engine\AttribStructs.h" />
     <ClInclude Include="engine\DeviceHelper.h" />
     <ClInclude Include="engine\Geometry.h" />
     <ClInclude Include="engine\HitGroup.h" />
     <ClInclude Include="engine\Payloads.h" />
+    <ClInclude Include="engine\RayTracingState.h" />
     <ClInclude Include="engine\RootSignature.h" />
     <ClInclude Include="engine\Ray.h" />
     <ClInclude Include="engine\ShaderCompat.h" />
@@ -198,6 +201,7 @@
     <ClCompile Include="engine\AccelerationStructure.cpp" />
     <ClCompile Include="engine\Geometry.cpp" />
     <ClCompile Include="engine\HitGroup.cpp" />
+    <ClCompile Include="engine\RayTracingState.cpp" />
     <ClCompile Include="engine\RootSignature.cpp" />
     <ClCompile Include="engine\Ray.cpp" />
     <ClCompile Include="engine\ShaderTable.cpp" />
