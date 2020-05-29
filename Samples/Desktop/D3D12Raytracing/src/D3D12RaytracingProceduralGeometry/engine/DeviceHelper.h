@@ -1,4 +1,7 @@
+#pragma once
+
 #include "DeviceResources.h"
+#include <wrl/client.h>
 #include <memory>
 
 namespace RtxEngine

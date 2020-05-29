@@ -1,14 +1,17 @@
+#include "../stdafx.h"
 #include "ShaderTable.h"
+#include "../DirectXRaytracingHelper.h"
 
 namespace RtxEngine
 {
-	ShaderTable::ShaderTable(const StaticScenePtr& scene, DeviceResourcesPtr& deviceResources)
+	ShaderTable::ShaderTable(const StaticScenePtr& scene, DeviceResourcesPtr& deviceResources, const RayTracingStatePtr& rayTracingState)
 		: m_scene(scene),
 		m_deviceResources(deviceResources),
+		m_rayTracingState(rayTracingState),
 		m_commonEntries(make_shared<ShaderTableEntries>())
 	{}
 
-	void ShaderTable::addRayGen(const string& rayGenShader)
+	void ShaderTable::addRayGen(const wstring& rayGenShader)
 	{
 		m_rayGenEntry = rayGenShader;
 	}
@@ -23,47 +26,40 @@ namespace RtxEngine
 		m_commonEntries->push_back(entry);
 	}
 
-	// TODO: CONTINUE HERE AFTER CREATING THE STATE OBJECT!
 	void ShaderTable::build()
 	{
 		auto device = m_deviceResources->GetD3DDevice();
 
 		void* rayGenShaderID;
-		void* missShaderIDs[RayType::Count];
-		void* hitGroupShaderIDs_TriangleGeometry[RayType::Count];
-		void* hitGroupShaderIDs_AABBGeometry[IntersectionShaderType::Count][RayType::Count];
+		vector<void*> missShaderIDs(m_missEntries.size());
+		vector<void*> hitGroupShaderIDs(m_commonEntries->size());
 
 		// A shader name look-up table for shader table debug print out.
 		unordered_map<void*, wstring> shaderIdToStringMap;
 
 		auto GetShaderIDs = [&](auto* stateObjectProperties)
 		{
-			rayGenShaderID = stateObjectProperties->GetShaderIdentifier(c_raygenShaderName);
-			shaderIdToStringMap[rayGenShaderID] = c_raygenShaderName;
+			rayGenShaderID = stateObjectProperties->GetShaderIdentifier(m_rayGenEntry.c_str());
+			shaderIdToStringMap[rayGenShaderID] = m_rayGenEntry;
 
-			for (UINT i = 0; i < RayType::Count; i++)
+			for (UINT i = 0; i < m_missEntries.size(); i++)
 			{
-				missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(c_missShaderNames[i]);
-				shaderIdToStringMap[missShaderIDs[i]] = c_missShaderNames[i];
+				missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(m_missEntries[i]);
+				shaderIdToStringMap[missShaderIDs[i]] = m_missEntries[i];
 			}
-			for (UINT i = 0; i < RayType::Count; i++)
+			for (UINT i = 0; i < m_commonEntries->size(); i++)
 			{
-				hitGroupShaderIDs_TriangleGeometry[i] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_TriangleGeometry[i]);
-				shaderIdToStringMap[hitGroupShaderIDs_TriangleGeometry[i]] = c_hitGroupNames_TriangleGeometry[i];
+				auto hitGroupName = m_commonEntries[i].hitGroupId;
+				hitGroupShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(hitGroupName);
+				shaderIdToStringMap[hitGroupShaderIDs[i]] = hitGroupName;
 			}
-			for (UINT r = 0; r < IntersectionShaderType::Count; r++)
-				for (UINT c = 0; c < RayType::Count; c++)
-				{
-					hitGroupShaderIDs_AABBGeometry[r][c] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_AABBGeometry[r][c]);
-					shaderIdToStringMap[hitGroupShaderIDs_AABBGeometry[r][c]] = c_hitGroupNames_AABBGeometry[r][c];
-				}
 		};
 
 		// Get shader identifiers.
 		UINT shaderIDSize;
 		{
 			ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
-			ThrowIfFailed(m_dxrStateObject.As(&stateObjectProperties));
+			ThrowIfFailed(m_rayTracingState->getBuilded().As(&stateObjectProperties));
 			GetShaderIDs(stateObjectProperties.Get());
 			shaderIDSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
 		}
@@ -71,18 +67,13 @@ namespace RtxEngine
 		/*************--------- Shader table layout -------*******************
 		| --------------------------------------------------------------------
 		| Shader table - HitGroupShaderTable:
-		| [0] : MyHitGroup_Triangle
-		| [1] : MyHitGroup_Triangle_ShadowRay
-		| [2] : MyHitGroup_AABB_AnalyticPrimitive
-		| [3] : MyHitGroup_AABB_AnalyticPrimitive_ShadowRay
-		| ...
-		| [6] : MyHitGroup_AABB_VolumetricPrimitive
-		| [7] : MyHitGroup_AABB_VolumetricPrimitive_ShadowRay
-		| [8] : MyHitGroup_AABB_SignedDistancePrimitive
-		| [9] : MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay,
-		| ...
-		| [20] : MyHitGroup_AABB_SignedDistancePrimitive
-		| [21] : MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay
+		| [0] : RayGen
+		| [1] : Miss 0
+		| ... : 
+		| [n + 1] : Miss n
+		| [n + 2] : Hitgroup 0
+		| ... : 
+		| [n + m + 1] : HitGroup m
 		| --------------------------------------------------------------------
 		**********************************************************************/
 
@@ -91,7 +82,7 @@ namespace RtxEngine
 			UINT numShaderRecords = 1;
 			UINT shaderRecordSize = shaderIDSize; // No root arguments
 
-			ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
+			::ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
 			rayGenShaderTable.push_back(ShaderRecord(rayGenShaderID, shaderRecordSize, nullptr, 0));
 			rayGenShaderTable.DebugPrint(shaderIdToStringMap);
 			m_rayGenShaderTable = rayGenShaderTable.GetResource();
@@ -99,11 +90,11 @@ namespace RtxEngine
 
 		// Miss shader table.
 		{
-			UINT numShaderRecords = RayType::Count;
+			UINT numShaderRecords = missShaderIDs.size();
 			UINT shaderRecordSize = shaderIDSize; // No root arguments
 
-			ShaderTable missShaderTable(device, numShaderRecords, shaderRecordSize, L"MissShaderTable");
-			for (UINT i = 0; i < RayType::Count; i++)
+			::ShaderTable missShaderTable(device, numShaderRecords, shaderRecordSize, L"MissShaderTable");
+			for (UINT i = 0; i < missShaderIDs.size(); i++)
 			{
 				missShaderTable.push_back(ShaderRecord(missShaderIDs[i], shaderIDSize, nullptr, 0));
 			}
@@ -114,47 +105,28 @@ namespace RtxEngine
 
 		// Hit group shader table.
 		{
-			UINT numShaderRecords = RayType::Count + IntersectionShaderType::TotalPrimitiveCount * RayType::Count;
-			UINT shaderRecordSize = shaderIDSize + LocalRootSignature::MaxRootArgumentsSize();
-			ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
+			UINT numShaderRecords = hitGroupShaderIDs.size();
+			UINT shaderRecordSize = shaderIDSize + ShaderCompatUtils::getMaxRootArgumentSize();
+			::ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
 
-			// Triangle geometry hit groups.
+			for (int i = 0; i < hitGroupShaderIDs.size(); ++i)
 			{
-				LocalRootSignature::Triangle::RootArguments rootArgs;
-				rootArgs.materialCb = m_planeMaterialCB;
+				const auto& entry = (*m_commonEntries)[i];
+				const auto& rootArgsMap = ShaderCompatUtils::getRootArguments();
+				const auto& rootArgVariant = rootArgsMap.at(entry.rootParametersId);
+				const auto& rootSignature = m_scene->getLocalSignatures().at(entry.rootParametersId);
 
-				for (auto& hitGroupShaderID : hitGroupShaderIDs_TriangleGeometry)
+				if (holds_alternative<RootArgument0>(rootArgVariant))
 				{
-					hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
+					RootArgument0 rootArguments = rootSignature->getRootArgument<RootArgument0>();
+					hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIDs[i], shaderIDSize, &rootArguments, sizeof(rootArguments)));
+				}
+				else
+				{
+					throw invalid_argument("Unexpected root argument type. Check the given id or the types in ShaderCompatUtils.h.");
 				}
 			}
 
-			// AABB geometry hit groups.
-			{
-				LocalRootSignature::AABB::RootArguments rootArgs;
-				UINT instanceIndex = 0;
-
-				// Create a shader record for each primitive.
-				for (UINT iShader = 0, instanceIndex = 0; iShader < IntersectionShaderType::Count; iShader++)
-				{
-					UINT numPrimitiveTypes = IntersectionShaderType::PerPrimitiveTypeCount(static_cast<IntersectionShaderType::Enum>(iShader));
-
-					// Primitives for each intersection shader.
-					for (UINT primitiveIndex = 0; primitiveIndex < numPrimitiveTypes; primitiveIndex++, instanceIndex++)
-					{
-						rootArgs.materialCb = m_aabbMaterialCB[instanceIndex];
-						rootArgs.aabbCB.instanceIndex = instanceIndex;
-						rootArgs.aabbCB.primitiveType = primitiveIndex;
-
-						// Ray types.
-						for (UINT r = 0; r < RayType::Count; r++)
-						{
-							auto& hitGroupShaderID = hitGroupShaderIDs_AABBGeometry[iShader][r];
-							hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-						}
-					}
-				}
-			}
 			hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
 			m_hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
 			m_hitGroupShaderTable = hitGroupShaderTable.GetResource();

@@ -1,3 +1,4 @@
+#include "../stdafx.h"
 #include "HitGroup.h"
 
 namespace RtxEngine

@@ -172,6 +172,8 @@
     <ClInclude Include="engine\HitGroup.h" />
     <ClInclude Include="engine\Payloads.h" />
     <ClInclude Include="engine\RayTracingState.h" />
+    <ClInclude Include="engine\RootArguments.h" />
+    <ClInclude Include="engine\RootComponents.h" />
     <ClInclude Include="engine\RootSignature.h" />
     <ClInclude Include="engine\Ray.h" />
     <ClInclude Include="engine\ShaderCompat.h" />

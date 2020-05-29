@@ -1,3 +1,4 @@
+#include "../stdafx.h"
 #include "RootSignature.h"
 
 namespace RtxEngine
@@ -7,8 +8,7 @@ namespace RtxEngine
 		m_builded(nullptr)
 	{}
 
-	template<typename T>
-	RootSignature::DescriptorRange RootSignature::createRange(SimpleEntry type, UINT baseReg, UINT numRegs, UINT space) const
+	RootSignature::DescriptorRange RootSignature::createRange(RootComponent, SimpleEntry type, UINT baseReg, UINT numRegs, UINT space) const
 	{
 		if (type == Constant)
 		{
@@ -16,19 +16,18 @@ namespace RtxEngine
 		}
 
 		CD3DX12_DESCRIPTOR_RANGE range;
-		range.Init(SimpleEntry, numRegs, baseReg, space);
+		range.Init(D3D12_DESCRIPTOR_RANGE_TYPE(type), numRegs, baseReg, space);
 	}
 
-	template<typename T>
-	void RootSignature::addEntry(SimpleEntry type, UINT reg, UINT space)
+	void RootSignature::addEntry(RootComponent component, SimpleEntry type, UINT reg, UINT space)
 	{
 		CD3DX12_ROOT_PARAMETER param;
 		switch (type)
 		{
-		case Constant: param.InitAsConstants(SizeOfInUint32(T), reg, space);
-		case CBV: param.InitAsConstantBufferView(reg, space);
-		case SRV: param.InitAsShaderResourceView(reg, space);
-		case UAV: param.InitAsUnorderedAccessView(reg, space);
+		case Constant: param.InitAsConstants(ShaderCompatUtils::getSize(component), reg, space); break;
+		case CBV: param.InitAsConstantBufferView(reg, space); break;
+		case SRV: param.InitAsShaderResourceView(reg, space);  break;
+		case UAV: param.InitAsUnorderedAccessView(reg, space);  break;
 		}
 		
 		m_params.push_back(param);
@@ -55,7 +54,6 @@ namespace RtxEngine
 		}
 		return m_builded;
 	}
-
 
 	void RootSignature::createLowLvl()
 	{

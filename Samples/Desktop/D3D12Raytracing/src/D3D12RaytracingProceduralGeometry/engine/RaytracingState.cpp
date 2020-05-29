@@ -1,3 +1,4 @@
+#include "../stdafx.h"
 #include "RayTracingState.h"
 #include "ShaderCompatUtils.h"
 #include "CompiledShaders\Raytracing.hlsl.h"
@@ -97,15 +98,15 @@ namespace RtxEngine
 		unordered_map<string, vector<LPCWSTR>> rootToHit;
 		for(const auto& entry : *m_shaderTableEntries)
 		{
-			rootToHit[entry.rootSignatureId].push_back(entry.hitGroupId.c_str());
+			rootToHit[entry.rootParametersId].push_back(entry.hitGroupId.c_str());
 		}
 
 		for (const auto& rootToHitEntry : rootToHit)
 		{
-			auto rootSignatureId = rootToHitEntry.first;
+			auto rootParametersId = rootToHitEntry.first;
 			auto hitGroupIds = rootToHitEntry.second;
 
-			const auto& rootSignature = m_scene->getLocalSignatures().at(rootSignatureId);
+			const auto& rootSignature = m_scene->getLocalSignatures().at(rootParametersId);
 			auto rootSignatureSO = raytracingPipeline->CreateSubobject<CD3DX12_LOCAL_ROOT_SIGNATURE_SUBOBJECT>();
 			rootSignatureSO->SetRootSignature(rootSignature->getBuilded().Get());
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ShaderCompatUtils.h"
-
 #include <memory>
 #include <unordered_map>
 #include <string>

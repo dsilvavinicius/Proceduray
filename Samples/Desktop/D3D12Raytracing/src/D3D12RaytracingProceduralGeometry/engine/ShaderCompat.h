@@ -1,5 +1,9 @@
 #pragma once
 
+#include "Payloads.h"
+#include "AttribStructs.h"
+#include "RootArguments.h"
+
 typedef UINT16 Index;
 
 struct Vertex
@@ -9,7 +13,3 @@ struct Vertex
 };
 
 #define MAX_RAY_RECURSION_DEPTH 3
-
-struct Placeholder0 {};
-
-struct Placeholder1 {};

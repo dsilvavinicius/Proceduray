@@ -1,4 +1,5 @@
 #pragma once
+
 #include "StaticScene.h"
 #include "ShaderTableEntry.h"
 
@@ -8,6 +9,7 @@ namespace RtxEngine
 	{
 	public:
 		RayTracingState(const StaticScenePtr& scene, const ShaderTableEntriesPtr& shaderTableEntries, const DxrDevicePtr& dxrDevice);
+		DxrStatePtr& getBuilded() { return m_dxrState; }
 	private:
 		void createDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
 		void createHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
@@ -18,4 +20,6 @@ namespace RtxEngine
 		DxrDevicePtr m_dxrDevice;
 		DxrStatePtr m_dxrState;
 	};
+
+	using RayTracingStatePtr = shared_ptr<RayTracingState>;
 }

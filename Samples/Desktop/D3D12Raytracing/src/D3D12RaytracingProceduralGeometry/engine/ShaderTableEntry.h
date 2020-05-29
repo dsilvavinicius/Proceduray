@@ -14,7 +14,7 @@ namespace RtxEngine
 		string rayId;
 		string geometryId;
 		wstring hitGroupId;
-		string rootSignatureId;
+		string rootParametersId;
 	};
 
 	using ShaderTableEntries = vector<ShaderTableEntry>;
