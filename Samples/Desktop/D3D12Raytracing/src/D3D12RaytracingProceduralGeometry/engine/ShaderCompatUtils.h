@@ -20,8 +20,8 @@ namespace RtxEngine
 	using RootComponentMap = unordered_map<string, RootComponent>;
 	
 	// Root arguments
-	using RootArgument = variant<RootArgument0>;
-	using RootArgumentMap = unordered_map<string, RootArgument>;
+	using RootArguments = variant<RootArguments0>;
+	using RootArgumentsMap = unordered_map<string, RootArguments>;
 	
 	// Attrib structs
 	using AttribStruct = variant<AttribStruct0>;
@@ -57,7 +57,19 @@ namespace RtxEngine
 			}
 		}
 
-		static const RootArgumentMap& getRootArguments() { return m_rootArguments; }
+		//static const RootArgumentsMap& getRootArgsMap() { return m_rootArguments; }
+
+		static void* getRootArguments(RootArguments& rootArguments)
+		{
+			if (auto rootArgsPtr = std::get_if<RootArguments0>(&rootArguments))
+			{
+				return rootArgsPtr;
+			}
+			else
+			{
+				throw invalid_argument("Unexpected root argument type. Check the types in ShaderCompatUtils.h.");
+			}
+		}
 
 		/*static bool checkStruct(const string& structName)
 		{
@@ -80,7 +92,7 @@ namespace RtxEngine
 				m_rootComponents["RootComponent0"] = RootComponent0();
 				m_rootComponents["RootComponent1"] = RootComponent1();
 
-				m_rootArguments["RootArgument0"] = RootArgument0();
+				m_rootArguments["RootArguments0"] = RootArguments0();
 
 				m_maxPayloadSize = 0u;
 				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(RadiancePayload)));
@@ -90,7 +102,7 @@ namespace RtxEngine
 				m_maxAttribStructSize = max(m_maxAttribStructSize, UINT(sizeof(AttribStruct0)));
 
 				m_maxRootArgumentSize = 0u;
-				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(RootArgument0)));
+				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(RootArguments0)));
 			}
 		};
 
@@ -98,7 +110,7 @@ namespace RtxEngine
 		static PayloadMap m_payloads;
 		static AttribStructMap m_attribStructs;
 		static RootComponentMap m_rootComponents;
-		static RootArgumentMap m_rootArguments;
+		static RootArgumentsMap m_rootArguments;
 		
 		static UINT m_maxPayloadSize;
 		static UINT m_maxAttribStructSize;

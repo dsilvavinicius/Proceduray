@@ -112,19 +112,9 @@ namespace RtxEngine
 			for (int i = 0; i < hitGroupShaderIDs.size(); ++i)
 			{
 				const auto& entry = (*m_commonEntries)[i];
-				const auto& rootArgsMap = ShaderCompatUtils::getRootArguments();
-				const auto& rootArgVariant = rootArgsMap.at(entry.rootParametersId);
 				const auto& rootSignature = m_scene->getLocalSignatures().at(entry.rootParametersId);
-
-				if (holds_alternative<RootArgument0>(rootArgVariant))
-				{
-					RootArgument0 rootArguments = rootSignature->getRootArgument<RootArgument0>();
-					hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIDs[i], shaderIDSize, &rootArguments, sizeof(rootArguments)));
-				}
-				else
-				{
-					throw invalid_argument("Unexpected root argument type. Check the given id or the types in ShaderCompatUtils.h.");
-				}
+				void* rootArguments = rootSignature->getRootArguments();
+				hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIDs[i], shaderIDSize, rootArguments, sizeof(rootArguments)));
 			}
 
 			hitGroupShaderTable.DebugPrint(shaderIdToStringMap);

@@ -43,11 +43,9 @@ namespace RtxEngine
 		/** Adds a static sampler to the heap.*/
 		void addStaticSampler();
 
-		template<typename RootArg>
-		void setRootArgument(const RootArg& rootArgument) { m_rootArgument = rootArgument; }
+		void setRootArguments(const RootArguments& rootArgument) { m_rootArgument = rootArgument; }
 
-		template<typename RootArg>
-		const RootArg& getRootArgument() { return m_rootArgument; }
+		void* getRootArguments() { return ShaderCompatUtils::getRootArguments(m_rootArgument); }
 
 		ComPtr<ID3D12RootSignature>& getBuilded();
 	private:
@@ -59,7 +57,7 @@ namespace RtxEngine
 
 		DeviceResourcesPtr m_device;
 		vector<CD3DX12_ROOT_PARAMETER> m_params;
-		RootArgument m_rootArgument;
+		RootArguments m_rootArgument;
 		ComPtr<ID3D12RootSignature> m_builded;
 	};
 
