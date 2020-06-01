@@ -1,7 +1,7 @@
 #pragma once
 
 #include "StaticScene.h"
-#include "ShaderTableEntry.h"
+#include "ShaderTableShared.h"
 #include "RayTracingState.h"
 #include <wrl/client.h>
 
@@ -20,9 +20,11 @@ namespace RtxEngine
 		
 		const ShaderTableEntriesPtr& getCommonEntries() const { return m_commonEntries; }
 		
-		void build();
+		const BuildedShaderTablePtr& getBuilded();
 
 	private:
+		void build();
+
 		StaticScenePtr m_scene;
 		DeviceResourcesPtr m_deviceResources;
 		RayTracingStatePtr m_rayTracingState;
@@ -31,11 +33,7 @@ namespace RtxEngine
 		vector<string> m_missEntries;
 		ShaderTableEntriesPtr m_commonEntries;
 
-		ComPtr<ID3D12Resource> m_missShaderTable;
-		UINT m_missShaderTableStrideInBytes;
-		ComPtr<ID3D12Resource> m_hitGroupShaderTable;
-		UINT m_hitGroupShaderTableStrideInBytes;
-		ComPtr<ID3D12Resource> m_rayGenShaderTable;
+		BuildedShaderTablePtr m_buildedShaderTable = nullptr;
 	};
 
 	using ShaderTablePtr = shared_ptr<ShaderTable>;

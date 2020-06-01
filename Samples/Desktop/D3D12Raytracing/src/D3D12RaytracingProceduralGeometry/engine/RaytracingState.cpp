@@ -6,11 +6,18 @@
 
 namespace RtxEngine
 {
-	RayTracingState::RayTracingState(const StaticScenePtr& scene, const ShaderTableEntriesPtr& shaderTableEntries, const DxrDevicePtr& dxrDevice)
+	RayTracingState::RayTracingState(const StaticScenePtr& scene, const ShaderTableEntriesPtr& shaderTableEntries, const DxrDevicePtr& dxrDevice,
+		const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap)
 		: m_scene(scene),
 		m_shaderTableEntries(shaderTableEntries),
-		m_dxrDevice(dxrDevice)
+		m_dxrDevice(dxrDevice),
+		m_deviceResources(deviceResources),
+		m_descriptorHeap(descriptorHeap)
 	{
+		auto device = m_deviceResources->GetD3DDevice();
+		auto commandQueue = m_deviceResources->GetCommandQueue();
+		m_gpuTimer.RestoreDevice(device, commandQueue, m_deviceResources->GetBackBufferCount());
+
 		CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
 		// DXIL library
@@ -45,6 +52,11 @@ namespace RtxEngine
 
 		// Create the state object.
 		ThrowIfFailed(m_dxrDevice->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&m_dxrState)), L"Couldn't create DirectX Raytracing state object.\n");
+	}
+
+	RayTracingState::~RayTracingState()
+	{
+		m_gpuTimer.ReleaseDevice();
 	}
 
 	// DXIL library
@@ -118,5 +130,58 @@ namespace RtxEngine
 				rootSignatureAssociation->AddExports(hitGroupIds.data(), hitGroupIds.size());
 			}
 		}
+	}
+
+	void RayTracingState::doRayTracing(const BuildedShaderTablePtr& shaderTable)
+	{
+		auto commandList = m_deviceResources->GetCommandList();
+		auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+
+		auto DispatchRays = [&](auto* raytracingCommandList, auto* stateObject, auto* dispatchDesc)
+		{
+			dispatchDesc->HitGroupTable.StartAddress = shaderTable->hitGroupShaderTable->GetGPUVirtualAddress();
+			dispatchDesc->HitGroupTable.SizeInBytes = shaderTable->hitGroupShaderTable->GetDesc().Width;
+			dispatchDesc->HitGroupTable.StrideInBytes = shaderTable->hitGroupShaderTableStrideInBytes;
+			dispatchDesc->MissShaderTable.StartAddress = shaderTable->missShaderTable->GetGPUVirtualAddress();
+			dispatchDesc->MissShaderTable.SizeInBytes = shaderTable->missShaderTable->GetDesc().Width;
+			dispatchDesc->MissShaderTable.StrideInBytes = shaderTable->missShaderTableStrideInBytes;
+			dispatchDesc->RayGenerationShaderRecord.StartAddress = shaderTable->rayGenShaderTable->GetGPUVirtualAddress();
+			dispatchDesc->RayGenerationShaderRecord.SizeInBytes = shaderTable->rayGenShaderTable->GetDesc().Width;
+			dispatchDesc->Width = m_width;
+			dispatchDesc->Height = m_height;
+			dispatchDesc->Depth = 1;
+			raytracingCommandList->SetPipelineState1(stateObject);
+
+			m_gpuTimer.Start(commandList);
+			raytracingCommandList->DispatchRays(dispatchDesc);
+			m_gpuTimer.Stop(commandList);
+		};
+
+		auto SetCommonPipelineState = [&](auto* descriptorSetCommandList)
+		{
+			descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap->getDxrDescriptorHeap().GetAddressOf());
+			// CONTINUE HERE!!!!
+			
+			// Set index and successive vertex buffer decriptor tables.
+			commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::VertexBuffers, m_indexBuffer.gpuDescriptorHandle);
+			commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, m_raytracingOutputResourceUAVGpuDescriptor);
+		};
+
+		commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
+
+		// Copy dynamic buffers to GPU.
+		{
+			m_sceneCB.CopyStagingToGpu(frameIndex);
+			commandList->SetComputeRootConstantBufferView(GlobalRootSignature::Slot::SceneConstant, m_sceneCB.GpuVirtualAddress(frameIndex));
+
+			m_aabbPrimitiveAttributeBuffer.CopyStagingToGpu(frameIndex);
+			commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::AABBattributeBuffer, m_aabbPrimitiveAttributeBuffer.GpuVirtualAddress(frameIndex));
+		}
+
+		// Bind the heaps, acceleration structure and dispatch rays.  
+		D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
+		SetCommonPipelineState(commandList);
+		commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::AccelerationStructure, m_topLevelAS->GetGPUVirtualAddress());
+		DispatchRays(m_dxrCommandList.Get(), m_dxrStateObject.Get(), &dispatchDesc);
 	}
 }

@@ -129,6 +129,11 @@
     <ClInclude Include="engine\AttribStructs.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
+    <ClInclude Include="engine\RootArguments.h" />
+    <ClInclude Include="engine\RootComponents.h" />
+    <ClInclude Include="engine\ShaderTableEntry.h">
+      <Filter>Header Files\engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

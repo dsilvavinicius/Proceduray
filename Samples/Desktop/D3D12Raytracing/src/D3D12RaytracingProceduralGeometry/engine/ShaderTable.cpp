@@ -26,6 +26,16 @@ namespace RtxEngine
 		m_commonEntries->push_back(entry);
 	}
 
+	const BuildedShaderTablePtr& ShaderTable::getBuilded()
+	{
+		if (m_buildedShaderTable == nullptr)
+		{
+			build();
+		}
+
+		return m_buildedShaderTable;
+	}
+
 	void ShaderTable::build()
 	{
 		auto device = m_deviceResources->GetD3DDevice();
@@ -85,7 +95,7 @@ namespace RtxEngine
 			::ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
 			rayGenShaderTable.push_back(ShaderRecord(rayGenShaderID, shaderRecordSize, nullptr, 0));
 			rayGenShaderTable.DebugPrint(shaderIdToStringMap);
-			m_rayGenShaderTable = rayGenShaderTable.GetResource();
+			m_buildedShaderTable.rayGenShaderTable = rayGenShaderTable.GetResource();
 		}
 
 		// Miss shader table.
@@ -99,8 +109,8 @@ namespace RtxEngine
 				missShaderTable.push_back(ShaderRecord(missShaderIDs[i], shaderIDSize, nullptr, 0));
 			}
 			missShaderTable.DebugPrint(shaderIdToStringMap);
-			m_missShaderTableStrideInBytes = missShaderTable.GetShaderRecordSize();
-			m_missShaderTable = missShaderTable.GetResource();
+			m_buildedShaderTable.missShaderTableStrideInBytes = missShaderTable.GetShaderRecordSize();
+			m_buildedShaderTable.missShaderTable = missShaderTable.GetResource();
 		}
 
 		// Hit group shader table.
@@ -118,8 +128,8 @@ namespace RtxEngine
 			}
 
 			hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
-			m_hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
-			m_hitGroupShaderTable = hitGroupShaderTable.GetResource();
+			m_buildedShaderTable.hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
+			m_buildedShaderTable.hitGroupShaderTable = hitGroupShaderTable.GetResource();
 		}
 	}
 }

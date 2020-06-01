@@ -2,10 +2,13 @@
 
 // The type of the ray payloads that are passed through the shaders.
 
-struct RadiancePayload
+struct RayPayload
 {
+	XMFLOAT4 color;
+	UINT   recursionDepth;
 };
 
-struct ShadowPayload
+struct ShadowRayPayload
 {
+	bool hit;
 };

@@ -10,60 +10,57 @@
 //*********************************************************
 
 #include "stdafx.h"
-#include "D3D12RaytracingProceduralGeometry.h"
+#include "ProceduralRtxEngineSample.h"
 #include "CompiledShaders\Raytracing.hlsl.h"
 
 using namespace std;
 using namespace DX;
 
 // Shader entry points.
-const wchar_t* D3D12RaytracingProceduralGeometry::c_raygenShaderName = L"MyRaygenShader";
-const wchar_t* D3D12RaytracingProceduralGeometry::c_intersectionShaderNames[] =
+const wchar_t* ProceduralRtxEngineSample::c_raygenShaderName = L"MyRaygenShader";
+const wchar_t* ProceduralRtxEngineSample::c_intersectionShaderNames[] =
 {
 	L"MyIntersectionShader_AnalyticPrimitive",
 	L"MyIntersectionShader_VolumetricPrimitive",
 	L"MyIntersectionShader_SignedDistancePrimitive",
 };
-const wchar_t* D3D12RaytracingProceduralGeometry::c_closestHitShaderNames[] =
+const wchar_t* ProceduralRtxEngineSample::c_closestHitShaderNames[] =
 {
 	L"MyClosestHitShader_Triangle",
 	L"MyClosestHitShader_AABB",
 };
-const wchar_t* D3D12RaytracingProceduralGeometry::c_missShaderNames[] =
+const wchar_t* ProceduralRtxEngineSample::c_missShaderNames[] =
 {
 	L"MyMissShader", L"MyMissShader_ShadowRay"
 };
 // Hit groups.
-const wchar_t* D3D12RaytracingProceduralGeometry::c_hitGroupNames_TriangleGeometry[] =
+const wchar_t* ProceduralRtxEngineSample::c_hitGroupNames_TriangleGeometry[] =
 {
 	L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay"
 };
-const wchar_t* D3D12RaytracingProceduralGeometry::c_hitGroupNames_AABBGeometry[][RayType::Count] =
+const wchar_t* ProceduralRtxEngineSample::c_hitGroupNames_AABBGeometry[][RayType::Count] =
 {
 	{ L"MyHitGroup_AABB_AnalyticPrimitive", L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay" },
 	{ L"MyHitGroup_AABB_VolumetricPrimitive", L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay" },
 	{ L"MyHitGroup_AABB_SignedDistancePrimitive", L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay" },
 };
 
-D3D12RaytracingProceduralGeometry::D3D12RaytracingProceduralGeometry(UINT width, UINT height, std::wstring name) :
+ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
 	m_raytracingOutputResourceUAVDescriptorHeapIndex(UINT_MAX),
 	m_animateGeometryTime(0.0f),
 	m_animateCamera(false),
 	m_animateGeometry(true),
 	m_animateLight(false),
-	m_descriptorsAllocated(0),
-	m_descriptorSize(0),
-	m_missShaderTableStrideInBytes(UINT_MAX),
-	m_hitGroupShaderTableStrideInBytes(UINT_MAX)
+	m_scene(make_shared<StaticScene>())
 {
 	UpdateForSizeChange(width, height);
 }
 
 
-void D3D12RaytracingProceduralGeometry::OnInit()
+void ProceduralRtxEngineSample::OnInit()
 {
-	m_deviceResources = std::make_unique<DeviceResources>(
+	m_deviceResources = std::make_shared<DeviceResources>(
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		DXGI_FORMAT_UNKNOWN,
 		FrameCount,
@@ -90,7 +87,7 @@ void D3D12RaytracingProceduralGeometry::OnInit()
 }
 
 // Update camera matrices passed into the shader.
-void D3D12RaytracingProceduralGeometry::UpdateCameraMatrices()
+void ProceduralRtxEngineSample::UpdateCameraMatrices()
 {
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
@@ -103,7 +100,7 @@ void D3D12RaytracingProceduralGeometry::UpdateCameraMatrices()
 }
 
 // Update AABB primite attributes buffers passed into the shader.
-void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float animationTime)
+void ProceduralRtxEngineSample::UpdateAABBPrimitiveAttributes(float animationTime)
 {
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
@@ -162,7 +159,7 @@ void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float anim
 }
 
 // Initialize scene rendering parameters.
-void D3D12RaytracingProceduralGeometry::InitializeScene()
+void ProceduralRtxEngineSample::InitializeScene()
 {
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
@@ -261,7 +258,7 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
 }
 
 // Create constant buffers.
-void D3D12RaytracingProceduralGeometry::CreateConstantBuffers()
+void ProceduralRtxEngineSample::CreateConstantBuffers()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto frameCount = m_deviceResources->GetBackBufferCount();
@@ -270,7 +267,7 @@ void D3D12RaytracingProceduralGeometry::CreateConstantBuffers()
 }
 
 // Create AABB primitive attributes buffers.
-void D3D12RaytracingProceduralGeometry::CreateAABBPrimitiveAttributesBuffers()
+void ProceduralRtxEngineSample::CreateAABBPrimitiveAttributesBuffers()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto frameCount = m_deviceResources->GetBackBufferCount();
@@ -278,7 +275,7 @@ void D3D12RaytracingProceduralGeometry::CreateAABBPrimitiveAttributesBuffers()
 }
 
 // Create resources that depend on the device.
-void D3D12RaytracingProceduralGeometry::CreateDeviceDependentResources()
+void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 {
 	CreateAuxilaryDeviceResources();
 
@@ -315,7 +312,7 @@ void D3D12RaytracingProceduralGeometry::CreateDeviceDependentResources()
 	CreateRaytracingOutputResource();
 }
 
-void D3D12RaytracingProceduralGeometry::SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig)
+void ProceduralRtxEngineSample::SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig)
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	ComPtr<ID3DBlob> blob;
@@ -325,7 +322,7 @@ void D3D12RaytracingProceduralGeometry::SerializeAndCreateRaytracingRootSignatur
 	ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig))));
 }
 
-void D3D12RaytracingProceduralGeometry::CreateRootSignatures()
+void ProceduralRtxEngineSample::CreateRootSignatures()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 
@@ -375,7 +372,7 @@ void D3D12RaytracingProceduralGeometry::CreateRootSignatures()
 }
 
 // Create raytracing device and command list.
-void D3D12RaytracingProceduralGeometry::CreateRaytracingInterfaces()
+void ProceduralRtxEngineSample::CreateRaytracingInterfaces()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto commandList = m_deviceResources->GetCommandList();
@@ -387,7 +384,7 @@ void D3D12RaytracingProceduralGeometry::CreateRaytracingInterfaces()
 // DXIL library
 // This contains the shaders and their entrypoints for the state object.
 // Since shaders are not considered a subobject, they need to be passed in via DXIL library subobjects.
-void D3D12RaytracingProceduralGeometry::CreateDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
+void ProceduralRtxEngineSample::CreateDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
 {
 	auto lib = raytracingPipeline->CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
 	D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE((void*)g_pRaytracing, ARRAYSIZE(g_pRaytracing));
@@ -398,7 +395,7 @@ void D3D12RaytracingProceduralGeometry::CreateDxilLibrarySubobject(CD3DX12_STATE
 // Hit groups
 // A hit group specifies closest hit, any hit and intersection shaders 
 // to be executed when a ray intersects the geometry.
-void D3D12RaytracingProceduralGeometry::CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
+void ProceduralRtxEngineSample::CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
 {
 	// Triangle geometry hit groups
 	{
@@ -434,7 +431,7 @@ void D3D12RaytracingProceduralGeometry::CreateHitGroupSubobjects(CD3DX12_STATE_O
 
 // Local root signature and shader association
 // This is a root signature that enables a shader to have unique arguments that come from shader tables.
-void D3D12RaytracingProceduralGeometry::CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
+void ProceduralRtxEngineSample::CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
 {
 	// Ray gen and miss shaders in this sample are not using a local root signature and thus one is not associated with them.
 
@@ -466,7 +463,7 @@ void D3D12RaytracingProceduralGeometry::CreateLocalRootSignatureSubobjects(CD3DX
 // Create a raytracing pipeline state object (RTPSO).
 // An RTPSO represents a full set of shaders reachable by a DispatchRays() call,
 // with all configuration options resolved, such as local signatures and other state.
-void D3D12RaytracingProceduralGeometry::CreateRaytracingPipelineStateObject()
+void ProceduralRtxEngineSample::CreateRaytracingPipelineStateObject()
 {
 	// Create 18 subobjects that combine into a RTPSO:
 	// Subobjects need to be associated with DXIL exports (i.e. shaders) either by way of default or explicit associations.
@@ -518,7 +515,7 @@ void D3D12RaytracingProceduralGeometry::CreateRaytracingPipelineStateObject()
 }
 
 // Create a 2D output texture for raytracing.
-void D3D12RaytracingProceduralGeometry::CreateRaytracingOutputResource()
+void ProceduralRtxEngineSample::CreateRaytracingOutputResource()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto backbufferFormat = m_deviceResources->GetBackBufferFormat();
@@ -539,7 +536,7 @@ void D3D12RaytracingProceduralGeometry::CreateRaytracingOutputResource()
 	m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
 }
 
-void D3D12RaytracingProceduralGeometry::CreateAuxilaryDeviceResources()
+void ProceduralRtxEngineSample::CreateAuxilaryDeviceResources()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto commandQueue = m_deviceResources->GetCommandQueue();
@@ -550,7 +547,7 @@ void D3D12RaytracingProceduralGeometry::CreateAuxilaryDeviceResources()
 	}
 }
 
-void D3D12RaytracingProceduralGeometry::CreateDescriptorHeap()
+void ProceduralRtxEngineSample::CreateDescriptorHeap()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 
@@ -569,7 +566,7 @@ void D3D12RaytracingProceduralGeometry::CreateDescriptorHeap()
 }
 
 // Build AABBs for procedural geometry within a bottom-level acceleration structure.
-void D3D12RaytracingProceduralGeometry::BuildProceduralGeometryAABBs()
+void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 
@@ -628,7 +625,7 @@ void D3D12RaytracingProceduralGeometry::BuildProceduralGeometryAABBs()
 	}
 }
 
-void D3D12RaytracingProceduralGeometry::BuildPlaneGeometry()
+void ProceduralRtxEngineSample::BuildPlaneGeometry()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	// Plane indices.
@@ -658,14 +655,14 @@ void D3D12RaytracingProceduralGeometry::BuildPlaneGeometry()
 }
 
 // Build geometry used in the sample.
-void D3D12RaytracingProceduralGeometry::BuildGeometry()
+void ProceduralRtxEngineSample::BuildGeometry()
 {
 	BuildProceduralGeometryAABBs();
 	BuildPlaneGeometry();
 }
 
 // Build geometry descs for bottom-level AS.
-void D3D12RaytracingProceduralGeometry::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs)
+void ProceduralRtxEngineSample::BuildGeometryDescsForBottomLevelAS(array<vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs)
 {
 	// Mark the geometry as opaque. 
 	// PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
@@ -713,7 +710,7 @@ void D3D12RaytracingProceduralGeometry::BuildGeometryDescsForBottomLevelAS(array
 	}
 }
 
-AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildBottomLevelAS(const vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags)
+AccelerationStructureBuffers ProceduralRtxEngineSample::BuildBottomLevelAS(const vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags)
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto commandList = m_deviceResources->GetCommandList();
@@ -765,7 +762,7 @@ AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildBottomLevel
 }
 
 template <class InstanceDescType, class BLASPtrType>
-void D3D12RaytracingProceduralGeometry::BuildBotomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource)
+void ProceduralRtxEngineSample::BuildBotomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource)
 {
 	auto device = m_deviceResources->GetD3DDevice();
 
@@ -819,7 +816,7 @@ void D3D12RaytracingProceduralGeometry::BuildBotomLevelASInstanceDescs(BLASPtrTy
 	AllocateUploadBuffer(device, instanceDescs.data(), bufferSize, &(*instanceDescsResource), L"InstanceDescs");
 };
 
-AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildTopLevelAS(AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags)
+AccelerationStructureBuffers ProceduralRtxEngineSample::BuildTopLevelAS(AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags)
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto commandList = m_deviceResources->GetCommandList();
@@ -883,7 +880,7 @@ AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildTopLevelAS(
 }
 
 // Build acceleration structure needed for raytracing.
-void D3D12RaytracingProceduralGeometry::BuildAccelerationStructures()
+void ProceduralRtxEngineSample::BuildAccelerationStructures()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto commandList = m_deviceResources->GetCommandList();
@@ -933,7 +930,7 @@ void D3D12RaytracingProceduralGeometry::BuildAccelerationStructures()
 
 // Build shader tables.
 // This encapsulates all shader records - shaders and the arguments for their local root signatures.
-void D3D12RaytracingProceduralGeometry::BuildShaderTables()
+void ProceduralRtxEngineSample::BuildShaderTables()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 
@@ -1070,7 +1067,7 @@ void D3D12RaytracingProceduralGeometry::BuildShaderTables()
 	}
 }
 
-void D3D12RaytracingProceduralGeometry::OnKeyDown(UINT8 key)
+void ProceduralRtxEngineSample::OnKeyDown(UINT8 key)
 {
 	switch (key)
 	{
@@ -1087,7 +1084,7 @@ void D3D12RaytracingProceduralGeometry::OnKeyDown(UINT8 key)
 }
 
 // Update frame-based values.
-void D3D12RaytracingProceduralGeometry::OnUpdate()
+void ProceduralRtxEngineSample::OnUpdate()
 {
 	m_timer.Tick();
 	CalculateFrameStats();
@@ -1126,7 +1123,7 @@ void D3D12RaytracingProceduralGeometry::OnUpdate()
 	m_sceneCB->elapsedTime = m_animateGeometryTime;
 }
 
-void D3D12RaytracingProceduralGeometry::DoRaytracing()
+void ProceduralRtxEngineSample::DoRaytracing()
 {
 	auto commandList = m_deviceResources->GetCommandList();
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
@@ -1178,13 +1175,13 @@ void D3D12RaytracingProceduralGeometry::DoRaytracing()
 }
 
 // Update the application state with the new resolution.
-void D3D12RaytracingProceduralGeometry::UpdateForSizeChange(UINT width, UINT height)
+void ProceduralRtxEngineSample::UpdateForSizeChange(UINT width, UINT height)
 {
 	DXSample::UpdateForSizeChange(width, height);
 }
 
 // Copy the raytracing output to the backbuffer.
-void D3D12RaytracingProceduralGeometry::CopyRaytracingOutputToBackbuffer()
+void ProceduralRtxEngineSample::CopyRaytracingOutputToBackbuffer()
 {
 	auto commandList = m_deviceResources->GetCommandList();
 	auto renderTarget = m_deviceResources->GetRenderTarget();
@@ -1204,20 +1201,20 @@ void D3D12RaytracingProceduralGeometry::CopyRaytracingOutputToBackbuffer()
 }
 
 // Create resources that are dependent on the size of the main window.
-void D3D12RaytracingProceduralGeometry::CreateWindowSizeDependentResources()
+void ProceduralRtxEngineSample::CreateWindowSizeDependentResources()
 {
 	CreateRaytracingOutputResource();
 	UpdateCameraMatrices();
 }
 
 // Release resources that are dependent on the size of the main window.
-void D3D12RaytracingProceduralGeometry::ReleaseWindowSizeDependentResources()
+void ProceduralRtxEngineSample::ReleaseWindowSizeDependentResources()
 {
 	m_raytracingOutput.Reset();
 }
 
 // Release all resources that depend on the device.
-void D3D12RaytracingProceduralGeometry::ReleaseDeviceDependentResources()
+void ProceduralRtxEngineSample::ReleaseDeviceDependentResources()
 {
 	for (auto& gpuTimer : m_gpuTimers)
 	{
@@ -1252,7 +1249,7 @@ void D3D12RaytracingProceduralGeometry::ReleaseDeviceDependentResources()
 	m_hitGroupShaderTable.Reset();
 }
 
-void D3D12RaytracingProceduralGeometry::RecreateD3D()
+void ProceduralRtxEngineSample::RecreateD3D()
 {
 	// Give GPU a chance to finish its execution in progress.
 	try
@@ -1267,7 +1264,7 @@ void D3D12RaytracingProceduralGeometry::RecreateD3D()
 }
 
 // Render the scene.
-void D3D12RaytracingProceduralGeometry::OnRender()
+void ProceduralRtxEngineSample::OnRender()
 {
 	if (!m_deviceResources->IsWindowVisible())
 	{
@@ -1296,7 +1293,7 @@ void D3D12RaytracingProceduralGeometry::OnRender()
 	m_deviceResources->Present(D3D12_RESOURCE_STATE_PRESENT);
 }
 
-void D3D12RaytracingProceduralGeometry::OnDestroy()
+void ProceduralRtxEngineSample::OnDestroy()
 {
 	// Let GPU finish before releasing D3D resources.
 	m_deviceResources->WaitForGpu();
@@ -1304,21 +1301,21 @@ void D3D12RaytracingProceduralGeometry::OnDestroy()
 }
 
 // Release all device dependent resouces when a device is lost.
-void D3D12RaytracingProceduralGeometry::OnDeviceLost()
+void ProceduralRtxEngineSample::OnDeviceLost()
 {
 	ReleaseWindowSizeDependentResources();
 	ReleaseDeviceDependentResources();
 }
 
 // Create all device dependent resources when a device is restored.
-void D3D12RaytracingProceduralGeometry::OnDeviceRestored()
+void ProceduralRtxEngineSample::OnDeviceRestored()
 {
 	CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
 }
 
 // Compute the average frames per second and million rays per second.
-void D3D12RaytracingProceduralGeometry::CalculateFrameStats()
+void ProceduralRtxEngineSample::CalculateFrameStats()
 {
 	static int frameCnt = 0;
 	static double prevTime = 0.0f;
@@ -1348,7 +1345,7 @@ void D3D12RaytracingProceduralGeometry::CalculateFrameStats()
 }
 
 // Handle OnSizeChanged message event.
-void D3D12RaytracingProceduralGeometry::OnSizeChanged(UINT width, UINT height, bool minimized)
+void ProceduralRtxEngineSample::OnSizeChanged(UINT width, UINT height, bool minimized)
 {
 	if (!m_deviceResources->WindowSizeChanged(width, height, minimized))
 	{
@@ -1363,7 +1360,7 @@ void D3D12RaytracingProceduralGeometry::OnSizeChanged(UINT width, UINT height, b
 
 // Allocate a descriptor and return its index. 
 // If the passed descriptorIndexToUse is valid, it will be used instead of allocating a new one.
-UINT D3D12RaytracingProceduralGeometry::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
+UINT ProceduralRtxEngineSample::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
 {
 	auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	if (descriptorIndexToUse >= m_descriptorHeap->GetDesc().NumDescriptors)
@@ -1376,7 +1373,7 @@ UINT D3D12RaytracingProceduralGeometry::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_
 }
 
 // Create a SRV for a buffer.
-UINT D3D12RaytracingProceduralGeometry::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize)
+UINT ProceduralRtxEngineSample::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize)
 {
 	auto device = m_deviceResources->GetD3DDevice();
 

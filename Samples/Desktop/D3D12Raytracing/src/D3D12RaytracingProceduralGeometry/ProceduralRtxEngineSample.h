@@ -13,14 +13,19 @@
 
 #include "DXSample.h"
 #include "StepTimer.h"
-#include "RaytracingSceneDefines.h"
-#include "DirectXRaytracingHelper.h"
 #include "PerformanceTimers.h"
+#include "engine/StaticScene.h"
+#include "engine/DescriptorHeap.h"
+#include "engine/AccelerationStructure.h"
+#include "engine/RayTracingState.h"
+#include "engine/ShaderTable.h"
 
-class D3D12RaytracingProceduralGeometry : public DXSample
+using namespace RtxEngine;
+
+class ProceduralRtxEngineSample : public DXSample
 {
 public:
-	D3D12RaytracingProceduralGeometry(UINT width, UINT height, std::wstring name);
+	ProceduralRtxEngineSample(UINT width, UINT height, std::wstring name);
 
 	// IDeviceNotify
 	virtual void OnDeviceLost() override;
@@ -46,16 +51,12 @@ private:
 	// DirectX Raytracing (DXR) attributes
 	ComPtr<ID3D12Device5> m_dxrDevice;
 	ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
-	ComPtr<ID3D12StateObject> m_dxrStateObject;
 
-	// Root signatures
-	ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
-	ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature[LocalRootSignature::Type::Count];
-
-	// Descriptors
-	ComPtr<ID3D12DescriptorHeap> m_descriptorHeap;
-	UINT m_descriptorsAllocated;
-	UINT m_descriptorSize;
+	StaticScenePtr m_scene;
+	DescriptorHeapPtr m_descriptorHeap = nullptr;
+	AccelerationStructurePtr m_accelerationStruct = nullptr;
+	RayTracingStatePtr m_rayTracingState = nullptr;
+	ShaderTablePtr m_shaderTable = nullptr;
 
 	// Raytracing scene
 	ConstantBuffer<SceneConstantBuffer> m_sceneCB;
@@ -66,33 +67,10 @@ private:
 	PrimitiveConstantBuffer m_planeMaterialCB;
 	PrimitiveConstantBuffer m_aabbMaterialCB[IntersectionShaderType::TotalPrimitiveCount];
 
-	// Geometry
-	D3DBuffer m_indexBuffer;
-	D3DBuffer m_vertexBuffer;
-	D3DBuffer m_aabbBuffer;
-
-	// Acceleration structure
-	ComPtr<ID3D12Resource> m_bottomLevelAS[BottomLevelASType::Count];
-	ComPtr<ID3D12Resource> m_topLevelAS;
-
 	// Raytracing output
 	ComPtr<ID3D12Resource> m_raytracingOutput;
 	D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;
 	UINT m_raytracingOutputResourceUAVDescriptorHeapIndex;
-
-	// Shader tables
-	static const wchar_t* c_hitGroupNames_TriangleGeometry[RayType::Count];
-	static const wchar_t* c_hitGroupNames_AABBGeometry[IntersectionShaderType::Count][RayType::Count];
-	static const wchar_t* c_raygenShaderName;
-	static const wchar_t* c_intersectionShaderNames[IntersectionShaderType::Count];
-	static const wchar_t* c_closestHitShaderNames[GeometryType::Count];
-	static const wchar_t* c_missShaderNames[RayType::Count];
-
-	ComPtr<ID3D12Resource> m_missShaderTable;
-	UINT m_missShaderTableStrideInBytes;
-	ComPtr<ID3D12Resource> m_hitGroupShaderTable;
-	UINT m_hitGroupShaderTableStrideInBytes;
-	ComPtr<ID3D12Resource> m_rayGenShaderTable;
 
 	// Application state
 	DX::GPUTimer m_gpuTimers[GpuTimers::Count];

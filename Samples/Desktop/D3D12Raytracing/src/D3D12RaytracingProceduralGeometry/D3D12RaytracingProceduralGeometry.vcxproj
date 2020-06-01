@@ -179,6 +179,7 @@
     <ClInclude Include="engine\ShaderCompat.h" />
     <ClInclude Include="engine\ShaderCompatUtils.h" />
     <ClInclude Include="engine\ShaderTable.h" />
+    <ClInclude Include="engine\ShaderTableEntry.h" />
     <ClInclude Include="engine\StaticScene.h" />
     <ClInclude Include="ProceduralPrimitivesLibrary.hlsli" />
     <ClInclude Include="ProceduralRtxEngineSample.h" />

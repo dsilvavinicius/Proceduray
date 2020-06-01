@@ -12,11 +12,11 @@ namespace RtxEngine
 	using namespace std;
 
 	// Ray payloads
-	using Payload = variant<RadiancePayload, ShadowPayload>;
+	using Payload = variant<RayPayload, ShadowRayPayload>;
 	using PayloadMap = unordered_map<string, Payload>;
 	
 	// Root components
-	using RootComponent = variant<RootComponent0, RootComponent1>;
+	using RootComponent = variant<PrimitiveConstantBuffer>;
 	using RootComponentMap = unordered_map<string, RootComponent>;
 	
 	// Root arguments
@@ -24,7 +24,7 @@ namespace RtxEngine
 	using RootArgumentsMap = unordered_map<string, RootArguments>;
 	
 	// Attrib structs
-	using AttribStruct = variant<AttribStruct0>;
+	using AttribStruct = variant<ProceduralPrimitiveAttributes>;
 	using AttribStructMap = unordered_map<string, AttribStruct>;
 
 	class ShaderCompatUtils
@@ -47,9 +47,9 @@ namespace RtxEngine
 
 		static UINT getSize(const RootComponent& rootComponent)
 		{
-			if (holds_alternative<RootComponent0>(rootComponent))
+			if (holds_alternative<PrimitiveConstantBuffer>(rootComponent))
 			{
-				return SizeOfInUint32(RootComponent0);
+				return SizeOfInUint32(PrimitiveConstantBuffer);
 			}
 			else
 			{
@@ -84,19 +84,18 @@ namespace RtxEngine
 		{
 			Constructor()
 			{
-				m_payloads["RadiancePayload"] = RadiancePayload();
-				m_payloads["ShadowPayload"] = ShadowPayload();
+				m_payloads["RayPayload"] = RayPayload();
+				m_payloads["ShadowRayPayload"] = ShadowRayPayload();
 
-				m_attribStructs["AttribStruct0"] = AttribStruct0();
+				m_attribStructs["ProceduralPrimitiveAttributes"] = ProceduralPrimitiveAttributes();
 
-				m_rootComponents["RootComponent0"] = RootComponent0();
-				m_rootComponents["RootComponent1"] = RootComponent1();
+				m_rootComponents["PrimitiveConstantBuffer"] = PrimitiveConstantBuffer();
 
 				m_rootArguments["RootArguments0"] = RootArguments0();
 
 				m_maxPayloadSize = 0u;
-				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(RadiancePayload)));
-				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(ShadowPayload)));
+				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(RayPayload)));
+				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(ShadowRayPayload)));
 
 				m_maxAttribStructSize = 0u;
 				m_maxAttribStructSize = max(m_maxAttribStructSize, UINT(sizeof(AttribStruct0)));
