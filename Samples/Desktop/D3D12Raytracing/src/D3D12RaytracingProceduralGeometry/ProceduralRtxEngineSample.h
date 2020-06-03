@@ -87,7 +87,6 @@ private:
 	void UpdateAABBPrimitiveAttributes(float animationTime);
 	void InitializeScene();
 	void RecreateD3D();
-	void DoRaytracing();
 	void CreateConstantBuffers();
 	void CreateAABBPrimitiveAttributesBuffers();
 	void CreateDeviceDependentResources();

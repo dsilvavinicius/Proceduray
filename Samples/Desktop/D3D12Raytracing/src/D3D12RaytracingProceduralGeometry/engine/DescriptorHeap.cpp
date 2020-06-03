@@ -4,8 +4,9 @@
 namespace RtxEngine
 {
 	DescriptorHeap::DescriptorHeap(DeviceResourcesPtr& deviceResources)
+		: m_deviceResources(deviceResources)
 	{
-		auto device = deviceResources->GetD3DDevice();
+		auto device = m_deviceResources->GetD3DDevice();
 
 		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
 		descriptorHeapDesc.NumDescriptors = 3;
@@ -30,5 +31,11 @@ namespace RtxEngine
 		}
 		*cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, m_descriptorSize);
 		return descriptorIndexToUse;
+	}
+
+	void DescriptorHeap::bind()
+	{
+		auto commandList = m_deviceResources->GetCommandList();
+		commandList->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
 	}
 }

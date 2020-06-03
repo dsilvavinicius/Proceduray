@@ -159,22 +159,54 @@
     <None Include="Shaders\ModelViewerRS.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="*Lib.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Library</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.3</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Library</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">6.3</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Library</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.3</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <FxCompile Include="DiffuseHitShaderLib.hlsl">
+      <ShaderType>Library</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <EntryPointName>
       </EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      <AdditionalOptions> -HV 2017 -Zpr </AdditionalOptions>
+    </FxCompile>
+    <FxCompile Include="hitShaderLib.hlsl">
+      <ShaderType>Library</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <EntryPointName>
       </EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
+      <AdditionalOptions> -HV 2017 -Zpr </AdditionalOptions>
+    </FxCompile>
+    <FxCompile Include="missShaderLib.hlsl">
+      <ShaderType>Library</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <EntryPointName>
       </EntryPointName>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"> -HV 2017 -Zpr </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> -HV 2017 -Zpr </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Profile|x64'"> -HV 2017 -Zpr </AdditionalOptions>
+      <AdditionalOptions> -HV 2017 -Zpr </AdditionalOptions>
+    </FxCompile>
+    <FxCompile Include="missShadowsLib.hlsl">
+      <ShaderType>Library</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <EntryPointName>
+      </EntryPointName>
+      <AdditionalOptions> -HV 2017 -Zpr </AdditionalOptions>
+    </FxCompile>
+    <FxCompile Include="RayGenerationShaderLib.hlsl">
+      <ShaderType>Library</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <EntryPointName>
+      </EntryPointName>
+      <AdditionalOptions> -HV 2017 -Zpr </AdditionalOptions>
+    </FxCompile>
+    <FxCompile Include="RayGenerationShaderSSRLib.hlsl">
+      <ShaderType>Library</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <EntryPointName>
+      </EntryPointName>
+      <AdditionalOptions> -HV 2017 -Zpr </AdditionalOptions>
+    </FxCompile>
+    <FxCompile Include="RayGenerationShadowsLib.hlsl">
+      <ShaderType>Library</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <EntryPointName>
+      </EntryPointName>
+      <AdditionalOptions> -HV 2017 -Zpr </AdditionalOptions>
     </FxCompile>
     <FxCompile Include="Shaders\DepthViewerPS.hlsl">
       <ShaderType>Pixel</ShaderType>

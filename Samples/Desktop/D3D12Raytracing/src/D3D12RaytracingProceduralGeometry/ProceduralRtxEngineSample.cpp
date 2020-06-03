@@ -1123,57 +1123,6 @@ void ProceduralRtxEngineSample::OnUpdate()
 	m_sceneCB->elapsedTime = m_animateGeometryTime;
 }
 
-void ProceduralRtxEngineSample::DoRaytracing()
-{
-	auto commandList = m_deviceResources->GetCommandList();
-	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
-
-	auto DispatchRays = [&](auto* raytracingCommandList, auto* stateObject, auto* dispatchDesc)
-	{
-		dispatchDesc->HitGroupTable.StartAddress = m_hitGroupShaderTable->GetGPUVirtualAddress();
-		dispatchDesc->HitGroupTable.SizeInBytes = m_hitGroupShaderTable->GetDesc().Width;
-		dispatchDesc->HitGroupTable.StrideInBytes = m_hitGroupShaderTableStrideInBytes;
-		dispatchDesc->MissShaderTable.StartAddress = m_missShaderTable->GetGPUVirtualAddress();
-		dispatchDesc->MissShaderTable.SizeInBytes = m_missShaderTable->GetDesc().Width;
-		dispatchDesc->MissShaderTable.StrideInBytes = m_missShaderTableStrideInBytes;
-		dispatchDesc->RayGenerationShaderRecord.StartAddress = m_rayGenShaderTable->GetGPUVirtualAddress();
-		dispatchDesc->RayGenerationShaderRecord.SizeInBytes = m_rayGenShaderTable->GetDesc().Width;
-		dispatchDesc->Width = m_width;
-		dispatchDesc->Height = m_height;
-		dispatchDesc->Depth = 1;
-		raytracingCommandList->SetPipelineState1(stateObject);
-
-		m_gpuTimers[GpuTimers::Raytracing].Start(commandList);
-		raytracingCommandList->DispatchRays(dispatchDesc);
-		m_gpuTimers[GpuTimers::Raytracing].Stop(commandList);
-	};
-
-	auto SetCommonPipelineState = [&](auto* descriptorSetCommandList)
-	{
-		descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
-		// Set index and successive vertex buffer decriptor tables.
-		commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::VertexBuffers, m_indexBuffer.gpuDescriptorHandle);
-		commandList->SetComputeRootDescriptorTable(GlobalRootSignature::Slot::OutputView, m_raytracingOutputResourceUAVGpuDescriptor);
-	};
-
-	commandList->SetComputeRootSignature(m_raytracingGlobalRootSignature.Get());
-
-	// Copy dynamic buffers to GPU.
-	{
-		m_sceneCB.CopyStagingToGpu(frameIndex);
-		commandList->SetComputeRootConstantBufferView(GlobalRootSignature::Slot::SceneConstant, m_sceneCB.GpuVirtualAddress(frameIndex));
-
-		m_aabbPrimitiveAttributeBuffer.CopyStagingToGpu(frameIndex);
-		commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::AABBattributeBuffer, m_aabbPrimitiveAttributeBuffer.GpuVirtualAddress(frameIndex));
-	}
-
-	// Bind the heaps, acceleration structure and dispatch rays.  
-	D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
-	SetCommonPipelineState(commandList);
-	commandList->SetComputeRootShaderResourceView(GlobalRootSignature::Slot::AccelerationStructure, m_topLevelAS->GetGPUVirtualAddress());
-	DispatchRays(m_dxrCommandList.Get(), m_dxrStateObject.Get(), &dispatchDesc);
-}
-
 // Update the application state with the new resolution.
 void ProceduralRtxEngineSample::UpdateForSizeChange(UINT width, UINT height)
 {
@@ -1216,11 +1165,6 @@ void ProceduralRtxEngineSample::ReleaseWindowSizeDependentResources()
 // Release all resources that depend on the device.
 void ProceduralRtxEngineSample::ReleaseDeviceDependentResources()
 {
-	for (auto& gpuTimer : m_gpuTimers)
-	{
-		gpuTimer.ReleaseDevice();
-	}
-
 	m_raytracingGlobalRootSignature.Reset();
 	ResetComPtrArray(&m_raytracingLocalRootSignature);
 

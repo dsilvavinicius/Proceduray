@@ -167,6 +167,7 @@
     <ClInclude Include="DirectXRaytracingHelper.h" />
     <ClInclude Include="engine\AccelerationStructure.h" />
     <ClInclude Include="engine\AttribStructs.h" />
+    <ClInclude Include="engine\DescriptorHeap.h" />
     <ClInclude Include="engine\DeviceHelper.h" />
     <ClInclude Include="engine\Geometry.h" />
     <ClInclude Include="engine\HitGroup.h" />
@@ -179,7 +180,7 @@
     <ClInclude Include="engine\ShaderCompat.h" />
     <ClInclude Include="engine\ShaderCompatUtils.h" />
     <ClInclude Include="engine\ShaderTable.h" />
-    <ClInclude Include="engine\ShaderTableEntry.h" />
+    <ClInclude Include="engine\ShaderTableShared.h" />
     <ClInclude Include="engine\StaticScene.h" />
     <ClInclude Include="ProceduralPrimitivesLibrary.hlsli" />
     <ClInclude Include="ProceduralRtxEngineSample.h" />
@@ -202,6 +203,7 @@
   <ItemGroup>
     <ClCompile Include="D3D12RaytracingProceduralGeometry.cpp" />
     <ClCompile Include="engine\AccelerationStructure.cpp" />
+    <ClCompile Include="engine\DescriptorHeap.cpp" />
     <ClCompile Include="engine\Geometry.cpp" />
     <ClCompile Include="engine\HitGroup.cpp" />
     <ClCompile Include="engine\RayTracingState.cpp" />

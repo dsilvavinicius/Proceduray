@@ -1,18 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
     <FxCompile Include="Shaders\DepthViewerPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\DepthViewerVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\FillLightGridCS_8.hlsl">
@@ -27,180 +19,22 @@
     <FxCompile Include="Shaders\FillLightGridCS_32.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\ModelViewerPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\ModelViewerVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\WaveTileCountPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
-    <FxCompile Include="*Lib.hlsl" />
+    <FxCompile Include="DiffuseHitShaderLib.hlsl" />
+    <FxCompile Include="hitShaderLib.hlsl" />
+    <FxCompile Include="missShaderLib.hlsl" />
+    <FxCompile Include="missShadowsLib.hlsl" />
+    <FxCompile Include="RayGenerationShaderLib.hlsl" />
+    <FxCompile Include="RayGenerationShaderSSRLib.hlsl" />
+    <FxCompile Include="RayGenerationShadowsLib.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ForwardPlusLighting.cpp" />
