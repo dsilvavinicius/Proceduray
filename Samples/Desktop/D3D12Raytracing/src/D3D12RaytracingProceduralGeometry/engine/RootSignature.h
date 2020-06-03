@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../util/HlslCompat.h"
 #include "ShaderCompatUtils.h"
 #include "DescriptorHeap.h"
 #include <wrl/client.h>

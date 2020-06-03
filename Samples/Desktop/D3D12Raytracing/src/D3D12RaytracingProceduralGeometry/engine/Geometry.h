@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../util/HlslCompat.h"
+#include "ShaderCompat.h"
 #include "DXSampleHelper.h"
 #include "DescriptorHeap.h"
 #include <memory>

@@ -47,7 +47,6 @@ const wchar_t* ProceduralRtxEngineSample::c_hitGroupNames_AABBGeometry[][RayType
 
 ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
-	m_raytracingOutputResourceUAVDescriptorHeapIndex(UINT_MAX),
 	m_animateGeometryTime(0.0f),
 	m_animateCamera(false),
 	m_animateGeometry(true),

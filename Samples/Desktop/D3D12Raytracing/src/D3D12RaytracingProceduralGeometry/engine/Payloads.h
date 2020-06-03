@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PAYLOADS_H
+#define PAYLOADS_H
 
 // The type of the ray payloads that are passed through the shaders.
 
@@ -12,3 +13,5 @@ struct ShadowRayPayload
 {
 	bool hit;
 };
+
+#endif

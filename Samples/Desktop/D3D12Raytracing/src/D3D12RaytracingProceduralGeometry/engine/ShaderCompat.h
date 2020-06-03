@@ -1,11 +1,12 @@
-#pragma once
+#ifndef SHADER_COMPAT_H
+#define SHADER_COMPAT_H
 
 #include "Payloads.h"
 #include "AttribStructs.h"
 #include "RootArguments.h"
 
 #ifdef HLSL
-#include "util\HlslCompat.h"
+#include "..\util\HlslCompat.h"
 #else
 using namespace DirectX;
 
@@ -40,3 +41,68 @@ struct Vertex
 	XMFLOAT3 position;
 	XMFLOAT3 normal;
 };
+
+// Ray types traced in this sample.
+namespace RayType {
+    enum Enum {
+        Radiance = 0,   // ~ Primary, reflected camera/view rays calculating color for each hit.
+        Shadow,         // ~ Shadow/visibility rays, only testing for occlusion
+        Count
+    };
+}
+
+namespace TraceRayParameters
+{
+    static const UINT InstanceMask = ~0;   // Everything is visible.
+    namespace HitGroup {
+        static const UINT Offset[RayType::Count] =
+        {
+            0, // Radiance ray
+            1  // Shadow ray
+        };
+        static const UINT GeometryStride = RayType::Count;
+    }
+    namespace MissShader {
+        static const UINT Offset[RayType::Count] =
+        {
+            0, // Radiance ray
+            1  // Shadow ray
+        };
+    }
+}
+
+// From: http://blog.selfshadow.com/publications/s2015-shading-course/hoffman/s2015_pbs_physics_math_slides.pdf
+static const XMFLOAT4 ChromiumReflectance = XMFLOAT4(0.549f, 0.556f, 0.554f, 1.0f);
+
+static const XMFLOAT4 BackgroundColor = XMFLOAT4(0.8f, 0.9f, 1.0f, 1.0f);
+static const float InShadowRadiance = 0.35f;
+
+namespace AnalyticPrimitive {
+    enum Enum {
+        AABB = 0,
+        Spheres,
+        Count
+    };
+}
+
+namespace VolumetricPrimitive {
+    enum Enum {
+        Metaballs = 0,
+        Count
+    };
+}
+
+namespace SignedDistancePrimitive {
+    enum Enum {
+        MiniSpheres = 0,
+        IntersectedRoundCube,
+        SquareTorus,
+        TwistedTorus,
+        Cog,
+        Cylinder,
+        FractalPyramid,
+        Count
+    };
+}
+
+#endif

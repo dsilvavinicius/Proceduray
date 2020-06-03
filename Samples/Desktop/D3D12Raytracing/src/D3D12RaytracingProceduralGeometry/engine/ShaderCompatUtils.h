@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ShaderCompat.h"
-#include "../util/HlslCompat.h"
 #include "../DirectXRaytracingHelper.h"
 #include <unordered_map>
 #include <algorithm>

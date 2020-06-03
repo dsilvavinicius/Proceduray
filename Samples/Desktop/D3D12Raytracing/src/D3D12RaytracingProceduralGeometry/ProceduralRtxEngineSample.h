@@ -14,6 +14,7 @@
 #include "DXSample.h"
 #include "StepTimer.h"
 #include "PerformanceTimers.h"
+#include "engine/SceneDefines.h"
 #include "engine/StaticScene.h"
 #include "engine/DescriptorHeap.h"
 #include "engine/AccelerationStructure.h"
@@ -58,30 +59,25 @@ private:
 	RayTracingStatePtr m_rayTracingState = nullptr;
 	ShaderTablePtr m_shaderTable = nullptr;
 
-	// Raytracing scene
+	// Global Root Signature components.
 	ConstantBuffer<SceneConstantBuffer> m_sceneCB;
 	StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_aabbPrimitiveAttributeBuffer;
+	ComPtr<ID3D12Resource> m_raytracingOutput;
 	std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
-
-	// Root constants
+	
+	// Local Root Signature Constants
 	PrimitiveConstantBuffer m_planeMaterialCB;
 	PrimitiveConstantBuffer m_aabbMaterialCB[IntersectionShaderType::TotalPrimitiveCount];
 
-	// Raytracing output
-	ComPtr<ID3D12Resource> m_raytracingOutput;
-	D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;
-	UINT m_raytracingOutputResourceUAVDescriptorHeapIndex;
-
 	// Application state
-	DX::GPUTimer m_gpuTimers[GpuTimers::Count];
 	StepTimer m_timer;
 	float m_animateGeometryTime;
 	bool m_animateGeometry;
 	bool m_animateCamera;
 	bool m_animateLight;
-	XMVECTOR m_eye;
-	XMVECTOR m_at;
-	XMVECTOR m_up;
+	DirectX::XMVECTOR m_eye;
+	DirectX::XMVECTOR m_at;
+	DirectX::XMVECTOR m_up;
 
 	void UpdateCameraMatrices();
 	void UpdateAABBPrimitiveAttributes(float animationTime);
@@ -94,28 +90,12 @@ private:
 	void ReleaseDeviceDependentResources();
 	void ReleaseWindowSizeDependentResources();
 	void CreateRaytracingInterfaces();
-	void SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig);
-	void CreateRootSignatures();
-	void CreateDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
-	void CreateHitGroupSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
-	void CreateLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline);
-	void CreateRaytracingPipelineStateObject();
 	void CreateAuxilaryDeviceResources();
-	void CreateDescriptorHeap();
-	void CreateRaytracingOutputResource();
 	void BuildProceduralGeometryAABBs();
 	void BuildGeometry();
 	void BuildPlaneGeometry();
-	void BuildGeometryDescsForBottomLevelAS(std::array<std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count>& geometryDescs);
-	template <class InstanceDescType, class BLASPtrType>
-	void BuildBotomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource);
-	AccelerationStructureBuffers BuildBottomLevelAS(const std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDesc, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE);
-	AccelerationStructureBuffers BuildTopLevelAS(AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count], D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE);
-	void BuildAccelerationStructures();
-	void BuildShaderTables();
 	void UpdateForSizeChange(UINT clientWidth, UINT clientHeight);
 	void CopyRaytracingOutputToBackbuffer();
 	void CalculateFrameStats();
-	UINT AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse = UINT_MAX);
 	UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize);
 };
