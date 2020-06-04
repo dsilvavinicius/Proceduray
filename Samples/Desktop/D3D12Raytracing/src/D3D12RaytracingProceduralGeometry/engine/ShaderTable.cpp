@@ -4,10 +4,9 @@
 
 namespace RtxEngine
 {
-	ShaderTable::ShaderTable(const StaticScenePtr& scene, DeviceResourcesPtr& deviceResources, const RayTracingStatePtr& rayTracingState)
+	ShaderTable::ShaderTable(const StaticScenePtr& scene, DeviceResourcesPtr& deviceResources)
 		: m_scene(scene),
 		m_deviceResources(deviceResources),
-		m_rayTracingState(rayTracingState),
 		m_commonEntries(make_shared<ShaderTableEntries>())
 	{}
 
@@ -16,7 +15,7 @@ namespace RtxEngine
 		m_rayGenEntry = rayGenShader;
 	}
 
-	void ShaderTable::addMiss(const string& rayId)
+	void ShaderTable::addMiss(const wstring& rayId)
 	{
 		m_missEntries.push_back(rayId);
 	}
@@ -26,17 +25,17 @@ namespace RtxEngine
 		m_commonEntries->push_back(entry);
 	}
 
-	const BuildedShaderTablePtr& ShaderTable::getBuilded()
+	const BuildedShaderTablePtr& ShaderTable::getBuilded(RayTracingState& rayTracingState)
 	{
 		if (m_buildedShaderTable == nullptr)
 		{
-			build();
+			build(rayTracingState);
 		}
 
 		return m_buildedShaderTable;
 	}
 
-	void ShaderTable::build()
+	void ShaderTable::build(RayTracingState& rayTracingState)
 	{
 		auto device = m_deviceResources->GetD3DDevice();
 
@@ -54,7 +53,7 @@ namespace RtxEngine
 
 			for (UINT i = 0; i < m_missEntries.size(); i++)
 			{
-				missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(m_missEntries[i]);
+				missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(m_missEntries[i].c_str());
 				shaderIdToStringMap[missShaderIDs[i]] = m_missEntries[i];
 			}
 			for (UINT i = 0; i < m_commonEntries->size(); i++)
@@ -69,7 +68,7 @@ namespace RtxEngine
 		UINT shaderIDSize;
 		{
 			ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
-			ThrowIfFailed(m_rayTracingState->getBuilded().As(&stateObjectProperties));
+			ThrowIfFailed(rayTracingState.getBuilded().As(&stateObjectProperties));
 			GetShaderIDs(stateObjectProperties.Get());
 			shaderIDSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
 		}
@@ -95,7 +94,7 @@ namespace RtxEngine
 			::ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
 			rayGenShaderTable.push_back(ShaderRecord(rayGenShaderID, shaderRecordSize, nullptr, 0));
 			rayGenShaderTable.DebugPrint(shaderIdToStringMap);
-			m_buildedShaderTable.rayGenShaderTable = rayGenShaderTable.GetResource();
+			m_buildedShaderTable->rayGenShaderTable = rayGenShaderTable.GetResource();
 		}
 
 		// Miss shader table.
@@ -109,8 +108,8 @@ namespace RtxEngine
 				missShaderTable.push_back(ShaderRecord(missShaderIDs[i], shaderIDSize, nullptr, 0));
 			}
 			missShaderTable.DebugPrint(shaderIdToStringMap);
-			m_buildedShaderTable.missShaderTableStrideInBytes = missShaderTable.GetShaderRecordSize();
-			m_buildedShaderTable.missShaderTable = missShaderTable.GetResource();
+			m_buildedShaderTable->missShaderTableStrideInBytes = missShaderTable.GetShaderRecordSize();
+			m_buildedShaderTable->missShaderTable = missShaderTable.GetResource();
 		}
 
 		// Hit group shader table.
@@ -121,15 +120,16 @@ namespace RtxEngine
 
 			for (int i = 0; i < hitGroupShaderIDs.size(); ++i)
 			{
-				const auto& entry = (*m_commonEntries)[i];
-				const auto& rootSignature = m_scene->getLocalSignatures().at(entry.rootParametersId);
-				void* rootArguments = rootSignature->getRootArguments();
+				auto& entry = (*m_commonEntries)[i];
+				const auto& rootSignature = m_scene->getLocalSignatures().at(entry.rootSignatureId);
+				ThrowIfFalse(rootSignature->isRootArgumentsTypeEqual(entry.rootArguments));
+				void* rootArguments = ShaderCompatUtils::getRootArguments(entry.rootArguments);
 				hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIDs[i], shaderIDSize, rootArguments, sizeof(rootArguments)));
 			}
 
 			hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
-			m_buildedShaderTable.hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
-			m_buildedShaderTable.hitGroupShaderTable = hitGroupShaderTable.GetResource();
+			m_buildedShaderTable->hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
+			m_buildedShaderTable->hitGroupShaderTable = hitGroupShaderTable.GetResource();
 		}
 	}
 }

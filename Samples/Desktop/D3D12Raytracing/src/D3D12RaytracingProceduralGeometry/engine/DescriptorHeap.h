@@ -7,8 +7,15 @@ namespace RtxEngine
 	class DescriptorHeap
 	{
 	public:
-		DescriptorHeap(DeviceResourcesPtr& deviceResources);
-		UINT allocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse);
+		struct DescriptorHandles
+		{
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu;
+			CD3DX12_GPU_DESCRIPTOR_HANDLE gpu;
+			UINT descriptorIndex;
+		};
+
+		DescriptorHeap(DeviceResourcesPtr& deviceResources, UINT numDescriptors);
+		DescriptorHandles allocateDescriptor(UINT descriptorIndexToUse = UINT_MAX);
 		DxrDescriptorHeapPtr getDxrDescriptorHeap() { return m_descriptorHeap; }
 		UINT getDescriptoSize() { return m_descriptorSize; }
 		void bind();

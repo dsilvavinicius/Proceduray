@@ -62,9 +62,11 @@ private:
 	// Global Root Signature components.
 	ConstantBuffer<SceneConstantBuffer> m_sceneCB;
 	StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_aabbPrimitiveAttributeBuffer;
-	ComPtr<ID3D12Resource> m_raytracingOutput;
 	std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
-	
+	// Ray tracing output.
+	ComPtr<ID3D12Resource> m_raytracingOutput;
+	DescriptorHeap::DescriptorHandles m_raytracingOutputHandles;
+
 	// Local Root Signature Constants
 	PrimitiveConstantBuffer m_planeMaterialCB;
 	PrimitiveConstantBuffer m_aabbMaterialCB[IntersectionShaderType::TotalPrimitiveCount];
@@ -79,23 +81,30 @@ private:
 	DirectX::XMVECTOR m_at;
 	DirectX::XMVECTOR m_up;
 
-	void UpdateCameraMatrices();
-	void UpdateAABBPrimitiveAttributes(float animationTime);
 	void InitializeScene();
-	void RecreateD3D();
-	void CreateConstantBuffers();
-	void CreateAABBPrimitiveAttributesBuffers();
 	void CreateDeviceDependentResources();
 	void CreateWindowSizeDependentResources();
+	void CreateRaytracingInterfaces();
+
+	void CreateConstantBuffers();
+	void CreateAABBPrimitiveAttributesBuffers();
+	void BuildGeometry();
+	void BuildProceduralGeometryAABBs();
+	void BuildPlaneGeometry();
+	void CreateRaytracingOutputResource();
+
+	void CreateRootSignatures();
+	void CreateShaderTablesEntries();
+	void CreateRaytracingPipelineStateObject();
+	void BuildShaderTables();
+	
 	void ReleaseDeviceDependentResources();
 	void ReleaseWindowSizeDependentResources();
-	void CreateRaytracingInterfaces();
-	void CreateAuxilaryDeviceResources();
-	void BuildProceduralGeometryAABBs();
-	void BuildGeometry();
-	void BuildPlaneGeometry();
+	
+	void RecreateD3D();
+	void UpdateCameraMatrices();
+	void UpdateAABBPrimitiveAttributes(float animationTime);
 	void UpdateForSizeChange(UINT clientWidth, UINT clientHeight);
 	void CopyRaytracingOutputToBackbuffer();
 	void CalculateFrameStats();
-	UINT CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize);
 };

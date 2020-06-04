@@ -15,11 +15,12 @@ namespace RtxEngine
 	using PayloadMap = unordered_map<string, Payload>;
 	
 	// Root components
-	using RootComponent = variant<PrimitiveConstantBuffer>;
+	struct DontApply {};
+	using RootComponent = variant<PrimitiveConstantBuffer, PrimitiveInstanceConstantBuffer, SceneConstantBuffer, PrimitiveInstancePerFrameBuffer, DontApply>;
 	using RootComponentMap = unordered_map<string, RootComponent>;
 	
 	// Root arguments
-	using RootArguments = variant<RootArguments0>;
+	using RootArguments = variant<TriangleRootArguments, ProceduralRootArguments>;
 	using RootArgumentsMap = unordered_map<string, RootArguments>;
 	
 	// Attrib structs
@@ -50,9 +51,21 @@ namespace RtxEngine
 			{
 				return SizeOfInUint32(PrimitiveConstantBuffer);
 			}
+			else if (holds_alternative<PrimitiveInstanceConstantBuffer>(rootComponent))
+			{
+				return SizeOfInUint32(PrimitiveInstanceConstantBuffer);
+			}
+			else if (holds_alternative<SceneConstantBuffer>(rootComponent))
+			{
+				return SizeOfInUint32(SceneConstantBuffer);
+			}
+			else if (holds_alternative<PrimitiveInstancePerFrameBuffer>(rootComponent))
+			{
+				return SizeOfInUint32(PrimitiveInstancePerFrameBuffer);
+			}
 			else
 			{
-				return SizeOfInUint32(RootComponent1);
+				throw(invalid_argument("You should not be asking the size of a DontApply RootComponent."));
 			}
 		}
 
@@ -60,7 +73,11 @@ namespace RtxEngine
 
 		static void* getRootArguments(RootArguments& rootArguments)
 		{
-			if (auto rootArgsPtr = std::get_if<RootArguments0>(&rootArguments))
+			if (auto rootArgsPtr = std::get_if<TriangleRootArguments>(&rootArguments))
+			{
+				return rootArgsPtr;
+			}
+			else if (auto rootArgsPtr = std::get_if<ProceduralRootArguments>(&rootArguments))
 			{
 				return rootArgsPtr;
 			}
@@ -83,14 +100,23 @@ namespace RtxEngine
 		{
 			Constructor()
 			{
+				// Payloads
 				m_payloads["RayPayload"] = RayPayload();
 				m_payloads["ShadowRayPayload"] = ShadowRayPayload();
 
+				// Attribute structures
 				m_attribStructs["ProceduralPrimitiveAttributes"] = ProceduralPrimitiveAttributes();
 
+				// Root Components
 				m_rootComponents["PrimitiveConstantBuffer"] = PrimitiveConstantBuffer();
+				m_rootComponents["PrimitiveInstanceConstantBuffer"] = PrimitiveInstanceConstantBuffer();
+				m_rootComponents["SceneConstantBuffer"] = SceneConstantBuffer();
+				m_rootComponents["PrimitiveInstancePerFrameBuffer"] = PrimitiveInstancePerFrameBuffer();
+				m_rootComponents["DontApply"] = DontApply();
 
-				m_rootArguments["RootArguments0"] = RootArguments0();
+				// Root Arguments
+				m_rootArguments["TriangleRootArguments"] = TriangleRootArguments();
+				m_rootArguments["ProceduralRootArguments"] = ProceduralRootArguments();
 
 				m_maxPayloadSize = 0u;
 				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(RayPayload)));
@@ -100,7 +126,8 @@ namespace RtxEngine
 				m_maxAttribStructSize = max(m_maxAttribStructSize, UINT(sizeof(AttribStruct0)));
 
 				m_maxRootArgumentSize = 0u;
-				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(RootArguments0)));
+				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(TriangleRootArguments)));
+				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(ProceduralRootArguments)));
 			}
 		};
 

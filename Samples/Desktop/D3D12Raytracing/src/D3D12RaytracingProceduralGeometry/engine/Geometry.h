@@ -21,15 +21,21 @@ namespace RtxEngine
 			Procedural
 		};
 
-		Geometry(const DescriptorHeapPtr& descriptorHeap, const pair<XMFLOAT3, XMFLOAT3>& aabb, const XMMATRIX& transform);
-		Geometry(const DescriptorHeapPtr& descriptorHeap, const vector<XMFLOAT3>& vertices, const vector<UINT> indices, const XMMATRIX& transform);
+		/** Create procedural geometry.*/
+		Geometry(D3D12_RAYTRACING_AABB& aabb, DeviceResources& deviceResources, const XMMATRIX& transform = XMMatrixIdentity());
+		
+		/** Create mesh geometry. If a descriptor heap is passed, then the index and vertex buffer descriptors are pushed to it.*/
+		Geometry(Vertex vertices[], Index indices[], DeviceResources& deviceResources, DescriptorHeap& descriptorHeap, const XMMATRIX& transform = XMMatrixIdentity());
 		
 		const D3DBuffer& getVertexBuffer() const { return m_vertexBuffer; }
 		const D3DBuffer& getIndexBuffer() const { return m_indexBuffer; }
 		const Type getType() const { return m_type; }
 
 	private:
+		UINT Geometry::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize, DeviceResources& deviceResources, DescriptorHeap& descriptorHeap);
+
 		Type m_type;
+		XMMATRIX m_transform;
 		D3DBuffer m_vertexBuffer;
 		D3DBuffer m_indexBuffer;
 	};

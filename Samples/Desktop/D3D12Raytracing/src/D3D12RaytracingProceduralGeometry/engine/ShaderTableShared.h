@@ -12,9 +12,9 @@ namespace RtxEngine
 	struct ShaderTableEntry
 	{
 		string rayId;
-		string geometryId;
 		wstring hitGroupId;
-		string rootParametersId;
+		string rootSignatureId;
+		RootArguments rootArguments;
 	};
 
 	struct BuildedShaderTable

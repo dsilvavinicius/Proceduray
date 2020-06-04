@@ -29,16 +29,15 @@ namespace RtxEngine
 		struct DescriptorRange
 		{
 			CD3DX12_DESCRIPTOR_RANGE range;
-			RootComponent componentType;
 			D3D12_GPU_DESCRIPTOR_HANDLE baseHandleToHeap;
 		};
 
 		RootSignature(const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap);
 
-		DescriptorRange createRange(RootComponent, D3D12_GPU_DESCRIPTOR_HANDLE baseHandleToHeap, BufferEntry type, UINT baseReg, UINT numRegs, UINT space) const;
+		DescriptorRange createRange(D3D12_GPU_DESCRIPTOR_HANDLE baseHandleToHeap, BufferEntry type, UINT baseReg, UINT numRegs, UINT space = 0u) const;
 
 		/** Adds a constant entry.*/
-		void RootSignature::addConstant(const RootComponent& component, UINT reg, UINT space);
+		void RootSignature::addConstant(const RootComponent& component, UINT reg, UINT space = 0u);
 
 		/** Adds a descriptor entry which buffer must be uploaded every frame.*/
 		void addEntry(RootComponent, BufferEntry type, const shared_ptr<GpuUploadBuffer>& buffer, UINT reg, UINT space = 0u);
@@ -52,9 +51,9 @@ namespace RtxEngine
 		/** Adds a static sampler to the heap.*/
 		void addStaticSampler();
 
-		void setRootArguments(const RootArguments& rootArguments) { m_rootArguments = rootArguments; }
+		void setRootArgumentsType(const RootArguments& rootArguments) { m_rootArguments = rootArguments; }
 
-		void* getRootArguments() { return ShaderCompatUtils::getRootArguments(m_rootArguments); }
+		bool isRootArgumentsTypeEqual(const RootArguments& other) const { return other.index() == m_rootArguments.index(); }
 
 		ComPtr<ID3D12RootSignature>& getBuilded();
 

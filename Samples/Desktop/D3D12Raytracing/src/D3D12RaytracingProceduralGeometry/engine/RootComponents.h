@@ -17,6 +17,13 @@ struct PrimitiveConstantBuffer
 	XMFLOAT3 padding;
 };
 
+// Attributes per primitive instance.
+struct PrimitiveInstanceConstantBuffer
+{
+	UINT instanceIndex;
+	UINT primitiveType; // Procedural primitive type
+};
+
 struct SceneConstantBuffer
 {
 	XMMATRIX projectionToWorld;

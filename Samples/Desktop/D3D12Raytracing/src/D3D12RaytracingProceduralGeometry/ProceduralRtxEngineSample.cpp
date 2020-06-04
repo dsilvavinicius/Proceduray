@@ -16,35 +16,6 @@
 using namespace std;
 using namespace DX;
 
-// Shader entry points.
-const wchar_t* ProceduralRtxEngineSample::c_raygenShaderName = L"MyRaygenShader";
-const wchar_t* ProceduralRtxEngineSample::c_intersectionShaderNames[] =
-{
-	L"MyIntersectionShader_AnalyticPrimitive",
-	L"MyIntersectionShader_VolumetricPrimitive",
-	L"MyIntersectionShader_SignedDistancePrimitive",
-};
-const wchar_t* ProceduralRtxEngineSample::c_closestHitShaderNames[] =
-{
-	L"MyClosestHitShader_Triangle",
-	L"MyClosestHitShader_AABB",
-};
-const wchar_t* ProceduralRtxEngineSample::c_missShaderNames[] =
-{
-	L"MyMissShader", L"MyMissShader_ShadowRay"
-};
-// Hit groups.
-const wchar_t* ProceduralRtxEngineSample::c_hitGroupNames_TriangleGeometry[] =
-{
-	L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay"
-};
-const wchar_t* ProceduralRtxEngineSample::c_hitGroupNames_AABBGeometry[][RayType::Count] =
-{
-	{ L"MyHitGroup_AABB_AnalyticPrimitive", L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay" },
-	{ L"MyHitGroup_AABB_VolumetricPrimitive", L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay" },
-	{ L"MyHitGroup_AABB_SignedDistancePrimitive", L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay" },
-};
-
 ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
 	m_animateGeometryTime(0.0f),
@@ -276,27 +247,16 @@ void ProceduralRtxEngineSample::CreateAABBPrimitiveAttributesBuffers()
 // Create resources that depend on the device.
 void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 {
-	CreateAuxilaryDeviceResources();
-
 	// Initialize raytracing pipeline.
 
 	// Create raytracing interfaces: raytracing device and commandlist.
 	CreateRaytracingInterfaces();
 
-	// Create root signatures for the shaders.
-	CreateRootSignatures();
-
-	// Create a raytracing pipeline state object which defines the binding of shaders, state and resources to be used during raytracing.
-	CreateRaytracingPipelineStateObject();
-
 	// Create a heap for descriptors.
-	CreateDescriptorHeap();
-
+	m_descriptorHeap = make_shared<DescriptorHeap>(m_deviceResources, 3);
+	
 	// Build geometry to be used in the sample.
 	BuildGeometry();
-
-	// Build raytracing acceleration structures from the generated geometry.
-	BuildAccelerationStructures();
 
 	// Create constant buffers for the geometry and the scene.
 	CreateConstantBuffers();
@@ -304,70 +264,60 @@ void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 	// Create AABB primitive attribute buffers.
 	CreateAABBPrimitiveAttributesBuffers();
 
+	// Create an output 2D texture to store the raytracing result to.
+	CreateRaytracingOutputResource();
+
+	// Build raytracing acceleration structures from the generated geometry.
+	m_accelerationStruct = make_shared<AccelerationStructure>(m_scene, m_dxrDevice, m_dxrCommandList, m_deviceResources);
+
+	// Create root signatures for the shaders.
+	CreateRootSignatures();
+
+	CreateShaderTablesEntries();
+
+	// Create a raytracing pipeline state object which defines the binding of shaders, state and resources to be used during raytracing.
+	CreateRaytracingPipelineStateObject();
+
 	// Build shader tables, which define shaders and their local root arguments.
 	BuildShaderTables();
 
-	// Create an output 2D texture to store the raytracing result to.
-	CreateRaytracingOutputResource();
-}
-
-void ProceduralRtxEngineSample::SerializeAndCreateRaytracingRootSignature(D3D12_ROOT_SIGNATURE_DESC& desc, ComPtr<ID3D12RootSignature>* rootSig)
-{
-	auto device = m_deviceResources->GetD3DDevice();
-	ComPtr<ID3DBlob> blob;
-	ComPtr<ID3DBlob> error;
-
-	ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<wchar_t*>(error->GetBufferPointer()) : nullptr);
-	ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*rootSig))));
 }
 
 void ProceduralRtxEngineSample::CreateRootSignatures()
 {
-	auto device = m_deviceResources->GetD3DDevice();
+	// Global root signature.
+	auto globalSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap);
+	
+	// Global signature ranges.
+	auto outputRange = globalSignature->createRange(m_raytracingOutputHandles.gpu, RootSignature::UAV, 0, 1);
+	auto plane = m_scene->getGeometry().at("Plane");
+	auto vertexRange = globalSignature->createRange(plane->getVertexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
 
-	// Global Root Signature
-	// This is a root signature that is shared across all raytracing shaders invoked during a DispatchRays() call.
-	{
-		CD3DX12_DESCRIPTOR_RANGE ranges[2]; // Perfomance TIP: Order from most frequent to least frequent.
-		ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);  // 1 output texture
-		ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 1);  // 2 static index and vertex buffers.
+	// Global signature entries.
+	globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
+	globalSignature->addEntry(RootComponent(DontApply()), RootSignature::SRV, m_accelerationStruct->getBuilded(), 0);
+	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB.GetResource(), 0);
+	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_aabbPrimitiveAttributeBuffer.GetResource(), 3);
+	globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{vertexRange});
 
-		CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignature::Slot::Count];
-		rootParameters[GlobalRootSignature::Slot::OutputView].InitAsDescriptorTable(1, &ranges[0]);
-		rootParameters[GlobalRootSignature::Slot::AccelerationStructure].InitAsShaderResourceView(0);
-		rootParameters[GlobalRootSignature::Slot::SceneConstant].InitAsConstantBufferView(0);
-		rootParameters[GlobalRootSignature::Slot::AABBattributeBuffer].InitAsShaderResourceView(3);
-		rootParameters[GlobalRootSignature::Slot::VertexBuffers].InitAsDescriptorTable(1, &ranges[1]);
-		CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
-		SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_raytracingGlobalRootSignature);
-	}
+	m_scene->addGlobalSignature(globalSignature);
 
-	// Local Root Signature
-	// This is a root signature that enables a shader to have unique arguments that come from shader tables.
-	{
-		// Triangle geometry
-		{
-			namespace RootSignatureSlots = LocalRootSignature::Triangle::Slot;
-			CD3DX12_ROOT_PARAMETER rootParameters[RootSignatureSlots::Count];
-			rootParameters[RootSignatureSlots::MaterialConstant].InitAsConstants(SizeOfInUint32(PrimitiveConstantBuffer), 1);
+	// Triangle geometry local root signature.
+	auto triangleSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap);
+	triangleSignature->addConstant(RootComponent(PrimitiveConstantBuffer()), 1);
+	
+	// Root Arguments type.
+	triangleSignature->setRootArgumentsType(RootArguments(TriangleRootArguments()));
+	m_scene->addLocalSignature("Triangle", triangleSignature);
 
-			CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
-			localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
-			SerializeAndCreateRaytracingRootSignature(localRootSignatureDesc, &m_raytracingLocalRootSignature[LocalRootSignature::Type::Triangle]);
-		}
-
-		// AABB geometry
-		{
-			namespace RootSignatureSlots = LocalRootSignature::AABB::Slot;
-			CD3DX12_ROOT_PARAMETER rootParameters[RootSignatureSlots::Count];
-			rootParameters[RootSignatureSlots::MaterialConstant].InitAsConstants(SizeOfInUint32(PrimitiveConstantBuffer), 1);
-			rootParameters[RootSignatureSlots::GeometryIndex].InitAsConstants(SizeOfInUint32(PrimitiveInstanceConstantBuffer), 2);
-
-			CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
-			localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
-			SerializeAndCreateRaytracingRootSignature(localRootSignatureDesc, &m_raytracingLocalRootSignature[LocalRootSignature::Type::AABB]);
-		}
-	}
+	// Procedural geometry local root signature.
+	auto proceduralSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap);
+	proceduralSignature->addConstant(RootComponent(PrimitiveConstantBuffer()), 1);
+	proceduralSignature->addConstant(RootComponent(PrimitiveInstanceConstantBuffer()), 2);
+	
+	// Root Arguments.
+	triangleSignature->setRootArgumentsType(RootArguments(ProceduralRootArguments()));
+	m_scene->addLocalSignature("Procedural", proceduralSignature);
 }
 
 // Create raytracing device and command list.
@@ -378,6 +328,175 @@ void ProceduralRtxEngineSample::CreateRaytracingInterfaces()
 
 	ThrowIfFailed(device->QueryInterface(IID_PPV_ARGS(&m_dxrDevice)), L"Couldn't get DirectX Raytracing interface for the device.\n");
 	ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&m_dxrCommandList)), L"Couldn't get DirectX Raytracing interface for the command list.\n");
+}
+
+void ProceduralRtxEngineSample::CreateShaderTablesEntries()
+{
+	// Shader entry points.
+	const wchar_t* ProceduralRtxEngineSample::c_intersectionShaderNames[] =
+	{
+		L"MyIntersectionShader_AnalyticPrimitive",
+		L"MyIntersectionShader_VolumetricPrimitive",
+		L"MyIntersectionShader_SignedDistancePrimitive",
+	};
+	const wchar_t* ProceduralRtxEngineSample::c_closestHitShaderNames[] =
+	{
+		L"MyClosestHitShader_Triangle",
+		L"MyClosestHitShader_AABB",
+	};
+
+	// Hit groups.
+	const wchar_t* ProceduralRtxEngineSample::c_hitGroupNames_TriangleGeometry[] =
+	{
+		L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay"
+	};
+	const wchar_t* ProceduralRtxEngineSample::c_hitGroupNames_AABBGeometry[][RayType::Count] =
+	{
+		{ L"MyHitGroup_AABB_AnalyticPrimitive", L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay" },
+		{ L"MyHitGroup_AABB_VolumetricPrimitive", L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay" },
+		{ L"MyHitGroup_AABB_SignedDistancePrimitive", L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay" },
+	};
+	// CONTINUE HERE!!!!!!!!!
+	m_shaderTable = make_shared<RtxEngine::ShaderTable>(m_scene, m_deviceResources);
+	m_shaderTable->addRayGen(L"MyRaygenShader");
+	m_shaderTable->addMiss(L"MyMissShader");
+	m_shaderTable->addMiss(L"MyMissShader_ShadowRay");
+	m_shaderTable->addCommonEntry(ShaderTableEntry{"Radiance", L"MyHitGroup_Triangle", "Triangle", });
+	m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", L"MyHitGroup_Triangle_ShadowRay", "Triangle", });
+
+	auto device = m_deviceResources->GetD3DDevice();
+
+	void* rayGenShaderID;
+	void* missShaderIDs[RayType::Count];
+	void* hitGroupShaderIDs_TriangleGeometry[RayType::Count];
+	void* hitGroupShaderIDs_AABBGeometry[IntersectionShaderType::Count][RayType::Count];
+
+	// A shader name look-up table for shader table debug print out.
+	unordered_map<void*, wstring> shaderIdToStringMap;
+
+	auto GetShaderIDs = [&](auto* stateObjectProperties)
+	{
+		rayGenShaderID = stateObjectProperties->GetShaderIdentifier(c_raygenShaderName);
+		shaderIdToStringMap[rayGenShaderID] = c_raygenShaderName;
+
+		for (UINT i = 0; i < RayType::Count; i++)
+		{
+			missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(c_missShaderNames[i]);
+			shaderIdToStringMap[missShaderIDs[i]] = c_missShaderNames[i];
+		}
+		for (UINT i = 0; i < RayType::Count; i++)
+		{
+			hitGroupShaderIDs_TriangleGeometry[i] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_TriangleGeometry[i]);
+			shaderIdToStringMap[hitGroupShaderIDs_TriangleGeometry[i]] = c_hitGroupNames_TriangleGeometry[i];
+		}
+		for (UINT r = 0; r < IntersectionShaderType::Count; r++)
+			for (UINT c = 0; c < RayType::Count; c++)
+			{
+				hitGroupShaderIDs_AABBGeometry[r][c] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_AABBGeometry[r][c]);
+				shaderIdToStringMap[hitGroupShaderIDs_AABBGeometry[r][c]] = c_hitGroupNames_AABBGeometry[r][c];
+			}
+	};
+
+	// Get shader identifiers.
+	UINT shaderIDSize;
+	{
+		ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
+		ThrowIfFailed(m_dxrStateObject.As(&stateObjectProperties));
+		GetShaderIDs(stateObjectProperties.Get());
+		shaderIDSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+	}
+
+	/*************--------- Shader table layout -------*******************
+	| --------------------------------------------------------------------
+	| Shader table - HitGroupShaderTable:
+	| [0] : MyHitGroup_Triangle
+	| [1] : MyHitGroup_Triangle_ShadowRay
+	| [2] : MyHitGroup_AABB_AnalyticPrimitive
+	| [3] : MyHitGroup_AABB_AnalyticPrimitive_ShadowRay
+	| ...
+	| [6] : MyHitGroup_AABB_VolumetricPrimitive
+	| [7] : MyHitGroup_AABB_VolumetricPrimitive_ShadowRay
+	| [8] : MyHitGroup_AABB_SignedDistancePrimitive
+	| [9] : MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay,
+	| ...
+	| [20] : MyHitGroup_AABB_SignedDistancePrimitive
+	| [21] : MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay
+	| --------------------------------------------------------------------
+	**********************************************************************/
+
+	// RayGen shader table.
+	{
+		UINT numShaderRecords = 1;
+		UINT shaderRecordSize = shaderIDSize; // No root arguments
+
+		ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
+		rayGenShaderTable.push_back(ShaderRecord(rayGenShaderID, shaderRecordSize, nullptr, 0));
+		rayGenShaderTable.DebugPrint(shaderIdToStringMap);
+		m_rayGenShaderTable = rayGenShaderTable.GetResource();
+	}
+
+	// Miss shader table.
+	{
+		UINT numShaderRecords = RayType::Count;
+		UINT shaderRecordSize = shaderIDSize; // No root arguments
+
+		ShaderTable missShaderTable(device, numShaderRecords, shaderRecordSize, L"MissShaderTable");
+		for (UINT i = 0; i < RayType::Count; i++)
+		{
+			missShaderTable.push_back(ShaderRecord(missShaderIDs[i], shaderIDSize, nullptr, 0));
+		}
+		missShaderTable.DebugPrint(shaderIdToStringMap);
+		m_missShaderTableStrideInBytes = missShaderTable.GetShaderRecordSize();
+		m_missShaderTable = missShaderTable.GetResource();
+	}
+
+	// Hit group shader table.
+	{
+		UINT numShaderRecords = RayType::Count + IntersectionShaderType::TotalPrimitiveCount * RayType::Count;
+		UINT shaderRecordSize = shaderIDSize + LocalRootSignature::MaxRootArgumentsSize();
+		ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
+
+		// Triangle geometry hit groups.
+		{
+			LocalRootSignature::Triangle::RootArguments rootArgs;
+			rootArgs.materialCb = m_planeMaterialCB;
+
+			for (auto& hitGroupShaderID : hitGroupShaderIDs_TriangleGeometry)
+			{
+				hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
+			}
+		}
+
+		// AABB geometry hit groups.
+		{
+			LocalRootSignature::AABB::RootArguments rootArgs;
+			UINT instanceIndex = 0;
+
+			// Create a shader record for each primitive.
+			for (UINT iShader = 0, instanceIndex = 0; iShader < IntersectionShaderType::Count; iShader++)
+			{
+				UINT numPrimitiveTypes = IntersectionShaderType::PerPrimitiveTypeCount(static_cast<IntersectionShaderType::Enum>(iShader));
+
+				// Primitives for each intersection shader.
+				for (UINT primitiveIndex = 0; primitiveIndex < numPrimitiveTypes; primitiveIndex++, instanceIndex++)
+				{
+					rootArgs.materialCb = m_aabbMaterialCB[instanceIndex];
+					rootArgs.aabbCB.instanceIndex = instanceIndex;
+					rootArgs.aabbCB.primitiveType = primitiveIndex;
+
+					// Ray types.
+					for (UINT r = 0; r < RayType::Count; r++)
+					{
+						auto& hitGroupShaderID = hitGroupShaderIDs_AABBGeometry[iShader][r];
+						hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
+					}
+				}
+			}
+		}
+		hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
+		m_hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
+		m_hitGroupShaderTable = hitGroupShaderTable.GetResource();
+	}
 }
 
 // DXIL library
@@ -464,6 +583,8 @@ void ProceduralRtxEngineSample::CreateLocalRootSignatureSubobjects(CD3DX12_STATE
 // with all configuration options resolved, such as local signatures and other state.
 void ProceduralRtxEngineSample::CreateRaytracingPipelineStateObject()
 {
+	m_rayTracingState = make_shared<RayTracingState>();
+
 	// Create 18 subobjects that combine into a RTPSO:
 	// Subobjects need to be associated with DXIL exports (i.e. shaders) either by way of default or explicit associations.
 	// Default association applies to every exported shader entrypoint that doesn't have any of the same type of subobject associated with it.
@@ -527,48 +648,16 @@ void ProceduralRtxEngineSample::CreateRaytracingOutputResource()
 		&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_raytracingOutput)));
 	NAME_D3D12_OBJECT(m_raytracingOutput);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE uavDescriptorHandle;
-	m_raytracingOutputResourceUAVDescriptorHeapIndex = AllocateDescriptor(&uavDescriptorHandle, m_raytracingOutputResourceUAVDescriptorHeapIndex);
+	m_raytracingOutputHandles = m_descriptorHeap->allocateDescriptor(UINT_MAX);
+
 	D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
 	UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-	device->CreateUnorderedAccessView(m_raytracingOutput.Get(), nullptr, &UAVDesc, uavDescriptorHandle);
-	m_raytracingOutputResourceUAVGpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_raytracingOutputResourceUAVDescriptorHeapIndex, m_descriptorSize);
-}
-
-void ProceduralRtxEngineSample::CreateAuxilaryDeviceResources()
-{
-	auto device = m_deviceResources->GetD3DDevice();
-	auto commandQueue = m_deviceResources->GetCommandQueue();
-
-	for (auto& gpuTimer : m_gpuTimers)
-	{
-		gpuTimer.RestoreDevice(device, commandQueue, FrameCount);
-	}
-}
-
-void ProceduralRtxEngineSample::CreateDescriptorHeap()
-{
-	auto device = m_deviceResources->GetD3DDevice();
-
-	D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
-	// Allocate a heap for 6 descriptors:
-	// 2 - vertex and index  buffer SRVs
-	// 1 - raytracing output texture SRV
-	descriptorHeapDesc.NumDescriptors = 3;
-	descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	descriptorHeapDesc.NodeMask = 0;
-	device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&m_descriptorHeap));
-	NAME_D3D12_OBJECT(m_descriptorHeap);
-
-	m_descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	device->CreateUnorderedAccessView(m_raytracingOutput.Get(), nullptr, &UAVDesc, m_raytracingOutputHandles.cpu);
 }
 
 // Build AABBs for procedural geometry within a bottom-level acceleration structure.
 void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 {
-	auto device = m_deviceResources->GetD3DDevice();
-
 	// Set up AABBs on a grid.
 	{
 		XMINT3 aabbGrid = XMINT3(4, 1, 4);
@@ -598,7 +687,10 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 		{
 			using namespace AnalyticPrimitive;
 			m_aabbs[offset + AABB] = InitializeAABB(XMINT3(3, 0, 0), XMFLOAT3(2, 3, 2));
+			m_scene->addGeometry("AABB", make_shared<Geometry>(m_aabbs[offset + AABB], m_deviceResources));
+
 			m_aabbs[offset + Spheres] = InitializeAABB(XMFLOAT3(2.25f, 0, 0.75f), XMFLOAT3(3, 3, 3));
+			m_scene->addGeometry("Spheres", make_shared<Geometry>(m_aabbs[offset + Spheres], m_deviceResources));
 			offset += AnalyticPrimitive::Count;
 		}
 
@@ -606,6 +698,7 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 		{
 			using namespace VolumetricPrimitive;
 			m_aabbs[offset + Metaballs] = InitializeAABB(XMINT3(0, 0, 0), XMFLOAT3(3, 3, 3));
+			m_scene->addGeometry("Metaballs", make_shared<Geometry>(m_aabbs[offset + Metaballs], m_deviceResources));
 			offset += VolumetricPrimitive::Count;
 		}
 
@@ -613,26 +706,36 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 		{
 			using namespace SignedDistancePrimitive;
 			m_aabbs[offset + MiniSpheres] = InitializeAABB(XMINT3(2, 0, 0), XMFLOAT3(2, 2, 2));
+			m_scene->addGeometry("MiniSpheres", make_shared<Geometry>(m_aabbs[offset + MiniSpheres], m_deviceResources));
+			
 			m_aabbs[offset + TwistedTorus] = InitializeAABB(XMINT3(0, 0, 1), XMFLOAT3(2, 2, 2));
+			m_scene->addGeometry("TwistedTorus", make_shared<Geometry>(m_aabbs[offset + TwistedTorus], m_deviceResources));
+
 			m_aabbs[offset + IntersectedRoundCube] = InitializeAABB(XMINT3(0, 0, 2), XMFLOAT3(2, 2, 2));
+			m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[offset + IntersectedRoundCube], m_deviceResources));
+
 			m_aabbs[offset + SquareTorus] = InitializeAABB(XMFLOAT3(0.75f, -0.1f, 2.25f), XMFLOAT3(3, 3, 3));
+			m_scene->addGeometry("SquareTorus", make_shared<Geometry>(m_aabbs[offset + SquareTorus], m_deviceResources));
+
 			m_aabbs[offset + Cog] = InitializeAABB(XMINT3(1, 0, 0), XMFLOAT3(2, 2, 2));
+			m_scene->addGeometry("Cog", make_shared<Geometry>(m_aabbs[offset + Cog], m_deviceResources));
+
 			m_aabbs[offset + Cylinder] = InitializeAABB(XMINT3(0, 0, 3), XMFLOAT3(2, 3, 2));
+			m_scene->addGeometry("Cylinder", make_shared<Geometry>(m_aabbs[offset + Cylinder], m_deviceResources));
+
 			m_aabbs[offset + FractalPyramid] = InitializeAABB(XMINT3(2, 0, 2), XMFLOAT3(6, 6, 6));
+			m_scene->addGeometry("FractalPyramid", make_shared<Geometry>(m_aabbs[offset + FractalPyramid], m_deviceResources));
 		}
-		AllocateUploadBuffer(device, m_aabbs.data(), m_aabbs.size() * sizeof(m_aabbs[0]), &m_aabbBuffer.resource);
 	}
 }
 
 void ProceduralRtxEngineSample::BuildPlaneGeometry()
 {
-	auto device = m_deviceResources->GetD3DDevice();
 	// Plane indices.
 	Index indices[] =
 	{
 		3,1,0,
 		2,1,3,
-
 	};
 
 	// Cube vertices positions and corresponding triangle normals.
@@ -644,13 +747,7 @@ void ProceduralRtxEngineSample::BuildPlaneGeometry()
 		{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 	};
 
-	AllocateUploadBuffer(device, indices, sizeof(indices), &m_indexBuffer.resource);
-	AllocateUploadBuffer(device, vertices, sizeof(vertices), &m_vertexBuffer.resource);
-
-	// Vertex buffer is passed to the shader along with index buffer as a descriptor range.
-	UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, sizeof(indices) / 4, 0);
-	UINT descriptorIndexVB = CreateBufferSRV(&m_vertexBuffer, ARRAYSIZE(vertices), sizeof(vertices[0]));
-	ThrowIfFalse(descriptorIndexVB == descriptorIndexIB + 1, L"Vertex Buffer descriptor index must follow that of Index Buffer descriptor index");
+	m_scene->addGeometry("Plane", make_shared<Geometry>(vertices, indices, *m_deviceResources, *m_descriptorHeap));
 }
 
 // Build geometry used in the sample.
@@ -878,192 +975,11 @@ AccelerationStructureBuffers ProceduralRtxEngineSample::BuildTopLevelAS(Accelera
 	return topLevelASBuffers;
 }
 
-// Build acceleration structure needed for raytracing.
-void ProceduralRtxEngineSample::BuildAccelerationStructures()
-{
-	auto device = m_deviceResources->GetD3DDevice();
-	auto commandList = m_deviceResources->GetCommandList();
-	auto commandQueue = m_deviceResources->GetCommandQueue();
-	auto commandAllocator = m_deviceResources->GetCommandAllocator();
-
-	// Reset the command list for the acceleration structure construction.
-	commandList->Reset(commandAllocator, nullptr);
-
-	// Build bottom-level AS.
-	AccelerationStructureBuffers bottomLevelAS[BottomLevelASType::Count];
-	array<vector<D3D12_RAYTRACING_GEOMETRY_DESC>, BottomLevelASType::Count> geometryDescs;
-	{
-		BuildGeometryDescsForBottomLevelAS(geometryDescs);
-
-		// Build all bottom-level AS.
-		for (UINT i = 0; i < BottomLevelASType::Count; i++)
-		{
-			bottomLevelAS[i] = BuildBottomLevelAS(geometryDescs[i]);
-		}
-	}
-
-	// Batch all resource barriers for bottom-level AS builds.
-	D3D12_RESOURCE_BARRIER resourceBarriers[BottomLevelASType::Count];
-	for (UINT i = 0; i < BottomLevelASType::Count; i++)
-	{
-		resourceBarriers[i] = CD3DX12_RESOURCE_BARRIER::UAV(bottomLevelAS[i].accelerationStructure.Get());
-	}
-	commandList->ResourceBarrier(BottomLevelASType::Count, resourceBarriers);
-
-	// Build top-level AS.
-	AccelerationStructureBuffers topLevelAS = BuildTopLevelAS(bottomLevelAS);
-
-	// Kick off acceleration structure construction.
-	m_deviceResources->ExecuteCommandList();
-
-	// Wait for GPU to finish as the locally created temporary GPU resources will get released once we go out of scope.
-	m_deviceResources->WaitForGpu();
-
-	// Store the AS buffers. The rest of the buffers will be released once we exit the function.
-	for (UINT i = 0; i < BottomLevelASType::Count; i++)
-	{
-		m_bottomLevelAS[i] = bottomLevelAS[i].accelerationStructure;
-	}
-	m_topLevelAS = topLevelAS.accelerationStructure;
-}
-
 // Build shader tables.
 // This encapsulates all shader records - shaders and the arguments for their local root signatures.
 void ProceduralRtxEngineSample::BuildShaderTables()
 {
-	auto device = m_deviceResources->GetD3DDevice();
-
-	void* rayGenShaderID;
-	void* missShaderIDs[RayType::Count];
-	void* hitGroupShaderIDs_TriangleGeometry[RayType::Count];
-	void* hitGroupShaderIDs_AABBGeometry[IntersectionShaderType::Count][RayType::Count];
-
-	// A shader name look-up table for shader table debug print out.
-	unordered_map<void*, wstring> shaderIdToStringMap;
-
-	auto GetShaderIDs = [&](auto* stateObjectProperties)
-	{
-		rayGenShaderID = stateObjectProperties->GetShaderIdentifier(c_raygenShaderName);
-		shaderIdToStringMap[rayGenShaderID] = c_raygenShaderName;
-
-		for (UINT i = 0; i < RayType::Count; i++)
-		{
-			missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(c_missShaderNames[i]);
-			shaderIdToStringMap[missShaderIDs[i]] = c_missShaderNames[i];
-		}
-		for (UINT i = 0; i < RayType::Count; i++)
-		{
-			hitGroupShaderIDs_TriangleGeometry[i] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_TriangleGeometry[i]);
-			shaderIdToStringMap[hitGroupShaderIDs_TriangleGeometry[i]] = c_hitGroupNames_TriangleGeometry[i];
-		}
-		for (UINT r = 0; r < IntersectionShaderType::Count; r++)
-			for (UINT c = 0; c < RayType::Count; c++)
-			{
-				hitGroupShaderIDs_AABBGeometry[r][c] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_AABBGeometry[r][c]);
-				shaderIdToStringMap[hitGroupShaderIDs_AABBGeometry[r][c]] = c_hitGroupNames_AABBGeometry[r][c];
-			}
-	};
-
-	// Get shader identifiers.
-	UINT shaderIDSize;
-	{
-		ComPtr<ID3D12StateObjectProperties> stateObjectProperties;
-		ThrowIfFailed(m_dxrStateObject.As(&stateObjectProperties));
-		GetShaderIDs(stateObjectProperties.Get());
-		shaderIDSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-	}
-
-	/*************--------- Shader table layout -------*******************
-	| --------------------------------------------------------------------
-	| Shader table - HitGroupShaderTable:
-	| [0] : MyHitGroup_Triangle
-	| [1] : MyHitGroup_Triangle_ShadowRay
-	| [2] : MyHitGroup_AABB_AnalyticPrimitive
-	| [3] : MyHitGroup_AABB_AnalyticPrimitive_ShadowRay
-	| ...
-	| [6] : MyHitGroup_AABB_VolumetricPrimitive
-	| [7] : MyHitGroup_AABB_VolumetricPrimitive_ShadowRay
-	| [8] : MyHitGroup_AABB_SignedDistancePrimitive
-	| [9] : MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay,
-	| ...
-	| [20] : MyHitGroup_AABB_SignedDistancePrimitive
-	| [21] : MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay
-	| --------------------------------------------------------------------
-	**********************************************************************/
-
-	// RayGen shader table.
-	{
-		UINT numShaderRecords = 1;
-		UINT shaderRecordSize = shaderIDSize; // No root arguments
-
-		ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
-		rayGenShaderTable.push_back(ShaderRecord(rayGenShaderID, shaderRecordSize, nullptr, 0));
-		rayGenShaderTable.DebugPrint(shaderIdToStringMap);
-		m_rayGenShaderTable = rayGenShaderTable.GetResource();
-	}
-
-	// Miss shader table.
-	{
-		UINT numShaderRecords = RayType::Count;
-		UINT shaderRecordSize = shaderIDSize; // No root arguments
-
-		ShaderTable missShaderTable(device, numShaderRecords, shaderRecordSize, L"MissShaderTable");
-		for (UINT i = 0; i < RayType::Count; i++)
-		{
-			missShaderTable.push_back(ShaderRecord(missShaderIDs[i], shaderIDSize, nullptr, 0));
-		}
-		missShaderTable.DebugPrint(shaderIdToStringMap);
-		m_missShaderTableStrideInBytes = missShaderTable.GetShaderRecordSize();
-		m_missShaderTable = missShaderTable.GetResource();
-	}
-
-	// Hit group shader table.
-	{
-		UINT numShaderRecords = RayType::Count + IntersectionShaderType::TotalPrimitiveCount * RayType::Count;
-		UINT shaderRecordSize = shaderIDSize + LocalRootSignature::MaxRootArgumentsSize();
-		ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
-
-		// Triangle geometry hit groups.
-		{
-			LocalRootSignature::Triangle::RootArguments rootArgs;
-			rootArgs.materialCb = m_planeMaterialCB;
-
-			for (auto& hitGroupShaderID : hitGroupShaderIDs_TriangleGeometry)
-			{
-				hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-			}
-		}
-
-		// AABB geometry hit groups.
-		{
-			LocalRootSignature::AABB::RootArguments rootArgs;
-			UINT instanceIndex = 0;
-
-			// Create a shader record for each primitive.
-			for (UINT iShader = 0, instanceIndex = 0; iShader < IntersectionShaderType::Count; iShader++)
-			{
-				UINT numPrimitiveTypes = IntersectionShaderType::PerPrimitiveTypeCount(static_cast<IntersectionShaderType::Enum>(iShader));
-
-				// Primitives for each intersection shader.
-				for (UINT primitiveIndex = 0; primitiveIndex < numPrimitiveTypes; primitiveIndex++, instanceIndex++)
-				{
-					rootArgs.materialCb = m_aabbMaterialCB[instanceIndex];
-					rootArgs.aabbCB.instanceIndex = instanceIndex;
-					rootArgs.aabbCB.primitiveType = primitiveIndex;
-
-					// Ray types.
-					for (UINT r = 0; r < RayType::Count; r++)
-					{
-						auto& hitGroupShaderID = hitGroupShaderIDs_AABBGeometry[iShader][r];
-						hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
-					}
-				}
-			}
-		}
-		hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
-		m_hitGroupShaderTableStrideInBytes = hitGroupShaderTable.GetShaderRecordSize();
-		m_hitGroupShaderTable = hitGroupShaderTable.GetResource();
-	}
+	
 }
 
 void ProceduralRtxEngineSample::OnKeyDown(UINT8 key)
@@ -1299,46 +1215,4 @@ void ProceduralRtxEngineSample::OnSizeChanged(UINT width, UINT height, bool mini
 
 	ReleaseWindowSizeDependentResources();
 	CreateWindowSizeDependentResources();
-}
-
-// Allocate a descriptor and return its index. 
-// If the passed descriptorIndexToUse is valid, it will be used instead of allocating a new one.
-UINT ProceduralRtxEngineSample::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* cpuDescriptor, UINT descriptorIndexToUse)
-{
-	auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	if (descriptorIndexToUse >= m_descriptorHeap->GetDesc().NumDescriptors)
-	{
-		ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap->GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!");
-		descriptorIndexToUse = m_descriptorsAllocated++;
-	}
-	*cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, m_descriptorSize);
-	return descriptorIndexToUse;
-}
-
-// Create a SRV for a buffer.
-UINT ProceduralRtxEngineSample::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize)
-{
-	auto device = m_deviceResources->GetD3DDevice();
-
-	// SRV
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Buffer.NumElements = numElements;
-	if (elementSize == 0)
-	{
-		srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-		srvDesc.Buffer.StructureByteStride = 0;
-	}
-	else
-	{
-		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-		srvDesc.Buffer.StructureByteStride = elementSize;
-	}
-	UINT descriptorIndex = AllocateDescriptor(&buffer->cpuDescriptorHandle);
-	device->CreateShaderResourceView(buffer->resource.Get(), &srvDesc, buffer->cpuDescriptorHandle);
-	buffer->gpuDescriptorHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(m_descriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, m_descriptorSize);
-	return descriptorIndex;
 }

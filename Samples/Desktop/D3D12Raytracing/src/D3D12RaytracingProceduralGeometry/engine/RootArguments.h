@@ -5,9 +5,13 @@
 
 // A root argument is a structure that constains all substructures that compose a root signature.
 
-struct RootArguments0
-{
+struct TriangleRootArguments {
+    PrimitiveConstantBuffer materialCb;
 };
 
+struct ProceduralRootArguments {
+    PrimitiveConstantBuffer materialCb;
+    PrimitiveInstanceConstantBuffer aabbCB;
+};
 
 #endif

@@ -111,7 +111,7 @@ namespace RtxEngine
 		unordered_map<string, vector<LPCWSTR>> rootToHit;
 		for(const auto& entry : *m_shaderTableEntries)
 		{
-			rootToHit[entry.rootParametersId].push_back(entry.hitGroupId.c_str());
+			rootToHit[entry.rootSignatureId].push_back(entry.hitGroupId.c_str());
 		}
 
 		for (const auto& rootToHitEntry : rootToHit)
