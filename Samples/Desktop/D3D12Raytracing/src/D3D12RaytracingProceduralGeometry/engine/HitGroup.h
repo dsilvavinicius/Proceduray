@@ -11,13 +11,14 @@ namespace RtxEngine
 	struct HitGroup
 	{
 	public:
-		HitGroup(const wstring& anyHit, const wstring& closestHit = L"", const wstring& intersection = L"");
+		HitGroup(const wstring& name, const wstring& anyHit, const wstring& closestHit = L"", const wstring& intersection = L"");
 
-		wstring m_anyHit;
-		wstring m_closestHit;
-		wstring m_intersection;
+		wstring name;
+		wstring anyHit;
+		wstring closestHit;
+		wstring intersection;
 	};
 
 	using HitGroupPtr = shared_ptr<HitGroup>;
-	using HitGroupMap = unordered_map<wstring, HitGroupPtr>;
+	using HitGroupMap = unordered_map<string, HitGroupPtr>;
 }

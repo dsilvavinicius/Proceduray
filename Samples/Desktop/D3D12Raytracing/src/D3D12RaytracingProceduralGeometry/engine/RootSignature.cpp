@@ -9,6 +9,11 @@ namespace RtxEngine
 		m_builded(nullptr)
 	{}
 
+	RootSignature::~RootSignature()
+	{
+		m_builded.Reset();
+	}
+
 	RootSignature::DescriptorRange RootSignature::createRange(D3D12_GPU_DESCRIPTOR_HANDLE baseHandleToHeap, BufferEntry type, UINT baseReg, UINT numRegs, UINT space) const
 	{
 		CD3DX12_DESCRIPTOR_RANGE range;

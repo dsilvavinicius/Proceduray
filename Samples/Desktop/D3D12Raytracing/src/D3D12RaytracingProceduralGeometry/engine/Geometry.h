@@ -27,6 +27,8 @@ namespace RtxEngine
 		/** Create mesh geometry. If a descriptor heap is passed, then the index and vertex buffer descriptors are pushed to it.*/
 		Geometry(Vertex vertices[], Index indices[], DeviceResources& deviceResources, DescriptorHeap& descriptorHeap, const XMMATRIX& transform = XMMatrixIdentity());
 		
+		~Geometry();
+
 		const D3DBuffer& getVertexBuffer() const { return m_vertexBuffer; }
 		const D3DBuffer& getIndexBuffer() const { return m_indexBuffer; }
 		const Type getType() const { return m_type; }

@@ -11,10 +11,12 @@ namespace RtxEngine
 	{
 	public:
 		ShaderTable(const StaticScenePtr& scene, DeviceResourcesPtr& deviceResources);
+		~ShaderTable();
+		
 		/** Add a ray generation shader entry. */
 		void addRayGen(const wstring& rayGenShader);
 		/** Add a miss shader entry. */
-		void addMiss(const wstring& rayId);
+		void addMiss(const string& rayId);
 		/** Add a common entry. */
 		void addCommonEntry(const ShaderTableEntry& entry);
 		
@@ -30,7 +32,7 @@ namespace RtxEngine
 		RayTracingStatePtr m_rayTracingState;
 		
 		wstring m_rayGenEntry;
-		vector<wstring> m_missEntries;
+		vector<string> m_missEntries;
 		ShaderTableEntriesPtr m_commonEntries;
 
 		BuildedShaderTablePtr m_buildedShaderTable = nullptr;

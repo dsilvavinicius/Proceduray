@@ -13,6 +13,12 @@ namespace RtxEngine
 		build();
 	}
 
+	AccelerationStructure::~AccelerationStructure()
+	{
+		m_bottomLevelAS.Reset();
+		m_topLevelAS.Reset();
+	}
+
 	// Build acceleration structure needed for raytracing.
 	void AccelerationStructure::build()
 	{

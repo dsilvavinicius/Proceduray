@@ -19,6 +19,12 @@ namespace RtxEngine
 		m_descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 
+	DescriptorHeap::~DescriptorHeap()
+	{
+		m_descriptorHeap.Reset();
+		m_descriptorsAllocated = 0;
+	}
+
 	// Allocate a descriptor and return its index.
 	// If the passed descriptorIndexToUse is valid, it will be used instead of allocating a new one.
 	DescriptorHeap::DescriptorHandles DescriptorHeap::allocateDescriptor(UINT descriptorIndexToUse)

@@ -26,6 +26,12 @@ namespace RtxEngine
 		ThrowIfFalse(descriptorIndexVB == descriptorIndexIB + 1, L"Vertex Buffer descriptor index must follow that of Index Buffer descriptor index");
 	}
 
+    Geometry::~Geometry()
+    {
+        m_indexBuffer.resource.Reset();
+        m_vertexBuffer.resource.Reset();
+    }
+
     // Create a SRV for a buffer.
     UINT Geometry::CreateBufferSRV(D3DBuffer* buffer, UINT numElements, UINT elementSize, DeviceResources& deviceResources, DescriptorHeap& descriptorHeap)
     {

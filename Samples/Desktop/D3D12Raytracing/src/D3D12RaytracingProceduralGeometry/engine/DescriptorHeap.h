@@ -15,6 +15,8 @@ namespace RtxEngine
 		};
 
 		DescriptorHeap(DeviceResourcesPtr& deviceResources, UINT numDescriptors);
+		~DescriptorHeap();
+
 		DescriptorHandles allocateDescriptor(UINT descriptorIndexToUse = UINT_MAX);
 		DxrDescriptorHeapPtr getDxrDescriptorHeap() { return m_descriptorHeap; }
 		UINT getDescriptoSize() { return m_descriptorSize; }

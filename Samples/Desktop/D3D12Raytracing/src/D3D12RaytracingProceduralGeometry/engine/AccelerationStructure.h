@@ -11,6 +11,8 @@ namespace RtxEngine
 		* level acceleration structure (TLAS). In other words, the acceleration structure is just one instance of the BLAS.*/
 	public:
 		AccelerationStructure(const StaticScenePtr& scene, DxrDevicePtr& device, DxrCommandListPtr& commandList, DeviceResourcesPtr& deviceResources);
+		~AccelerationStructure();
+		
 		ComPtr<ID3D12Resource> getBuilded() { return m_topLevelAS; }
 	private:
 		void build();

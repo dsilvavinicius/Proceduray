@@ -45,7 +45,6 @@ private:
 	static const UINT FrameCount = 3;
 
 	// Constants.
-	const UINT NUM_BLAS = 2;          // Triangle + AABB bottom-level AS.
 	const float c_aabbWidth = 2;      // AABB width.
 	const float c_aabbDistance = 2;   // Distance between AABBs.
 
@@ -70,7 +69,7 @@ private:
 	// Local Root Signature Constants
 	PrimitiveConstantBuffer m_planeMaterialCB;
 	PrimitiveConstantBuffer m_aabbMaterialCB[IntersectionShaderType::TotalPrimitiveCount];
-
+	
 	// Application state
 	StepTimer m_timer;
 	float m_animateGeometryTime;
@@ -88,6 +87,8 @@ private:
 
 	void CreateConstantBuffers();
 	void CreateAABBPrimitiveAttributesBuffers();
+	void CreateRays();
+	void CreateHitGroups();
 	void BuildGeometry();
 	void BuildProceduralGeometryAABBs();
 	void BuildPlaneGeometry();
@@ -95,8 +96,6 @@ private:
 
 	void CreateRootSignatures();
 	void CreateShaderTablesEntries();
-	void CreateRaytracingPipelineStateObject();
-	void BuildShaderTables();
 	
 	void ReleaseDeviceDependentResources();
 	void ReleaseWindowSizeDependentResources();

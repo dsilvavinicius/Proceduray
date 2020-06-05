@@ -34,6 +34,8 @@ namespace RtxEngine
 
 		RootSignature(const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap);
 
+		~RootSignature();
+
 		DescriptorRange createRange(D3D12_GPU_DESCRIPTOR_HANDLE baseHandleToHeap, BufferEntry type, UINT baseReg, UINT numRegs, UINT space = 0u) const;
 
 		/** Adds a constant entry.*/

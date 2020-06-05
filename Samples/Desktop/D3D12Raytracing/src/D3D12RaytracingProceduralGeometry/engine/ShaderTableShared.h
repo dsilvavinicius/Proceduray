@@ -12,7 +12,7 @@ namespace RtxEngine
 	struct ShaderTableEntry
 	{
 		string rayId;
-		wstring hitGroupId;
+		string hitGroupId;
 		string rootSignatureId;
 		RootArguments rootArguments;
 	};

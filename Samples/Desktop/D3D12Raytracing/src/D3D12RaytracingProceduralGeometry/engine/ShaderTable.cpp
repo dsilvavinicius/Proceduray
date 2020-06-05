@@ -10,12 +10,19 @@ namespace RtxEngine
 		m_commonEntries(make_shared<ShaderTableEntries>())
 	{}
 
+	ShaderTable::~ShaderTable()
+	{
+		m_buildedShaderTable->rayGenShaderTable.Reset();
+		m_buildedShaderTable->missShaderTable.Reset();
+		m_buildedShaderTable->hitGroupShaderTable.Reset();
+	}
+
 	void ShaderTable::addRayGen(const wstring& rayGenShader)
 	{
 		m_rayGenEntry = rayGenShader;
 	}
 
-	void ShaderTable::addMiss(const wstring& rayId)
+	void ShaderTable::addMiss(const string& rayId)
 	{
 		m_missEntries.push_back(rayId);
 	}
@@ -53,14 +60,16 @@ namespace RtxEngine
 
 			for (UINT i = 0; i < m_missEntries.size(); i++)
 			{
-				missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(m_missEntries[i].c_str());
-				shaderIdToStringMap[missShaderIDs[i]] = m_missEntries[i];
+				const auto ray = m_scene->getRays().at(m_missEntries[i]);
+				missShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(ray->missShader.c_str());
+				shaderIdToStringMap[missShaderIDs[i]] = ray->missShader;
 			}
 			for (UINT i = 0; i < m_commonEntries->size(); i++)
 			{
-				auto hitGroupName = m_commonEntries[i].hitGroupId;
-				hitGroupShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(hitGroupName);
-				shaderIdToStringMap[hitGroupShaderIDs[i]] = hitGroupName;
+				auto hitGroupName = (*m_commonEntries)[i].hitGroupId;
+				auto hitGroup = m_scene->getHitGroups().at(hitGroupName);
+				hitGroupShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(hitGroup->name.c_str());
+				shaderIdToStringMap[hitGroupShaderIDs[i]] = hitGroup->name;
 			}
 		};
 

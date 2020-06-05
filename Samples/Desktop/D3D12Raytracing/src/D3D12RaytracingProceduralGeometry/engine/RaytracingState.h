@@ -14,6 +14,9 @@ namespace RtxEngine
 		~RayTracingState();
 
 		DxrStatePtr& getBuilded() { return m_dxrState; }
+
+		const DX::GPUTimer& getGpuTimer() { return m_gpuTimer; }
+
 		void doRayTracing(const BuildedShaderTablePtr& shaderTable, UINT width, UINT height);
 
 	private:

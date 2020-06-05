@@ -2,6 +2,14 @@
 
 #include "ShaderCompat.h"
 
+namespace GeometryType {
+    enum Enum {
+        Triangle = 0,
+        AABB,       // Procedural geometry with an application provided AABB.
+        Count
+    };
+}
+
 namespace IntersectionShaderType {
     enum Enum {
         AnalyticPrimitive = 0,

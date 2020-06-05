@@ -3,9 +3,10 @@
 
 namespace RtxEngine
 {
-	HitGroup::HitGroup(const wstring& anyHit, const wstring& closestHit, const wstring& intersection)
-		: m_anyHit(anyHit),
-		m_closestHit(closestHit),
-		m_intersection(intersection)
+	HitGroup::HitGroup(const wstring& name, const wstring& anyHit, const wstring& closestHit, const wstring& intersection)
+		: name(name),
+		anyHit(anyHit),
+		closestHit(closestHit),
+		intersection(intersection)
 	{}
 }

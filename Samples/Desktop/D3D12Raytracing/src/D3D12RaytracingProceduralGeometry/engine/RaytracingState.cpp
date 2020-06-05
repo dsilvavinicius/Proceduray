@@ -58,6 +58,7 @@ namespace RtxEngine
 	RayTracingState::~RayTracingState()
 	{
 		m_gpuTimer.ReleaseDevice();
+		m_dxrState.Reset();
 	}
 
 	// DXIL library
@@ -138,6 +139,8 @@ namespace RtxEngine
 		auto commandList = m_deviceResources->GetCommandList();
 		auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
+		m_gpuTimer.BeginFrame(commandList);
+
 		auto DispatchRays = [&](auto* raytracingCommandList, auto* stateObject, auto* dispatchDesc)
 		{
 			dispatchDesc->HitGroupTable.StartAddress = shaderTable->hitGroupShaderTable->GetGPUVirtualAddress();
@@ -164,5 +167,7 @@ namespace RtxEngine
 		// Bind the heaps, acceleration structure and dispatch rays.  
 		D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
 		DispatchRays(m_dxrCommandList.Get(), m_dxrState.Get(), &dispatchDesc);
+
+		m_gpuTimer.EndFrame(commandList);
 	}
 }

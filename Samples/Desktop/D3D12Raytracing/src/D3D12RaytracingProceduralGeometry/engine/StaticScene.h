@@ -15,20 +15,18 @@ namespace RtxEngine
 	{
 	public:
 		// Add scene components.
-		void addRay(const string& name, const RayPtr& ray);
-		void addGeometry(const string& name, const GeometryPtr& geometry);
-		void addGlobalSignature(const RootSignaturePtr& rootSignature);
-		void addLocalSignature(const string& name, const RootSignaturePtr& rootSignature);
-		void addHitGroup(const string& name, const HitGroupPtr& hitGroup);
+		void addRay(const string& name, const RayPtr& ray) { m_rays[name] = ray; }
+		void addGeometry(const string& name, const GeometryPtr& geometry) { m_geometry[name] = geometry; }
+		void addGlobalSignature(const RootSignaturePtr& rootSignature) { m_globalSignature = rootSignature; }
+		void addLocalSignature(const string& name, const RootSignaturePtr& rootSignature) { m_localSignatures[name] = rootSignature; }
+		void addHitGroup(const string& name, const HitGroupPtr& hitGroup) { m_hitGroups[name] = hitGroup; }
 
+		const RayMap& getRays() const { return m_rays; }
 		const GeometryMap& getGeometry() const { return m_geometry; }
 		const HitGroupMap& getHitGroups() const { return m_hitGroups; }
 		RootSignature& getGlobalSignature() const { return *m_globalSignature; }
 		const RootSignatureMap& getLocalSignatures() const { return m_localSignatures; }
 		UINT getMaxRecursion() const { return m_maxRecursion; }
-
-		// Build the scene.
-		void build();
 
 	private:
 		// Scene entities.

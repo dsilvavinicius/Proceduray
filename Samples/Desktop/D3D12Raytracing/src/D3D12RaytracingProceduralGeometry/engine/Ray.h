@@ -9,16 +9,15 @@ namespace RtxEngine
 {
 	using namespace std;
 
-	class Ray
+	struct Ray
 	{
 	public:
 		/**
 		* @param missShader: miss shader entry point.
 		*/
-		Ray(const string& missShader, Payload) : m_missShader(missShader) {}
+		Ray(const wstring& missShader, Payload) : missShader(missShader) {}
 	
-	private:
-		string m_missShader;
+		wstring missShader;
 	};
 
 	using RayPtr = shared_ptr<Ray>;
