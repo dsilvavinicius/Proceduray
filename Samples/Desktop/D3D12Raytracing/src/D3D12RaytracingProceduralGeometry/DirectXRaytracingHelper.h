@@ -78,7 +78,7 @@ public:
         Allocate(device, bufferSize, resourceName);
         m_mappedShaderRecords = MapCpuWriteOnly();
     }
-    
+
     void push_back(const ShaderRecord& shaderRecord)
     {
         ThrowIfFalse(m_shaderRecords.size() < m_shaderRecords.capacity());

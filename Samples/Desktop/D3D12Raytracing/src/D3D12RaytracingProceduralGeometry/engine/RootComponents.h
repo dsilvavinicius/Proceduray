@@ -1,6 +1,12 @@
 #ifndef ROOT_COMPONENTS_H
 #define ROOT_COMPONENTS_H
 
+#ifdef HLSL
+#include "..\util\HlslCompat.h"
+#else
+using namespace DirectX;
+#endif
+
 // Root components are the components of Root arguments.
 
 // Attributes per primitive type.

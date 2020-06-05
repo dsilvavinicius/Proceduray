@@ -173,9 +173,6 @@
     <ClCompile Include="engine\HitGroup.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
-    <ClCompile Include="engine\Ray.cpp">
-      <Filter>Source Files\engine</Filter>
-    </ClCompile>
     <ClCompile Include="engine\ShaderTable.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
@@ -195,6 +192,9 @@
       <Filter>Source Files\engine</Filter>
     </ClCompile>
     <ClCompile Include="engine\DescriptorHeap.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\ShaderCompatUtils.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
   </ItemGroup>

@@ -88,7 +88,7 @@ namespace RtxEngine
 		ComPtr<ID3DBlob> error;
 
 		ThrowIfFailed(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &error), error ? static_cast<wchar_t*>(error->GetBufferPointer()) : nullptr);
-		ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&(*m_builded))));
+		ThrowIfFailed(device->CreateRootSignature(1, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&m_builded)));
 	}
 
 	void RootSignature::prepareToRender()
@@ -104,7 +104,7 @@ namespace RtxEngine
 			auto handleIter = m_baseHandlesToHeap.find(i);
 			if (handleIter != m_baseHandlesToHeap.end())
 			{
-				commandList->SetComputeRootDescriptorTable(i, *handleIter);
+				commandList->SetComputeRootDescriptorTable(i, handleIter->second);
 				return;
 			}
 			
@@ -115,13 +115,14 @@ namespace RtxEngine
 			if (bufferIter != m_uploadBuffers.end())
 			{
 				// Upload buffer must upload to gpu, additionaly.
-				(*bufferIter)->CopyStagingToGpu(frameIndex);
-				gpuAddress = (*bufferIter)->GpuVirtualAddress(frameIndex);
+				auto buffer = bufferIter->second;
+				buffer->CopyStagingToGpu(frameIndex);
+				gpuAddress = buffer->GpuVirtualAddress(frameIndex);
 			}
 			else
 			{
 				auto genericResourceIter = m_genericResources.find(i);
-				gpuAddress = (*genericResourceIter)->GetGPUVirtualAddress();
+				gpuAddress = genericResourceIter->second->GetGPUVirtualAddress();
 			}
 
 			// Use gpu address to associate root slot and resource.

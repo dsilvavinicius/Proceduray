@@ -81,27 +81,26 @@ namespace RtxEngine
 
 		for (auto hitGroupEntry : hitGroups)
 		{
-			auto name = hitGroupEntry.first;
 			auto hitGroup = hitGroupEntry.second;
 			auto hitGroupSO = raytracingPipeline->CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
-			if (!hitGroup->m_intersection.empty())
+			if (!hitGroup->intersection.empty())
 			{
-				hitGroupSO->SetIntersectionShaderImport(hitGroup->m_intersection.c_str());
+				hitGroupSO->SetIntersectionShaderImport(hitGroup->intersection.c_str());
 				hitGroupSO->SetHitGroupType(D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE);
 			}
 			
-			if (!hitGroup->m_anyHit.empty())
+			if (!hitGroup->anyHit.empty())
 			{
-				hitGroupSO->SetAnyHitShaderImport(hitGroup->m_anyHit.c_str());
+				hitGroupSO->SetAnyHitShaderImport(hitGroup->anyHit.c_str());
 			}
 
 
-			if (!hitGroup->m_closestHit.empty())
+			if (!hitGroup->closestHit.empty())
 			{
-				hitGroupSO->SetClosestHitShaderImport(hitGroup->m_closestHit.c_str());
+				hitGroupSO->SetClosestHitShaderImport(hitGroup->closestHit.c_str());
 			}
 
-			hitGroupSO->SetHitGroupExport(name.c_str());
+			hitGroupSO->SetHitGroupExport(hitGroup->name.c_str());
 		}
 	}
 
@@ -112,7 +111,8 @@ namespace RtxEngine
 		unordered_map<string, vector<LPCWSTR>> rootToHit;
 		for(const auto& entry : *m_shaderTableEntries)
 		{
-			rootToHit[entry.rootSignatureId].push_back(entry.hitGroupId.c_str());
+			const auto hitGroup = m_scene->getHitGroups().at(entry.hitGroupId);
+			rootToHit[entry.rootSignatureId].push_back(hitGroup->name.c_str());
 		}
 
 		for (const auto& rootToHitEntry : rootToHit)

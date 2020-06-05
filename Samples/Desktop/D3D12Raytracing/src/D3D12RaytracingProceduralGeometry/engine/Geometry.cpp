@@ -12,7 +12,7 @@ namespace RtxEngine
 		AllocateUploadBuffer(device, &aabb, sizeof(D3D12_RAYTRACING_AABB), &m_vertexBuffer.resource);
 	}
 
-	Geometry::Geometry(Vertex vertices[], Index indices[], DeviceResources& deviceResources, DescriptorHeap& descriptorHeap, const XMMATRIX& transform = XMMatrixIdentity())
+	Geometry::Geometry(Vertex vertices[], Index indices[], DeviceResources& deviceResources, DescriptorHeap& descriptorHeap, const XMMATRIX& transform)
 		: m_transform(transform),
 		m_type(Triangles)
 	{

@@ -218,6 +218,8 @@ class GpuUploadBuffer
 public:
     ComPtr<ID3D12Resource> GetResource() { return m_resource; }
     virtual void Release() { m_resource.Reset(); }
+    virtual void CopyStagingToGpu(UINT instanceIndex = 0) { throw(std::logic_error("GpuUploadBuffer::CopyStagingToGpu() is not implemented.")); }
+    virtual D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0) { throw(std::logic_error("GpuUploadBuffer::GpuVirtualAddress() is not implemented.")); }
 protected:
     ComPtr<ID3D12Resource> m_resource;
 
@@ -288,7 +290,7 @@ public:
         m_mappedConstantData = MapCpuWriteOnly();
     }
 
-    void CopyStagingToGpu(UINT instanceIndex = 0)
+    void CopyStagingToGpu(UINT instanceIndex = 0) override
     {
         memcpy(m_mappedConstantData + instanceIndex * m_alignedInstanceSize, &staging, sizeof(T));
     }
@@ -297,7 +299,7 @@ public:
     T staging;
     T* operator->() { return &staging; }
     UINT NumInstances() { return m_numInstances; }
-    D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0)
+    D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0) override
     {
         return m_resource->GetGPUVirtualAddress() + instanceIndex * m_alignedInstanceSize;
     }
@@ -333,7 +335,7 @@ public:
         m_mappedBuffers = reinterpret_cast<T*>(MapCpuWriteOnly());
     }
 
-    void CopyStagingToGpu(UINT instanceIndex = 0)
+    void CopyStagingToGpu(UINT instanceIndex = 0) override
     {
         memcpy(m_mappedBuffers + instanceIndex * NumElementsPerInstance(), &m_staging[0], InstanceSize());
     }
@@ -343,7 +345,7 @@ public:
     size_t NumElementsPerInstance() { return m_staging.size(); }
     UINT NumInstances() { return m_staging.size(); }
     size_t InstanceSize() { return NumElementsPerInstance() * sizeof(T); }
-    D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0)
+    D3D12_GPU_VIRTUAL_ADDRESS GpuVirtualAddress(UINT instanceIndex = 0) override
     {
         return m_resource->GetGPUVirtualAddress() + instanceIndex * InstanceSize();
     }

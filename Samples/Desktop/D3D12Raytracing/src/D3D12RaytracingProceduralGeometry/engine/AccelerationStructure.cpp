@@ -225,7 +225,7 @@ namespace RtxEngine
 		instanceDesc = {};
 		instanceDesc.InstanceMask = 1;
 		instanceDesc.InstanceContributionToHitGroupIndex = 0;
-		instanceDesc.AccelerationStructure = bottomLevelASaddress;
+		instanceDesc.AccelerationStructure = *bottomLevelASaddress;
 		XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), XMMatrixIdentity());
 
 		UINT64 bufferSize = static_cast<UINT64>(sizeof(instanceDesc));

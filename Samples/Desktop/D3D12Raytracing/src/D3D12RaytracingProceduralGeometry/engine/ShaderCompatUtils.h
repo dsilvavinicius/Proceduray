@@ -118,14 +118,11 @@ namespace RtxEngine
 				m_rootArguments["TriangleRootArguments"] = TriangleRootArguments();
 				m_rootArguments["ProceduralRootArguments"] = ProceduralRootArguments();
 
-				m_maxPayloadSize = 0u;
 				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(RayPayload)));
 				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(ShadowRayPayload)));
 
-				m_maxAttribStructSize = 0u;
-				m_maxAttribStructSize = max(m_maxAttribStructSize, UINT(sizeof(AttribStruct0)));
+				m_maxAttribStructSize = max(m_maxAttribStructSize, UINT(sizeof(ProceduralPrimitiveAttributes)));
 
-				m_maxRootArgumentSize = 0u;
 				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(TriangleRootArguments)));
 				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(ProceduralRootArguments)));
 			}

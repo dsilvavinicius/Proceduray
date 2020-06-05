@@ -4,7 +4,6 @@
 #include "Geometry.h"
 #include "RootSignature.h"
 #include "HitGroup.h"
-#include "ShaderTable.h"
 #include <vector>
 #include <unordered_map>
 #include <string>

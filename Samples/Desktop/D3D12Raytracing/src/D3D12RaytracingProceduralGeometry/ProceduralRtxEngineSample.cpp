@@ -297,19 +297,19 @@ void ProceduralRtxEngineSample::CreateRays()
 void ProceduralRtxEngineSample::CreateHitGroups()
 {
 	// Triangle Hit Groups.
-	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", "", L"MyClosestHitShader_Triangle", ""));
-	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", "", L"MyClosestHitShader_Triangle", ""));
+	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", L"", L"MyClosestHitShader_Triangle", L""));
+	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"MyClosestHitShader_Triangle", L""));
 
 	// Procedural Hit Groups.
 	// Analytic.
-	m_scene->addHitGroup("Analytic", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive", "", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
-	m_scene->addHitGroup("Analytic_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay", "", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
+	m_scene->addHitGroup("Analytic", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
+	m_scene->addHitGroup("Analytic_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
 	// Volumetric.
-	m_scene->addHitGroup("Volumetric", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive", "", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
-	m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", "", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
+	m_scene->addHitGroup("Volumetric", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
+	m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
 	// Signed Distance.
-	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", "", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
-	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", "", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
+	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
+	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
 }
 
 void ProceduralRtxEngineSample::CreateRootSignatures()
@@ -461,10 +461,10 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 		{
 			using namespace AnalyticPrimitive;
 			m_aabbs[offset + AABB] = InitializeAABB(XMINT3(3, 0, 0), XMFLOAT3(2, 3, 2));
-			m_scene->addGeometry("AABB", make_shared<Geometry>(m_aabbs[offset + AABB], m_deviceResources));
+			m_scene->addGeometry("AABB", make_shared<Geometry>(m_aabbs[offset + AABB], *m_deviceResources));
 
 			m_aabbs[offset + Spheres] = InitializeAABB(XMFLOAT3(2.25f, 0, 0.75f), XMFLOAT3(3, 3, 3));
-			m_scene->addGeometry("Spheres", make_shared<Geometry>(m_aabbs[offset + Spheres], m_deviceResources));
+			m_scene->addGeometry("Spheres", make_shared<Geometry>(m_aabbs[offset + Spheres], *m_deviceResources));
 			offset += AnalyticPrimitive::Count;
 		}
 
@@ -472,7 +472,7 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 		{
 			using namespace VolumetricPrimitive;
 			m_aabbs[offset + Metaballs] = InitializeAABB(XMINT3(0, 0, 0), XMFLOAT3(3, 3, 3));
-			m_scene->addGeometry("Metaballs", make_shared<Geometry>(m_aabbs[offset + Metaballs], m_deviceResources));
+			m_scene->addGeometry("Metaballs", make_shared<Geometry>(m_aabbs[offset + Metaballs], *m_deviceResources));
 			offset += VolumetricPrimitive::Count;
 		}
 
@@ -480,25 +480,25 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 		{
 			using namespace SignedDistancePrimitive;
 			m_aabbs[offset + MiniSpheres] = InitializeAABB(XMINT3(2, 0, 0), XMFLOAT3(2, 2, 2));
-			m_scene->addGeometry("MiniSpheres", make_shared<Geometry>(m_aabbs[offset + MiniSpheres], m_deviceResources));
+			m_scene->addGeometry("MiniSpheres", make_shared<Geometry>(m_aabbs[offset + MiniSpheres], *m_deviceResources));
 			
 			m_aabbs[offset + TwistedTorus] = InitializeAABB(XMINT3(0, 0, 1), XMFLOAT3(2, 2, 2));
-			m_scene->addGeometry("TwistedTorus", make_shared<Geometry>(m_aabbs[offset + TwistedTorus], m_deviceResources));
+			m_scene->addGeometry("TwistedTorus", make_shared<Geometry>(m_aabbs[offset + TwistedTorus], *m_deviceResources));
 
 			m_aabbs[offset + IntersectedRoundCube] = InitializeAABB(XMINT3(0, 0, 2), XMFLOAT3(2, 2, 2));
-			m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[offset + IntersectedRoundCube], m_deviceResources));
+			m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[offset + IntersectedRoundCube], *m_deviceResources));
 
 			m_aabbs[offset + SquareTorus] = InitializeAABB(XMFLOAT3(0.75f, -0.1f, 2.25f), XMFLOAT3(3, 3, 3));
-			m_scene->addGeometry("SquareTorus", make_shared<Geometry>(m_aabbs[offset + SquareTorus], m_deviceResources));
+			m_scene->addGeometry("SquareTorus", make_shared<Geometry>(m_aabbs[offset + SquareTorus], *m_deviceResources));
 
 			m_aabbs[offset + Cog] = InitializeAABB(XMINT3(1, 0, 0), XMFLOAT3(2, 2, 2));
-			m_scene->addGeometry("Cog", make_shared<Geometry>(m_aabbs[offset + Cog], m_deviceResources));
+			m_scene->addGeometry("Cog", make_shared<Geometry>(m_aabbs[offset + Cog], *m_deviceResources));
 
 			m_aabbs[offset + Cylinder] = InitializeAABB(XMINT3(0, 0, 3), XMFLOAT3(2, 3, 2));
-			m_scene->addGeometry("Cylinder", make_shared<Geometry>(m_aabbs[offset + Cylinder], m_deviceResources));
+			m_scene->addGeometry("Cylinder", make_shared<Geometry>(m_aabbs[offset + Cylinder], *m_deviceResources));
 
 			m_aabbs[offset + FractalPyramid] = InitializeAABB(XMINT3(2, 0, 2), XMFLOAT3(6, 6, 6));
-			m_scene->addGeometry("FractalPyramid", make_shared<Geometry>(m_aabbs[offset + FractalPyramid], m_deviceResources));
+			m_scene->addGeometry("FractalPyramid", make_shared<Geometry>(m_aabbs[offset + FractalPyramid], *m_deviceResources));
 		}
 	}
 }
