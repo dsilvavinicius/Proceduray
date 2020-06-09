@@ -25,7 +25,8 @@ namespace RtxEngine
 		Geometry(D3D12_RAYTRACING_AABB& aabb, DeviceResources& deviceResources, const XMMATRIX& transform = XMMatrixIdentity());
 		
 		/** Create mesh geometry. If a descriptor heap is passed, then the index and vertex buffer descriptors are pushed to it.*/
-		Geometry(Vertex vertices[], Index indices[], DeviceResources& deviceResources, DescriptorHeap& descriptorHeap, const XMMATRIX& transform = XMMatrixIdentity());
+		Geometry(vector<Vertex>& vertices, vector<Index>& indices, DeviceResources& deviceResources, DescriptorHeap& descriptorHeap,
+			const XMMATRIX& transform = XMMatrixIdentity());
 		
 		~Geometry();
 

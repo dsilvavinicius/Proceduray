@@ -12,17 +12,18 @@ namespace RtxEngine
 		AllocateUploadBuffer(device, &aabb, sizeof(D3D12_RAYTRACING_AABB), &m_vertexBuffer.resource);
 	}
 
-	Geometry::Geometry(Vertex vertices[], Index indices[], DeviceResources& deviceResources, DescriptorHeap& descriptorHeap, const XMMATRIX& transform)
+	Geometry::Geometry(vector<Vertex>& vertices, vector<Index>& indices, DeviceResources& deviceResources, DescriptorHeap& descriptorHeap,
+        const XMMATRIX& transform)
 		: m_transform(transform),
 		m_type(Triangles)
 	{
 		auto device = deviceResources.GetD3DDevice();
-		AllocateUploadBuffer(device, indices, sizeof(indices), &m_indexBuffer.resource);
-		AllocateUploadBuffer(device, vertices, sizeof(vertices), &m_vertexBuffer.resource);
+		AllocateUploadBuffer(device, indices.data(), indices.size() * sizeof(Index), &m_indexBuffer.resource);
+		AllocateUploadBuffer(device, vertices.data(), vertices.size() * sizeof(Vertex), &m_vertexBuffer.resource);
 
 		// Vertex buffer is passed to the shader along with index buffer as a descriptor range.
-		UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, sizeof(indices) / 4, 0, deviceResources, descriptorHeap);
-		UINT descriptorIndexVB = CreateBufferSRV(&m_vertexBuffer, sizeof(vertices), sizeof(vertices[0]), deviceResources, descriptorHeap);
+		UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, indices.size() / 3, 0, deviceResources, descriptorHeap);
+		UINT descriptorIndexVB = CreateBufferSRV(&m_vertexBuffer, vertices.size(), sizeof(Vertex), deviceResources, descriptorHeap);
 		ThrowIfFalse(descriptorIndexVB == descriptorIndexIB + 1, L"Vertex Buffer descriptor index must follow that of Index Buffer descriptor index");
 	}
 

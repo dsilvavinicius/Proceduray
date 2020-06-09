@@ -505,16 +505,9 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 
 void ProceduralRtxEngineSample::BuildPlaneGeometry()
 {
-	// Plane indices.
-	Index indices[] =
-	{
-		3,1,0,
-		2,1,3,
-	};
-
-	// Cube vertices positions and corresponding triangle normals.
-	Vertex vertices[] =
-	{
+	vector<Index> indices{3, 1, 0, 2, 1, 3};
+	
+	vector<Vertex> vertices{
 		{ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 		{ XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 		{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
