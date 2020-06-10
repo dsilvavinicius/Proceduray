@@ -15,7 +15,10 @@ namespace RtxEngine
 
 	AccelerationStructure::~AccelerationStructure()
 	{
-		m_bottomLevelAS.Reset();
+		for(auto& blas : m_bottomLevelAS)
+		{
+			blas.Reset();
+		}
 		m_topLevelAS.Reset();
 	}
 
@@ -32,14 +35,24 @@ namespace RtxEngine
 
 		// Build bottom-level AS.
 		auto geometries = m_scene->getGeometry();
-		AccelerationStructureBuffers bottomLevelAS;
-		vector<D3D12_RAYTRACING_GEOMETRY_DESC> geometryDescs = buildGeometryDescsForBottomLevelAS();
+		auto blasDescs = buildGeometryDescsForBottomLevelAS();
 		
-		bottomLevelAS = buildBottomLevelAS(geometryDescs);
+		vector<AccelerationStructureBuffers> bottomLevelAS;
+		for (auto descriptors : blasDescs)
+		{
+			auto currentBlas = buildBottomLevelAS(descriptors);
+			bottomLevelAS.push_back(currentBlas);
+		}
 
 		// Batch all resource barriers for bottom-level AS builds.
-		D3D12_RESOURCE_BARRIER resourceBarrier = CD3DX12_RESOURCE_BARRIER::UAV(bottomLevelAS.accelerationStructure.Get());
-		commandList->ResourceBarrier(1, &resourceBarrier);
+		vector<D3D12_RESOURCE_BARRIER> resourceBarriers;
+		for (auto currentBlas : bottomLevelAS)
+		{
+			D3D12_RESOURCE_BARRIER resourceBarrier = CD3DX12_RESOURCE_BARRIER::UAV(currentBlas.accelerationStructure.Get());
+			resourceBarriers.push_back(resourceBarrier);
+		}
+
+		commandList->ResourceBarrier(2, resourceBarriers.data());
 
 		// Build top-level AS.
 		AccelerationStructureBuffers topLevelAS = buildTopLevelAS(bottomLevelAS);
@@ -51,31 +64,32 @@ namespace RtxEngine
 		m_deviceResources->WaitForGpu();
 
 		// Store the AS buffers. The rest of the buffers will be released once we exit the function.
-		m_bottomLevelAS = bottomLevelAS.accelerationStructure;
+		m_bottomLevelAS.push_back(bottomLevelAS[0].accelerationStructure);
+		m_bottomLevelAS.push_back(bottomLevelAS[1].accelerationStructure);
 		m_topLevelAS = topLevelAS.accelerationStructure;
 	}
 
 	// Build geometry descs for bottom-level AS.
-	vector<D3D12_RAYTRACING_GEOMETRY_DESC> AccelerationStructure::buildGeometryDescsForBottomLevelAS() const
+	AccelerationStructure::BlasDescriptors AccelerationStructure::buildGeometryDescsForBottomLevelAS() const
 	{
 		// Mark the geometry as opaque. 
 		// PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
 		// Note: When rays encounter opaque geometry an any hit shader will not be executed whether it is present or not.
 		D3D12_RAYTRACING_GEOMETRY_FLAGS geometryFlags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
-		vector<D3D12_RAYTRACING_GEOMETRY_DESC> geometryDescs;
+		vector<D3D12_RAYTRACING_GEOMETRY_DESC> triGeometryDescs;
+		vector<D3D12_RAYTRACING_GEOMETRY_DESC> procGeometryDescs;
 
 		for (const auto& geometryEntry : m_scene->getGeometry())
 		{
 			auto geometry = geometryEntry.second;
 			auto vertexBuffer = geometry->getVertexBuffer();
-			D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc;
 
 			if (geometry->getType() == Geometry::Triangles)
 			{
 				auto indexBuffer = geometry->getIndexBuffer();
 
-				geometryDesc = {};
+				D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc{};
 				geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 				geometryDesc.Triangles.IndexBuffer = indexBuffer.resource->GetGPUVirtualAddress();
 				geometryDesc.Triangles.IndexCount = static_cast<UINT>(indexBuffer.resource->GetDesc().Width) / sizeof(Index);
@@ -85,20 +99,23 @@ namespace RtxEngine
 				geometryDesc.Triangles.VertexBuffer.StartAddress = vertexBuffer.resource->GetGPUVirtualAddress();
 				geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
 				geometryDesc.Flags = geometryFlags;
+
+				triGeometryDescs.push_back(geometryDesc);
 			}
 			else
 			{
+				D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc{};
 				geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS;
 				geometryDesc.AABBs.AABBCount = 1;
 				geometryDesc.AABBs.AABBs.StrideInBytes = sizeof(D3D12_RAYTRACING_AABB);
 				geometryDesc.Flags = geometryFlags;
 				geometryDesc.AABBs.AABBs.StartAddress = vertexBuffer.resource->GetGPUVirtualAddress();
+
+				procGeometryDescs.push_back(geometryDesc);
 			}
-			
-			geometryDescs.push_back(geometryDesc);
 		}
 
-		return geometryDescs;
+		return BlasDescriptors{ triGeometryDescs, procGeometryDescs };
 	}
 
 	AccelerationStructureBuffers AccelerationStructure::buildBottomLevelAS(
@@ -156,7 +173,7 @@ namespace RtxEngine
 	}
 
 	AccelerationStructureBuffers AccelerationStructure::buildTopLevelAS(
-		AccelerationStructureBuffers bottomLevelAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags)
+		vector<AccelerationStructureBuffers>& bottomLevelAS, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags)
 	{
 		auto device = m_deviceResources->GetD3DDevice();
 		auto commandList = m_deviceResources->GetCommandList();
@@ -169,7 +186,7 @@ namespace RtxEngine
 		topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
 		topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 		topLevelInputs.Flags = buildFlags;
-		topLevelInputs.NumDescs = 1;
+		topLevelInputs.NumDescs = 2;
 
 		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
 		m_device->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
@@ -190,12 +207,11 @@ namespace RtxEngine
 		}
 
 		// Create instance descs for the bottom-level acceleration structures.
-		ComPtr<ID3D12Resource> instanceDescsResource;
-		{
-			D3D12_RAYTRACING_INSTANCE_DESC instanceDesc = {};
-			D3D12_GPU_VIRTUAL_ADDRESS bottomLevelASaddress = bottomLevelAS.accelerationStructure->GetGPUVirtualAddress();
-			buildBotomLevelASInstanceDesc<D3D12_RAYTRACING_INSTANCE_DESC>(&bottomLevelASaddress, &instanceDescsResource);
-		}
+		vector<D3D12_GPU_VIRTUAL_ADDRESS> bottomLevelASaddresses{
+			bottomLevelAS[0].accelerationStructure->GetGPUVirtualAddress(),
+			bottomLevelAS[1].accelerationStructure->GetGPUVirtualAddress()
+		};
+		ComPtr<ID3D12Resource> instanceDescsResource = buildBottomLevelASInstanceDesc(bottomLevelASaddresses);
 
 		// Top-level AS desc
 		{
@@ -216,19 +232,29 @@ namespace RtxEngine
 	}
 
 	// For now, each Node in the BLAS will have just one instance.
-	template <class InstanceDescType, class BLASPtrType>
-	void AccelerationStructure::buildBotomLevelASInstanceDesc(BLASPtrType* bottomLevelASaddress, ComPtr<ID3D12Resource>* instanceDescsResource)
+	ComPtr<ID3D12Resource> AccelerationStructure::buildBottomLevelASInstanceDesc(vector<D3D12_GPU_VIRTUAL_ADDRESS>& bottomLevelASaddresses)
 	{
+		ComPtr<ID3D12Resource> instanceDescsResource;
+
+		vector<D3D12_RAYTRACING_INSTANCE_DESC> instanceDescs;
+
 		auto device = m_deviceResources->GetD3DDevice();
 
-		InstanceDescType instanceDesc;
-		instanceDesc = {};
-		instanceDesc.InstanceMask = 1;
-		instanceDesc.InstanceContributionToHitGroupIndex = 0;
-		instanceDesc.AccelerationStructure = *bottomLevelASaddress;
-		XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), XMMatrixIdentity());
+		for (auto& blas : bottomLevelASaddresses)
+		{
+			D3D12_RAYTRACING_INSTANCE_DESC instanceDesc;
+			instanceDesc = {};
+			instanceDesc.InstanceMask = 1;
+			instanceDesc.InstanceContributionToHitGroupIndex = 0;
+			instanceDesc.AccelerationStructure = blas;
+			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), XMMatrixIdentity());
 
-		UINT64 bufferSize = static_cast<UINT64>(sizeof(instanceDesc));
-		AllocateUploadBuffer(device, &instanceDesc, bufferSize, &(*instanceDescsResource), L"InstanceDescs");
+			instanceDescs.push_back(instanceDesc);
+		}
+
+		UINT64 bufferSize = static_cast<UINT64>(instanceDescs.size() * sizeof(D3D12_RAYTRACING_INSTANCE_DESC));
+		AllocateUploadBuffer(device, instanceDescs.data(), bufferSize, &instanceDescsResource, L"InstanceDescs");
+
+		return instanceDescsResource;
 	};
 }

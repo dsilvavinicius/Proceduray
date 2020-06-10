@@ -15,8 +15,10 @@ namespace RtxEngine
 		
 		ComPtr<ID3D12Resource> getBuilded() { return m_topLevelAS; }
 	private:
+		using BlasDescriptors = vector<vector<D3D12_RAYTRACING_GEOMETRY_DESC>>;
+
 		void build();
-		vector<D3D12_RAYTRACING_GEOMETRY_DESC> buildGeometryDescsForBottomLevelAS() const;
+		BlasDescriptors buildGeometryDescsForBottomLevelAS() const;
 		
 		AccelerationStructureBuffers buildBottomLevelAS(
 			const std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs,
@@ -24,19 +26,18 @@ namespace RtxEngine
 		);
 
 		AccelerationStructureBuffers buildTopLevelAS(
-			AccelerationStructureBuffers bottomLevelAS,
+			vector<AccelerationStructureBuffers>& bottomLevelAS,
 			D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE
 		);
 		
-		template <class InstanceDescType, class BLASPtrType>
-		void buildBotomLevelASInstanceDesc(BLASPtrType* bottomLevelASaddress, ComPtr<ID3D12Resource>* instanceDescsResource);
+		ComPtr<ID3D12Resource> buildBottomLevelASInstanceDesc(vector<D3D12_GPU_VIRTUAL_ADDRESS>& bottomLevelASaddress);
 
 		DxrDevicePtr m_device;
 		DxrCommandListPtr m_commandList;
 		DeviceResourcesPtr m_deviceResources;
 		StaticScenePtr m_scene;
 
-		ComPtr<ID3D12Resource> m_bottomLevelAS;
+		vector<ComPtr<ID3D12Resource>> m_bottomLevelAS;
 		ComPtr<ID3D12Resource> m_topLevelAS;
 	};
 
