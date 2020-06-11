@@ -3,9 +3,10 @@
 
 namespace RtxEngine
 {
-	RootSignature::RootSignature(const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap)
+	RootSignature::RootSignature(const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap, bool isLocal)
 		: m_deviceResources(deviceResources),
 		m_descriptorHeap(descriptorHeap),
+		m_isLocal(isLocal),
 		m_builded(nullptr)
 	{}
 
@@ -58,7 +59,8 @@ namespace RtxEngine
 	void RootSignature::addDescriptorTable(const vector<DescriptorRange>& ranges)
 	{
 		CD3DX12_ROOT_PARAMETER param;
-		vector<CD3DX12_DESCRIPTOR_RANGE> untyped_ranges;
+		m_ranges.push_back(vector<CD3DX12_DESCRIPTOR_RANGE>());
+		auto& untyped_ranges = *m_ranges.rbegin();
 		for (auto range : ranges)
 		{
 			untyped_ranges.push_back(range.range);
@@ -81,7 +83,10 @@ namespace RtxEngine
 	void RootSignature::build()
 	{
 		CD3DX12_ROOT_SIGNATURE_DESC desc(m_params.size(), m_params.data());
-		desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
+		if (m_isLocal)
+		{
+			desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
+		}
 
 		auto device = m_deviceResources->GetD3DDevice();
 		ComPtr<ID3DBlob> blob;

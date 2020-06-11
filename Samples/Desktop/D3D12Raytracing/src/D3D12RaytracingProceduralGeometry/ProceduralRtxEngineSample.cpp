@@ -315,7 +315,7 @@ void ProceduralRtxEngineSample::CreateHitGroups()
 void ProceduralRtxEngineSample::CreateRootSignatures()
 {
 	// Global root signature.
-	auto globalSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap);
+	auto globalSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap, false);
 	
 	// Global signature ranges.
 	auto outputRange = globalSignature->createRange(m_raytracingOutputHandles.gpu, RootSignature::UAV, 0, 1);
@@ -332,7 +332,7 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	m_scene->addGlobalSignature(globalSignature);
 
 	// Triangle geometry local root signature.
-	auto triangleSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap);
+	auto triangleSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap, true);
 	triangleSignature->addConstant(RootComponent(PrimitiveConstantBuffer()), 1);
 	
 	// Root Arguments type.
@@ -340,7 +340,7 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	m_scene->addLocalSignature("Triangle", triangleSignature);
 
 	// Procedural geometry local root signature.
-	auto proceduralSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap);
+	auto proceduralSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap, true);
 	proceduralSignature->addConstant(RootComponent(PrimitiveConstantBuffer()), 1);
 	proceduralSignature->addConstant(RootComponent(PrimitiveInstanceConstantBuffer()), 2);
 	
@@ -374,7 +374,7 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 	{
 		TriangleRootArguments rootArgs{ m_planeMaterialCB };
 		m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "Triangle", "Triangle", rootArgs });
-		m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "TriangleShadow", "Triangle", rootArgs });
+		m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "Triangle_Shadow", "Triangle", rootArgs });
 	}
 	
 	// Procedural hit groups.
@@ -401,8 +401,8 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 				rootArgs.aabbCB.instanceIndex = instanceIndex;
 				rootArgs.aabbCB.primitiveType = primitiveIndex;
 
-				m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", hitGroupIds[primitiveIndex][RayType::Radiance], "Procedural", rootArgs });
-				m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", hitGroupIds[primitiveIndex][RayType::Shadow], "Procedural", rootArgs });
+				m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", hitGroupIds[iShader][RayType::Radiance], "Procedural", rootArgs });
+				m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", hitGroupIds[iShader][RayType::Shadow], "Procedural", rootArgs });
 			}
 		}
 	}

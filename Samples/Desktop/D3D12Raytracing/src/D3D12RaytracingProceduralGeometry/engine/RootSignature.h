@@ -32,7 +32,7 @@ namespace RtxEngine
 			D3D12_GPU_DESCRIPTOR_HANDLE baseHandleToHeap;
 		};
 
-		RootSignature(const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap);
+		RootSignature(const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap, bool isLocal);
 
 		~RootSignature();
 
@@ -67,6 +67,7 @@ namespace RtxEngine
 		// Input.
 		DeviceResourcesPtr m_deviceResources;
 		DescriptorHeapPtr m_descriptorHeap;
+		bool m_isLocal;
 
 		// Generated.
 		vector<CD3DX12_ROOT_PARAMETER> m_params;
@@ -74,6 +75,7 @@ namespace RtxEngine
 		unordered_map<UINT, shared_ptr<GpuUploadBuffer>> m_uploadBuffers;
 		unordered_map<UINT, ComPtr<ID3D12Resource>> m_genericResources;
 		RootArguments m_rootArguments;
+		vector<vector<CD3DX12_DESCRIPTOR_RANGE>> m_ranges;
 
 		// Output.
 		ComPtr<ID3D12RootSignature> m_builded;
