@@ -33,6 +33,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <set>
 #include <atlbase.h>
 #include <assert.h>
 #include <array>

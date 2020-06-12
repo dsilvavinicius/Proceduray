@@ -108,17 +108,22 @@ namespace RtxEngine
 // This is a root signature that enables a shader to have unique arguments that come from shader tables.
 	void RayTracingState::createLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
 	{
-		unordered_map<string, vector<LPCWSTR>> rootToHit;
+		unordered_map<string, set<LPCWSTR>> rootToHit;
 		for(const auto& entry : *m_shaderTableEntries)
 		{
 			const auto hitGroup = m_scene->getHitGroups().at(entry.hitGroupId);
-			rootToHit[entry.rootSignatureId].push_back(hitGroup->name.c_str());
+			rootToHit[entry.rootSignatureId].insert(hitGroup->name.c_str());
 		}
 
 		for (const auto& rootToHitEntry : rootToHit)
 		{
 			auto rootParametersId = rootToHitEntry.first;
-			auto hitGroupIds = rootToHitEntry.second;
+			auto hitGroupIdsSet = rootToHitEntry.second;
+			vector<LPCWSTR> hitGroupIds;
+			for (const auto& hitGroup : hitGroupIdsSet)
+			{
+				hitGroupIds.push_back(hitGroup);
+			}
 
 			const auto& rootSignature = m_scene->getLocalSignatures().at(rootParametersId);
 			auto rootSignatureSO = raytracingPipeline->CreateSubobject<CD3DX12_LOCAL_ROOT_SIGNATURE_SUBOBJECT>();
@@ -127,10 +132,7 @@ namespace RtxEngine
 			// Shader association
 			auto rootSignatureAssociation = raytracingPipeline->CreateSubobject<CD3DX12_SUBOBJECT_TO_EXPORTS_ASSOCIATION_SUBOBJECT>();
 			rootSignatureAssociation->SetSubobjectToAssociate(*rootSignatureSO);
-			for (const auto& hitGroupId : hitGroupIds)
-			{
-				rootSignatureAssociation->AddExports(hitGroupIds.data(), hitGroupIds.size());
-			}
+			rootSignatureAssociation->AddExports(hitGroupIds.data(), hitGroupIds.size());
 		}
 	}
 
