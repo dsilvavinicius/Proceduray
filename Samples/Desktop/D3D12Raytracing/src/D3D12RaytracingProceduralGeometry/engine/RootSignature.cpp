@@ -28,6 +28,7 @@ namespace RtxEngine
 	{
 		CD3DX12_ROOT_PARAMETER param;
 		param.InitAsConstants(ShaderCompatUtils::getSize(component), reg, space);
+		m_params.push_back(param);
 	}
 
 	void RootSignature::addEntry(RootComponent component, BufferEntry type, const shared_ptr<GpuUploadBuffer>& buffer, UINT reg, UINT space)

@@ -44,6 +44,8 @@ namespace RtxEngine
 
 	void ShaderTable::build(RayTracingState& rayTracingState)
 	{
+		m_buildedShaderTable = make_shared<BuildedShaderTable>();
+
 		auto device = m_deviceResources->GetD3DDevice();
 
 		void* rayGenShaderID;

@@ -30,6 +30,39 @@ namespace RtxEngine
 	class ShaderCompatUtils
 	{
 	public:
+		friend class Constructor;
+		struct Constructor
+		{
+			Constructor()
+			{
+				// Payloads
+				m_payloads["RayPayload"] = RayPayload();
+				m_payloads["ShadowRayPayload"] = ShadowRayPayload();
+
+				// Attribute structures
+				m_attribStructs["ProceduralPrimitiveAttributes"] = ProceduralPrimitiveAttributes();
+
+				// Root Components
+				m_rootComponents["PrimitiveConstantBuffer"] = PrimitiveConstantBuffer();
+				m_rootComponents["PrimitiveInstanceConstantBuffer"] = PrimitiveInstanceConstantBuffer();
+				m_rootComponents["SceneConstantBuffer"] = SceneConstantBuffer();
+				m_rootComponents["PrimitiveInstancePerFrameBuffer"] = PrimitiveInstancePerFrameBuffer();
+				m_rootComponents["DontApply"] = DontApply();
+
+				// Root Arguments
+				m_rootArguments["TriangleRootArguments"] = TriangleRootArguments();
+				m_rootArguments["ProceduralRootArguments"] = ProceduralRootArguments();
+
+				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(RayPayload)));
+				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(ShadowRayPayload)));
+
+				m_maxAttribStructSize = max(m_maxAttribStructSize, UINT(sizeof(ProceduralPrimitiveAttributes)));
+
+				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(TriangleRootArguments)));
+				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(ProceduralRootArguments)));
+			}
+		};
+
 		static UINT getMaxPayloadSize()
 		{
 			return m_maxPayloadSize;
@@ -95,39 +128,6 @@ namespace RtxEngine
 				|| (m_rootArguments.find(structName) != m_rootArguments.end());
 		}*/
 	private:
-		friend class Constructor;
-		struct Constructor
-		{
-			Constructor()
-			{
-				// Payloads
-				m_payloads["RayPayload"] = RayPayload();
-				m_payloads["ShadowRayPayload"] = ShadowRayPayload();
-
-				// Attribute structures
-				m_attribStructs["ProceduralPrimitiveAttributes"] = ProceduralPrimitiveAttributes();
-
-				// Root Components
-				m_rootComponents["PrimitiveConstantBuffer"] = PrimitiveConstantBuffer();
-				m_rootComponents["PrimitiveInstanceConstantBuffer"] = PrimitiveInstanceConstantBuffer();
-				m_rootComponents["SceneConstantBuffer"] = SceneConstantBuffer();
-				m_rootComponents["PrimitiveInstancePerFrameBuffer"] = PrimitiveInstancePerFrameBuffer();
-				m_rootComponents["DontApply"] = DontApply();
-
-				// Root Arguments
-				m_rootArguments["TriangleRootArguments"] = TriangleRootArguments();
-				m_rootArguments["ProceduralRootArguments"] = ProceduralRootArguments();
-
-				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(RayPayload)));
-				m_maxPayloadSize = max(m_maxPayloadSize, UINT(sizeof(ShadowRayPayload)));
-
-				m_maxAttribStructSize = max(m_maxAttribStructSize, UINT(sizeof(ProceduralPrimitiveAttributes)));
-
-				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(TriangleRootArguments)));
-				m_maxRootArgumentSize = max(m_maxRootArgumentSize, UINT(sizeof(ProceduralRootArguments)));
-			}
-		};
-
 		static Constructor m_ctor;
 		static PayloadMap m_payloads;
 		static AttribStructMap m_attribStructs;
