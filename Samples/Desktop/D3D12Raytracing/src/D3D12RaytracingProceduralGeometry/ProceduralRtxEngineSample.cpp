@@ -24,6 +24,7 @@ ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, st
 	m_animateLight(false),
 	m_scene(make_shared<StaticScene>())
 {
+	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
 	UpdateForSizeChange(width, height);
 }
 
@@ -345,7 +346,7 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	proceduralSignature->addConstant(RootComponent(PrimitiveInstanceConstantBuffer()), 2);
 	
 	// Root Arguments.
-	triangleSignature->setRootArgumentsType(RootArguments(ProceduralRootArguments()));
+	proceduralSignature->setRootArgumentsType(RootArguments(ProceduralRootArguments()));
 	m_scene->addLocalSignature("Procedural", proceduralSignature);
 }
 
@@ -422,7 +423,7 @@ void ProceduralRtxEngineSample::CreateRaytracingOutputResource()
 		&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_raytracingOutput)));
 	NAME_D3D12_OBJECT(m_raytracingOutput);
 
-	m_raytracingOutputHandles = m_descriptorHeap->allocateDescriptor(UINT_MAX);
+	m_raytracingOutputHandles = m_descriptorHeap->allocateDescriptor(m_raytracingOutputHandles.descriptorIndex);
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
 	UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
@@ -629,6 +630,7 @@ void ProceduralRtxEngineSample::ReleaseDeviceDependentResources()
 	m_aabbPrimitiveAttributeBuffer.Release();
 
 	m_raytracingOutput.Reset();
+	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
 }
 
 void ProceduralRtxEngineSample::RecreateD3D()
