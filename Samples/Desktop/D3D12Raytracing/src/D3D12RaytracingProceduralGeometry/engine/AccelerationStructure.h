@@ -10,7 +10,8 @@ namespace RtxEngine
 		/** Acceleration structure for ray tracing. For now, it consists of one bottom level acceleration structure (BLAS) and one top
 		* level acceleration structure (TLAS). In other words, the acceleration structure is just one instance of the BLAS.*/
 	public:
-		AccelerationStructure(const StaticScenePtr& scene, DxrDevicePtr& device, DxrCommandListPtr& commandList, DeviceResourcesPtr& deviceResources);
+		AccelerationStructure(const StaticScenePtr& scene, DxrDevicePtr& device, DxrCommandListPtr& commandList, DeviceResourcesPtr& deviceResources,
+			const XMMATRIX& triangleTransform, const XMMATRIX& proceduralTransform);
 		~AccelerationStructure();
 		
 		ComPtr<ID3D12Resource> getBuilded() { return m_topLevelAS; }
@@ -36,6 +37,8 @@ namespace RtxEngine
 		DxrCommandListPtr m_commandList;
 		DeviceResourcesPtr m_deviceResources;
 		StaticScenePtr m_scene;
+
+		vector<XMMATRIX> m_blasTransforms;
 
 		vector<ComPtr<ID3D12Resource>> m_bottomLevelAS;
 		ComPtr<ID3D12Resource> m_topLevelAS;

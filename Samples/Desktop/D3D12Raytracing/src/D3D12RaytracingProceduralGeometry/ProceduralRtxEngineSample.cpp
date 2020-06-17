@@ -274,8 +274,7 @@ void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 	// Create an output 2D texture to store the raytracing result to.
 	CreateRaytracingOutputResource();
 
-	// Build raytracing acceleration structures from the generated geometry.
-	m_accelerationStruct = make_shared<AccelerationStructure>(m_scene, m_dxrDevice, m_dxrCommandList, m_deviceResources);
+	CreateAccelerationStructures();
 
 	// Create root signatures for the shaders.
 	CreateRootSignatures();
@@ -311,6 +310,36 @@ void ProceduralRtxEngineSample::CreateHitGroups()
 	// Signed Distance.
 	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
 	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
+}
+
+void ProceduralRtxEngineSample::CreateAccelerationStructures()
+{
+	// Width of a bottom-level AS geometry.
+	// Make the plane a little larger than the actual number of primitives in each dimension.
+	const XMUINT3 NUM_AABB = XMUINT3(700, 1, 700);
+	const XMFLOAT3 fWidth = XMFLOAT3(
+		NUM_AABB.x * c_aabbWidth + (NUM_AABB.x - 1) * c_aabbDistance,
+		NUM_AABB.y * c_aabbWidth + (NUM_AABB.y - 1) * c_aabbDistance,
+		NUM_AABB.z * c_aabbWidth + (NUM_AABB.z - 1) * c_aabbDistance);
+	const XMVECTOR vWidth = XMLoadFloat3(&fWidth);
+
+
+	// Bottom-level AS with a single plane.
+	XMMATRIX triangleBlasTransform;
+	{
+		// Calculate transformation matrix.
+		const XMVECTOR vBasePosition = vWidth * XMLoadFloat3(&XMFLOAT3(-0.35f, 0.0f, -0.35f));
+
+		// Scale in XZ dimensions.
+		XMMATRIX mScale = XMMatrixScaling(fWidth.x, fWidth.y, fWidth.z);
+		XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
+		triangleBlasTransform = mScale * mTranslation;
+	}
+
+	// Move all AABBS above the ground plane.
+	XMMATRIX ProceduralBlasTransform = XMMatrixTranslationFromVector(XMLoadFloat3(&XMFLOAT3(0, c_aabbWidth / 2, 0)));
+
+	m_accelerationStruct = make_shared<AccelerationStructure>(m_scene, m_dxrDevice, m_dxrCommandList, m_deviceResources, triangleBlasTransform, ProceduralBlasTransform);
 }
 
 void ProceduralRtxEngineSample::CreateRootSignatures()

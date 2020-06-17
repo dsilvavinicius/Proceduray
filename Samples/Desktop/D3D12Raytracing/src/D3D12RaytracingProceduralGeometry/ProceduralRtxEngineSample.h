@@ -94,6 +94,7 @@ private:
 	void BuildPlaneGeometry();
 	void CreateRaytracingOutputResource();
 
+	void CreateAccelerationStructures();
 	void CreateRootSignatures();
 	void CreateShaderTablesEntries();
 	

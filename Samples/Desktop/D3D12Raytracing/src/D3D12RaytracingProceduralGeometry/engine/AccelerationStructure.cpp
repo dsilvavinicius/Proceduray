@@ -4,11 +4,13 @@
 
 namespace RtxEngine
 {
-	AccelerationStructure::AccelerationStructure(const StaticScenePtr& scene, DxrDevicePtr& device, DxrCommandListPtr& commandList, DeviceResourcesPtr& deviceResources)
+	AccelerationStructure::AccelerationStructure(const StaticScenePtr& scene, DxrDevicePtr& device, DxrCommandListPtr& commandList, DeviceResourcesPtr& deviceResources,
+		const XMMATRIX& triangleTransform, const XMMATRIX& proceduralTransform)
 		: m_device(device),
 		m_commandList(commandList),
 		m_deviceResources(deviceResources),
-		m_scene(scene)
+		m_scene(scene),
+		m_blasTransforms{ triangleTransform, proceduralTransform }
 	{
 		build();
 	}
@@ -240,14 +242,15 @@ namespace RtxEngine
 
 		auto device = m_deviceResources->GetD3DDevice();
 
-		for (auto& blas : bottomLevelASaddresses)
+		for (int i = 0; i < bottomLevelASaddresses.size(); ++i)
 		{
+			auto& blas = bottomLevelASaddresses[i];
 			D3D12_RAYTRACING_INSTANCE_DESC instanceDesc;
 			instanceDesc = {};
 			instanceDesc.InstanceMask = 1;
 			instanceDesc.InstanceContributionToHitGroupIndex = 0;
 			instanceDesc.AccelerationStructure = blas;
-			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), XMMatrixIdentity());
+			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), m_blasTransforms[i]);
 
 			instanceDescs.push_back(instanceDesc);
 		}
