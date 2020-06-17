@@ -48,7 +48,9 @@ namespace RtxEngine
 		void addEntry(RootComponent, BufferEntry type, const ComPtr<ID3D12Resource>& resource, UINT reg, UINT space = 0u);
 		
 		/** Adds a complex entry (descriptor table (one more indirection to the descriptor heap)).*/
-		void addDescriptorTable(const vector<DescriptorRange>& ranges);
+		UINT addDescriptorTable(const vector<DescriptorRange>& ranges);
+
+		void updateHeapHandle(UINT baseHandleIdx, D3D12_GPU_DESCRIPTOR_HANDLE& handle);
 
 		/** Adds a static sampler to the heap.*/
 		void addStaticSampler();

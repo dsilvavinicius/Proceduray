@@ -324,7 +324,7 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	auto vertexRange = globalSignature->createRange(plane->getVertexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
 
 	// Global signature entries.
-	globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
+	m_raytracingOutputHandles.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
 	globalSignature->addEntry(RootComponent(DontApply()), RootSignature::SRV, m_accelerationStruct->getBuilded(), 0);
 	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB.GetResource(), 0);
 	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_aabbPrimitiveAttributeBuffer.GetResource(), 3);
@@ -611,6 +611,7 @@ void ProceduralRtxEngineSample::CopyRaytracingOutputToBackbuffer()
 void ProceduralRtxEngineSample::CreateWindowSizeDependentResources()
 {
 	CreateRaytracingOutputResource();
+	m_scene->getGlobalSignature().updateHeapHandle(m_raytracingOutputHandles.baseHandleIndex, m_raytracingOutputHandles.gpu);
 	UpdateCameraMatrices();
 }
 

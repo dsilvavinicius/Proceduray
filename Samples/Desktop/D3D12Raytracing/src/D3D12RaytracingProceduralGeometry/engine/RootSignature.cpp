@@ -57,19 +57,27 @@ namespace RtxEngine
 		m_params.push_back(param);
 	}
 
-	void RootSignature::addDescriptorTable(const vector<DescriptorRange>& ranges)
+	UINT RootSignature::addDescriptorTable(const vector<DescriptorRange>& ranges)
 	{
+		UINT descriptorEntryIdx = m_params.size();
 		CD3DX12_ROOT_PARAMETER param;
 		m_ranges.push_back(vector<CD3DX12_DESCRIPTOR_RANGE>());
 		auto& untyped_ranges = *m_ranges.rbegin();
 		for (auto range : ranges)
 		{
 			untyped_ranges.push_back(range.range);
-			m_baseHandlesToHeap[m_params.size()] = range.baseHandleToHeap;
 		}
+		m_baseHandlesToHeap[descriptorEntryIdx] = ranges[0].baseHandleToHeap;
 		param.InitAsDescriptorTable(untyped_ranges.size(), untyped_ranges.data());
 
 		m_params.push_back(param);
+
+		return descriptorEntryIdx;
+	}
+
+	void RootSignature::updateHeapHandle(UINT baseHandleIdx, D3D12_GPU_DESCRIPTOR_HANDLE& handle)
+	{
+		m_baseHandlesToHeap[baseHandleIdx] = handle;
 	}
 
 	ComPtr<ID3D12RootSignature>& RootSignature::getBuilded()
@@ -102,6 +110,7 @@ namespace RtxEngine
 		auto commandList = m_deviceResources->GetCommandList();
 		auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 		
+		commandList->SetComputeRootSignature(m_builded.Get());
 		m_descriptorHeap->bind();
 
 		for (int i = 0; i < m_params.size(); ++i)
@@ -111,7 +120,7 @@ namespace RtxEngine
 			if (handleIter != m_baseHandlesToHeap.end())
 			{
 				commandList->SetComputeRootDescriptorTable(i, handleIter->second);
-				return;
+				continue;
 			}
 			
 			// Upload buffer or Generic resource case: get gpu address.

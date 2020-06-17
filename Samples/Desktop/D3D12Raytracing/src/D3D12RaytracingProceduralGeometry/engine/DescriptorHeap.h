@@ -12,6 +12,7 @@ namespace RtxEngine
 			D3D12_CPU_DESCRIPTOR_HANDLE cpu;
 			CD3DX12_GPU_DESCRIPTOR_HANDLE gpu;
 			UINT descriptorIndex;
+			UINT baseHandleIndex;
 		};
 
 		DescriptorHeap(DeviceResourcesPtr& deviceResources, UINT numDescriptors);
