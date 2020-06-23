@@ -20,6 +20,8 @@
 #include "engine/AccelerationStructure.h"
 #include "engine/RayTracingState.h"
 #include "engine/ShaderTable.h"
+#include "Camera.h"
+#include "CameraController.h"
 
 using namespace RtxEngine;
 
@@ -79,6 +81,9 @@ private:
 	DirectX::XMVECTOR m_eye;
 	DirectX::XMVECTOR m_at;
 	DirectX::XMVECTOR m_up;
+
+	Math::Camera m_cam;
+	GameCore::CameraController m_camCtrl;
 
 	void InitializeScene();
 	void CreateDeviceDependentResources();

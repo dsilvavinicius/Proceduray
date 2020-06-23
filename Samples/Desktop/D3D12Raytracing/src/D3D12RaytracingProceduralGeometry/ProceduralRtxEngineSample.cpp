@@ -22,7 +22,8 @@ ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, st
 	m_animateCamera(false),
 	m_animateGeometry(true),
 	m_animateLight(false),
-	m_scene(make_shared<StaticScene>())
+	m_scene(make_shared<StaticScene>()),
+	m_camCtrl(m_cam, Math::Vector3(0.f, 1.f, 0.f))
 {
 	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
 	UpdateForSizeChange(width, height);
@@ -60,14 +61,17 @@ void ProceduralRtxEngineSample::OnInit()
 // Update camera matrices passed into the shader.
 void ProceduralRtxEngineSample::UpdateCameraMatrices()
 {
+
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
-	m_sceneCB->cameraPosition = m_eye;
-	float fovAngleY = 45.0f;
+	//m_sceneCB->cameraPosition = m_eye;
+	m_sceneCB->cameraPosition = m_cam.GetPosition();
+	/*float fovAngleY = 45.0f;
 	XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
 	XMMATRIX viewProj = view * proj;
-	m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
+	m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, viewProj);*/
+	m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, m_cam.GetViewProjMatrix());
 }
 
 // Update AABB primite attributes buffers passed into the shader.
@@ -205,6 +209,11 @@ void ProceduralRtxEngineSample::InitializeScene()
 		XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(45.0f));
 		m_eye = XMVector3Transform(m_eye, rotate);
 		m_up = XMVector3Transform(m_up, rotate);
+
+		// Init cam.
+		m_cam.SetEyeAtUp(Math::Vector3(m_eye), Math::Vector3(m_at), Math::Vector3(m_up));
+		float fovAngleY = 45.0f;
+		m_cam.SetPerspectiveMatrix(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
 
 		UpdateCameraMatrices();
 	}
@@ -580,16 +589,17 @@ void ProceduralRtxEngineSample::OnUpdate()
 	auto prevFrameIndex = m_deviceResources->GetPreviousFrameIndex();
 
 	// Rotate the camera around Y axis.
-	if (m_animateCamera)
-	{
-		float secondsToRotateAround = 48.0f;
-		float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround);
-		XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
-		m_eye = XMVector3Transform(m_eye, rotate);
-		m_up = XMVector3Transform(m_up, rotate);
-		m_at = XMVector3Transform(m_at, rotate);
-		UpdateCameraMatrices();
-	}
+	//if (m_animateCamera)
+	//{
+	float secondsToRotateAround = 48.0f;
+	float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround);
+	XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
+	m_eye = XMVector3Transform(m_eye, rotate);
+	m_up = XMVector3Transform(m_up, rotate);
+	m_at = XMVector3Transform(m_at, rotate);
+	m_camCtrl.Update(elapsedTime);
+	UpdateCameraMatrices();
+	//}
 
 	// Rotate the second light around Y axis.
 	if (m_animateLight)
