@@ -17,7 +17,7 @@ namespace RtxEngine
 	{
 		auto device = m_deviceResources->GetD3DDevice();
 		auto commandQueue = m_deviceResources->GetCommandQueue();
-		m_gpuTimer.RestoreDevice(device, commandQueue, m_deviceResources->GetBackBufferCount());
+		//m_gpuTimer.RestoreDevice(device, commandQueue, m_deviceResources->GetBackBufferCount());
 
 		CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
@@ -57,7 +57,7 @@ namespace RtxEngine
 
 	RayTracingState::~RayTracingState()
 	{
-		m_gpuTimer.ReleaseDevice();
+		//m_gpuTimer.ReleaseDevice();
 		m_dxrState.Reset();
 	}
 
@@ -141,7 +141,7 @@ namespace RtxEngine
 		auto commandList = m_deviceResources->GetCommandList();
 		auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
-		m_gpuTimer.BeginFrame(commandList);
+		//m_gpuTimer.BeginFrame(commandList);
 
 		auto DispatchRays = [&](auto* raytracingCommandList, auto* stateObject, auto* dispatchDesc)
 		{
@@ -158,9 +158,9 @@ namespace RtxEngine
 			dispatchDesc->Depth = 1;
 			raytracingCommandList->SetPipelineState1(stateObject);
 
-			m_gpuTimer.Start(commandList);
+			//m_gpuTimer.Start(commandList);
 			raytracingCommandList->DispatchRays(dispatchDesc);
-			m_gpuTimer.Stop(commandList);
+			//m_gpuTimer.Stop(commandList);
 		};
 
 		auto globalSignature = m_scene->getGlobalSignature();
@@ -170,6 +170,6 @@ namespace RtxEngine
 		D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
 		DispatchRays(m_dxrCommandList.Get(), m_dxrState.Get(), &dispatchDesc);
 
-		m_gpuTimer.EndFrame(commandList);
+		//m_gpuTimer.EndFrame(commandList);
 	}
 }
