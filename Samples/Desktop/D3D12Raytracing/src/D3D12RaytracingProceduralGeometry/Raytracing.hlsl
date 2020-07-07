@@ -164,6 +164,19 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
 [shader("raygeneration")]
 void MyRaygenShader()
 {
+    //debug
+    //{
+    //    float2 pixel = DispatchRaysIndex().xy;
+    
+    //    float3 expected = float3(-12.0208, 5.3, -12.0208);
+    //    float3 camPos = g_sceneCB.cameraPosition.xyz;
+    //    //float4 color = (abs(expected.x - camPos.x) < 1.e-4) ? float4(1.f, 0.f, 0.f, 1.f) : float4(0.f, 1.f, 0.f, 1.f);
+    //    float4 color = (length(expected - camPos) < 1.e-4) ? float4(1.f, 0.f, 0.f, 1.f) : float4(0.f, 1.f, 0.f, 1.f);
+    //    g_renderTarget[pixel] = color;
+    //    //Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
+    //    //backgroundColor = float4(g_sceneCB.cameraPosition.xyz, 1.);
+    //}
+    
     // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
     Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
  
@@ -182,6 +195,12 @@ void MyRaygenShader()
 [shader("closesthit")]
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
+    // DEBUG
+    {
+        rayPayload.color = float4(0.f, 0.f, 1.f, 1.f);
+        return;
+    }
+
     // Get the base index of the triangle's first 16 bit index.
     uint indexSizeInBytes = 2;
     uint indicesPerTriangle = 3;
@@ -271,6 +290,14 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
 void MyMissShader(inout RayPayload rayPayload)
 {
     float4 backgroundColor = float4(BackgroundColor);
+ 
+    //debug
+    //{
+    //    float3 expected = float3(-12.0208, 5.3, -12.0208);
+    //    float3 camPos = g_sceneCB.cameraPosition.xyz;
+    //    backgroundColor = (length(expected - camPos) < 1.e-4) ? float4(0.f, 0.f, 0.f, 1.f) : float4(1.f, 0.f, 0.f, 1.f);
+    //}
+   
     rayPayload.color = backgroundColor;
 }
 
