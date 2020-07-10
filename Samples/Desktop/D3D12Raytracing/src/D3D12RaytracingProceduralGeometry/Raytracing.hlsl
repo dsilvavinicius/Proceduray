@@ -195,23 +195,44 @@ void MyRaygenShader()
 [shader("closesthit")]
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    // DEBUG
-    {
-        rayPayload.color = float4(0.f, 0.f, 1.f, 1.f);
-        return;
-    }
-
     // Get the base index of the triangle's first 16 bit index.
     uint indexSizeInBytes = 2;
     uint indicesPerTriangle = 3;
     uint triangleIndexStride = indicesPerTriangle * indexSizeInBytes;
     uint baseIndex = PrimitiveIndex() * triangleIndexStride;
-
+    
     // Load up three 16 bit indices for the triangle.
     const uint3 indices = Load3x16BitIndices(baseIndex, g_indices);
 
+    //float3 expected = float3(1.f, 0.f, 0.f);
+    //if(length(g_vertices[1].position - expected) < 1.e-4f)
+    //{
+    //    rayPayload.color = float4(1.f, 0.f, 0.f, 1.f);
+    //}
+    //else
+    //{
+    //    rayPayload.color = float4(0.f, 1.f, 0.f, 1.f);
+    //}
+    //return;
+    
+    //if(indices[0] == 3 && indices[1] == 1 && indices[2] == 0)
+    //{
+    //    rayPayload.color = float4(1.f, 0.f, 0.f, 1.f);
+    //}
+    //else
+    //{
+    //    rayPayload.color = float4(0.f, 1.f, 0.f, 1.f);
+    //}
+    //return;
+    
     // Retrieve corresponding vertex normals for the triangle vertices.
     float3 triangleNormal = g_vertices[indices[0]].normal;
+   
+   // DEBUG
+    //{
+    //    rayPayload.color = float4(abs(triangleNormal.x), abs(triangleNormal.y), abs(triangleNormal.z), 1.f);
+    //    return;
+    //}
 
     // PERFORMANCE TIP: it is recommended to avoid values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.

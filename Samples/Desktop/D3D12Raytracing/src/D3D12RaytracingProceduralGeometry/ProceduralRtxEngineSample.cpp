@@ -369,7 +369,7 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	// Global signature ranges.
 	auto outputRange = globalSignature->createRange(m_raytracingOutputHandles.gpu, RootSignature::UAV, 0, 1);
 	auto plane = m_scene->getGeometry().at("Plane");
-	auto vertexRange = globalSignature->createRange(plane->getVertexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
+	auto vertexRange = globalSignature->createRange(plane->getIndexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
 
 	// Global signature entries.
 	m_raytracingOutputHandles.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});

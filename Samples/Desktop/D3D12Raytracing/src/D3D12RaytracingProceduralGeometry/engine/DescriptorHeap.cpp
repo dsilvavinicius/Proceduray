@@ -30,9 +30,10 @@ namespace RtxEngine
 	DescriptorHeap::DescriptorHandles DescriptorHeap::allocateDescriptor(UINT descriptorIndexToUse)
 	{
 		auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
-		if (descriptorIndexToUse >= m_descriptorHeap->GetDesc().NumDescriptors)
+		auto numDescriptors = m_descriptorHeap->GetDesc().NumDescriptors;
+		if (descriptorIndexToUse >= numDescriptors)
 		{
-			ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap->GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!");
+			ThrowIfFalse(m_descriptorsAllocated < numDescriptors, L"Ran out of descriptors on the heap!");
 			descriptorIndexToUse = m_descriptorsAllocated++;
 		}
 		CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescriptor(descriptorHeapCpuBase, descriptorIndexToUse, m_descriptorSize);

@@ -635,8 +635,7 @@ void D3D12RaytracingProceduralGeometry::BuildPlaneGeometry()
     Index indices[] =
     {
         3,1,0,
-        2,1,3,
-
+        2,1,3
     };
 
     // Cube vertices positions and corresponding triangle normals.
