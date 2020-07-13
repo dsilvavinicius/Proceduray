@@ -24,6 +24,7 @@ ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, st
 	m_scene(make_shared<StaticScene>())
 {
 	m_sceneCB = make_shared<ConstantBuffer<SceneConstantBuffer>>();
+	m_aabbPrimitiveAttributeBuffer = make_shared<StructuredBuffer<PrimitiveInstancePerFrameBuffer>>();
 	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
 	UpdateForSizeChange(width, height);
 }
@@ -98,8 +99,8 @@ void ProceduralRtxEngineSample::UpdateAABBPrimitiveAttributes(float animationTim
 		XMMATRIX mTranslation = XMMatrixTranslationFromVector(vTranslation);
 
 		XMMATRIX mTransform = mScale * mRotation * mTranslation;
-		m_aabbPrimitiveAttributeBuffer[primitiveIndex].localSpaceToBottomLevelAS = mTransform;
-		m_aabbPrimitiveAttributeBuffer[primitiveIndex].bottomLevelASToLocalSpace = XMMatrixInverse(nullptr, mTransform);
+		(*m_aabbPrimitiveAttributeBuffer)[primitiveIndex].localSpaceToBottomLevelAS = mTransform;
+		(*m_aabbPrimitiveAttributeBuffer)[primitiveIndex].bottomLevelASToLocalSpace = XMMatrixInverse(nullptr, mTransform);
 	};
 
 	UINT offset = 0;
@@ -250,7 +251,7 @@ void ProceduralRtxEngineSample::CreateAABBPrimitiveAttributesBuffers()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto frameCount = m_deviceResources->GetBackBufferCount();
-	m_aabbPrimitiveAttributeBuffer.Create(device, IntersectionShaderType::TotalPrimitiveCount, frameCount, L"AABB primitive attributes");
+	m_aabbPrimitiveAttributeBuffer->Create(device, IntersectionShaderType::TotalPrimitiveCount, frameCount, L"AABB primitive attributes");
 }
 
 // Create resources that depend on the device.
@@ -365,7 +366,7 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	m_raytracingOutputHandles.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
 	globalSignature->addEntry(RootComponent(DontApply()), RootSignature::SRV, m_accelerationStruct->getBuilded(), 0);
 	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB, 0);
-	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_aabbPrimitiveAttributeBuffer.GetResource(), 3);
+	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_aabbPrimitiveAttributeBuffer, 3);
 	globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{vertexRange});
 
 	m_scene->addGlobalSignature(globalSignature);
@@ -667,7 +668,7 @@ void ProceduralRtxEngineSample::ReleaseDeviceDependentResources()
 	m_dxrCommandList.Reset();
 
 	m_sceneCB->Release();
-	m_aabbPrimitiveAttributeBuffer.Release();
+	m_aabbPrimitiveAttributeBuffer->Release();
 
 	m_raytracingOutput.Reset();
 	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
