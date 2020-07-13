@@ -164,19 +164,6 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
 [shader("raygeneration")]
 void MyRaygenShader()
 {
-    //debug
-    //{
-    //    float2 pixel = DispatchRaysIndex().xy;
-    
-    //    float3 expected = float3(-12.0208, 5.3, -12.0208);
-    //    float3 camPos = g_sceneCB.cameraPosition.xyz;
-    //    //float4 color = (abs(expected.x - camPos.x) < 1.e-4) ? float4(1.f, 0.f, 0.f, 1.f) : float4(0.f, 1.f, 0.f, 1.f);
-    //    float4 color = (length(expected - camPos) < 1.e-4) ? float4(1.f, 0.f, 0.f, 1.f) : float4(0.f, 1.f, 0.f, 1.f);
-    //    g_renderTarget[pixel] = color;
-    //    //Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
-    //    //backgroundColor = float4(g_sceneCB.cameraPosition.xyz, 1.);
-    //}
-    
     // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
     Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
  
@@ -203,36 +190,9 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     
     // Load up three 16 bit indices for the triangle.
     const uint3 indices = Load3x16BitIndices(baseIndex, g_indices);
-
-    //float3 expected = float3(1.f, 0.f, 0.f);
-    //if(length(g_vertices[1].position - expected) < 1.e-4f)
-    //{
-    //    rayPayload.color = float4(1.f, 0.f, 0.f, 1.f);
-    //}
-    //else
-    //{
-    //    rayPayload.color = float4(0.f, 1.f, 0.f, 1.f);
-    //}
-    //return;
-    
-    //if(indices[0] == 3 && indices[1] == 1 && indices[2] == 0)
-    //{
-    //    rayPayload.color = float4(1.f, 0.f, 0.f, 1.f);
-    //}
-    //else
-    //{
-    //    rayPayload.color = float4(0.f, 1.f, 0.f, 1.f);
-    //}
-    //return;
     
     // Retrieve corresponding vertex normals for the triangle vertices.
     float3 triangleNormal = g_vertices[indices[0]].normal;
-   
-   // DEBUG
-    //{
-    //    rayPayload.color = float4(abs(triangleNormal.x), abs(triangleNormal.y), abs(triangleNormal.z), 1.f);
-    //    return;
-    //}
 
     // PERFORMANCE TIP: it is recommended to avoid values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.

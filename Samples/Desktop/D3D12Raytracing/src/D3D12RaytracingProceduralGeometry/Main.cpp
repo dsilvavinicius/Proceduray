@@ -11,7 +11,7 @@
 
 #include "stdafx.h"
 
-//#define OUR_SAMPLE
+#define OUR_SAMPLE
 #ifdef OUR_SAMPLE
     #include "ProceduralRtxEngineSample.h"
 #else

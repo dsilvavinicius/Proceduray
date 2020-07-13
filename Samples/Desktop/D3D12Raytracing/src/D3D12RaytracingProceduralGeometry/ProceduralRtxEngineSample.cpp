@@ -71,16 +71,6 @@ void ProceduralRtxEngineSample::UpdateCameraMatrices()
 	XMMATRIX viewProj = view * proj;
 	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
 	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam.GetViewProjMatrix());
-
-	// DEBUG
-	{
-		XMFLOAT4 v2F;    //the float where we copy the v2 vector members
-		XMStoreFloat4(&v2F, (*m_sceneCB)->cameraPosition);
-
-		wstringstream ss;
-		ss << "cam pos: (" << v2F.x << ", " << v2F.y << ", " << v2F.z << ")" << endl << endl;
-		OutputDebugStringW(ss.str().c_str());
-	}
 }
 
 // Update AABB primite attributes buffers passed into the shader.

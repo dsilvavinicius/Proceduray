@@ -134,8 +134,8 @@ namespace RtxEngine
 				auto& entry = (*m_commonEntries)[i];
 				const auto& rootSignature = m_scene->getLocalSignatures().at(entry.rootSignatureId);
 				ThrowIfFalse(rootSignature->isRootArgumentsTypeEqual(entry.rootArguments));
-				void* rootArguments = ShaderCompatUtils::getRootArguments(entry.rootArguments);
-				hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIDs[i], shaderIDSize, rootArguments, sizeof(rootArguments)));
+				pair<void*, size_t> rootArguments = ShaderCompatUtils::getRootArguments(entry.rootArguments);
+				hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIDs[i], shaderIDSize, rootArguments.first, rootArguments.second));
 			}
 
 			hitGroupShaderTable.DebugPrint(shaderIdToStringMap);
