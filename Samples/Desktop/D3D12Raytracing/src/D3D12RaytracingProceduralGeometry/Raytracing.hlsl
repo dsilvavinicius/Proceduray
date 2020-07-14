@@ -295,7 +295,7 @@ void MyMissShader_ShadowRay(inout ShadowRayPayload rayPayload)
 // Get ray in AABB's local space.
 Ray GetRayInAABBPrimitiveLocalSpace()
 {
-    PrimitiveInstancePerFrameBuffer attr = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+    PrimitiveInstancePerFrameBuffer attr = g_AABBPrimitiveAttributes[/*l_aabbCB.instanceIndex*/0];
 
     // Retrieve a ray origin position and direction in bottom level AS space 
     // and transform them into the AABB primitive's local space.
@@ -309,13 +309,13 @@ Ray GetRayInAABBPrimitiveLocalSpace()
 void MyIntersectionShader_AnalyticPrimitive()
 {
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
-    AnalyticPrimitive::Enum primitiveType = (AnalyticPrimitive::Enum) l_aabbCB.primitiveType;
+    AnalyticPrimitive::Enum primitiveType = (AnalyticPrimitive::Enum) /*l_aabbCB.primitiveType*/0;
 
     float thit;
     ProceduralPrimitiveAttributes attr;
     if (RayAnalyticGeometryIntersectionTest(localRay, primitiveType, thit, attr))
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[/*l_aabbCB.instanceIndex*/0];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
         attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
 
@@ -327,13 +327,13 @@ void MyIntersectionShader_AnalyticPrimitive()
 void MyIntersectionShader_VolumetricPrimitive()
 {
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
-    VolumetricPrimitive::Enum primitiveType = (VolumetricPrimitive::Enum) l_aabbCB.primitiveType;
+    VolumetricPrimitive::Enum primitiveType = (VolumetricPrimitive::Enum) /*l_aabbCB.primitiveType*/0;
     
     float thit;
     ProceduralPrimitiveAttributes attr;
     if (RayVolumetricGeometryIntersectionTest(localRay, primitiveType, thit, attr, g_sceneCB.elapsedTime))
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[/*l_aabbCB.instanceIndex*/0];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
         attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
 
@@ -345,13 +345,13 @@ void MyIntersectionShader_VolumetricPrimitive()
 void MyIntersectionShader_SignedDistancePrimitive()
 {
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
-    SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;
+    SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) /*l_aabbCB.primitiveType*/0;
 
     float thit;
     ProceduralPrimitiveAttributes attr;
     if (RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale))
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[/*l_aabbCB.instanceIndex*/0];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
         attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
         

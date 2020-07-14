@@ -307,18 +307,18 @@ void ProceduralRtxEngineSample::CreateHitGroups()
 {
 	// Triangle Hit Groups.
 	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", L"", L"MyClosestHitShader_Triangle", L""));
-	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"MyClosestHitShader_Triangle", L""));
+	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"", L""));
 
 	// Procedural Hit Groups.
 	// Analytic.
 	m_scene->addHitGroup("Analytic", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
-	m_scene->addHitGroup("Analytic_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
+	m_scene->addHitGroup("Analytic_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_AnalyticPrimitive"));
 	// Volumetric.
 	m_scene->addHitGroup("Volumetric", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
-	m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
+	m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_VolumetricPrimitive"));
 	// Signed Distance.
 	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
-	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
+	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_SignedDistancePrimitive"));
 }
 
 void ProceduralRtxEngineSample::CreateAccelerationStructures()
@@ -440,6 +440,14 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 				rootArgs.materialCb = m_aabbMaterialCB[instanceIndex];
 				rootArgs.aabbCB.instanceIndex = instanceIndex;
 				rootArgs.aabbCB.primitiveType = primitiveIndex;
+
+				// DEBUG
+				/*{
+					wstringstream ss;
+					ss << L"instance: " << rootArgs.aabbCB.instanceIndex << endl << L"primitive: " << rootArgs.aabbCB.primitiveType
+						<< endl << endl;
+					OutputDebugStringW(ss.str().c_str());
+				}*/
 
 				m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", hitGroupIds[iShader][RayType::Radiance], "Procedural", rootArgs });
 				m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", hitGroupIds[iShader][RayType::Shadow], "Procedural", rootArgs });

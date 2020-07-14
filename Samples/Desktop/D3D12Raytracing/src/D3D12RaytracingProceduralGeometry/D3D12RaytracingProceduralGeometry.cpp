@@ -1033,7 +1033,23 @@ void D3D12RaytracingProceduralGeometry::BuildShaderTables()
 
             for (auto& hitGroupShaderID : hitGroupShaderIDs_TriangleGeometry)
             {
-                hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
+                ShaderRecord record(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs));
+                // DEBUG
+                try
+                {
+                    wstringstream ss;
+                    ss << "hitgroup id: " << shaderIdToStringMap[hitGroupShaderID] << endl
+                        << "shaderid size: " << shaderIDSize << endl
+                        << "instance idx: " << L"N/A" << endl
+                        << "primitive type: " << L"N/A" << endl
+                        << "root args size: " << sizeof(rootArgs) << endl << endl;
+                    OutputDebugStringW(ss.str().c_str());
+                }
+                catch (...)
+                {
+                }
+
+                hitGroupShaderTable.push_back(record);
             }
         }
       
@@ -1053,12 +1069,29 @@ void D3D12RaytracingProceduralGeometry::BuildShaderTables()
                     rootArgs.materialCb = m_aabbMaterialCB[instanceIndex];
                     rootArgs.aabbCB.instanceIndex = instanceIndex;
                     rootArgs.aabbCB.primitiveType = primitiveIndex;
-                    
+
                     // Ray types.
                     for (UINT r = 0; r < RayType::Count; r++)
                     {
                         auto& hitGroupShaderID = hitGroupShaderIDs_AABBGeometry[iShader][r];
-                        hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
+
+                        ShaderRecord record(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs));
+                        // DEBUG
+                        try
+                        {
+                            wstringstream ss;
+                            ss << "hitgroup id: " << shaderIdToStringMap[hitGroupShaderID] << endl
+                                << "shaderid size: " << shaderIDSize << endl
+                                << "instance idx: " << rootArgs.aabbCB.instanceIndex << endl
+                                << "primitive type: " << rootArgs.aabbCB.primitiveType << endl
+                                << "root args size: " << sizeof(rootArgs) << endl << endl;
+                            OutputDebugStringW(ss.str().c_str());
+                        }
+                        catch (...)
+                        {
+                        }
+
+                        hitGroupShaderTable.push_back(record);
                     }
                 }
             }
