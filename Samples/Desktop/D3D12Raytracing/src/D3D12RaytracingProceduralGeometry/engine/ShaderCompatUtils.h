@@ -104,15 +104,15 @@ namespace RtxEngine
 
 		//static const RootArgumentsMap& getRootArgsMap() { return m_rootArguments; }
 
-		static void* getRootArguments(RootArguments& rootArguments)
+		static pair<void*, size_t> getRootArguments(RootArguments& rootArguments)
 		{
 			if (auto rootArgsPtr = std::get_if<TriangleRootArguments>(&rootArguments))
 			{
-				return rootArgsPtr;
+				return pair<void*, size_t>(rootArgsPtr, sizeof(TriangleRootArguments));
 			}
 			else if (auto rootArgsPtr = std::get_if<ProceduralRootArguments>(&rootArguments))
 			{
-				return rootArgsPtr;
+				return pair<void*, size_t>(rootArgsPtr, sizeof(ProceduralRootArguments));
 			}
 			else
 			{

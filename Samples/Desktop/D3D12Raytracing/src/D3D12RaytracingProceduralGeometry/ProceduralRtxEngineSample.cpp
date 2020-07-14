@@ -8,7 +8,6 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
-
 #include "stdafx.h"
 #include "ProceduralRtxEngineSample.h"
 #include "CompiledShaders\Raytracing.hlsl.h"
@@ -22,9 +21,10 @@ ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, st
 	m_animateCamera(false),
 	m_animateGeometry(true),
 	m_animateLight(false),
-	m_scene(make_shared<StaticScene>()),
-	m_camCtrl(m_cam, Math::Vector3(0.f, 1.f, 0.f))
+	m_scene(make_shared<StaticScene>())
 {
+	m_sceneCB = make_shared<ConstantBuffer<SceneConstantBuffer>>();
+	m_aabbPrimitiveAttributeBuffer = make_shared<StructuredBuffer<PrimitiveInstancePerFrameBuffer>>();
 	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
 	UpdateForSizeChange(width, height);
 }
@@ -64,14 +64,14 @@ void ProceduralRtxEngineSample::UpdateCameraMatrices()
 
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
-	//m_sceneCB->cameraPosition = m_eye;
-	m_sceneCB->cameraPosition = m_cam.GetPosition();
-	/*float fovAngleY = 45.0f;
+	(*m_sceneCB)->cameraPosition = m_eye;
+	//(*m_sceneCB)->cameraPosition = m_cam.GetPosition();
+	float fovAngleY = 45.0f;
 	XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
 	XMMATRIX viewProj = view * proj;
-	m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, viewProj);*/
-	m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, m_cam.GetViewProjMatrix());
+	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
+	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam.GetViewProjMatrix());
 }
 
 // Update AABB primite attributes buffers passed into the shader.
@@ -99,8 +99,8 @@ void ProceduralRtxEngineSample::UpdateAABBPrimitiveAttributes(float animationTim
 		XMMATRIX mTranslation = XMMatrixTranslationFromVector(vTranslation);
 
 		XMMATRIX mTransform = mScale * mRotation * mTranslation;
-		m_aabbPrimitiveAttributeBuffer[primitiveIndex].localSpaceToBottomLevelAS = mTransform;
-		m_aabbPrimitiveAttributeBuffer[primitiveIndex].bottomLevelASToLocalSpace = XMMatrixInverse(nullptr, mTransform);
+		(*m_aabbPrimitiveAttributeBuffer)[primitiveIndex].localSpaceToBottomLevelAS = mTransform;
+		(*m_aabbPrimitiveAttributeBuffer)[primitiveIndex].bottomLevelASToLocalSpace = XMMatrixInverse(nullptr, mTransform);
 	};
 
 	UINT offset = 0;
@@ -226,14 +226,14 @@ void ProceduralRtxEngineSample::InitializeScene()
 		XMFLOAT4 lightDiffuseColor;
 
 		lightPosition = XMFLOAT4(0.0f, 18.0f, -20.0f, 0.0f);
-		m_sceneCB->lightPosition = XMLoadFloat4(&lightPosition);
+		(*m_sceneCB)->lightPosition = XMLoadFloat4(&lightPosition);
 
 		lightAmbientColor = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
-		m_sceneCB->lightAmbientColor = XMLoadFloat4(&lightAmbientColor);
+		(*m_sceneCB)->lightAmbientColor = XMLoadFloat4(&lightAmbientColor);
 
 		float d = 0.6f;
 		lightDiffuseColor = XMFLOAT4(d, d, d, 1.0f);
-		m_sceneCB->lightDiffuseColor = XMLoadFloat4(&lightDiffuseColor);
+		(*m_sceneCB)->lightDiffuseColor = XMLoadFloat4(&lightDiffuseColor);
 	}
 }
 
@@ -243,7 +243,7 @@ void ProceduralRtxEngineSample::CreateConstantBuffers()
 	auto device = m_deviceResources->GetD3DDevice();
 	auto frameCount = m_deviceResources->GetBackBufferCount();
 
-	m_sceneCB.Create(device, frameCount, L"Scene Constant Buffer");
+	m_sceneCB->Create(device, frameCount, L"Scene Constant Buffer");
 }
 
 // Create AABB primitive attributes buffers.
@@ -251,7 +251,7 @@ void ProceduralRtxEngineSample::CreateAABBPrimitiveAttributesBuffers()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto frameCount = m_deviceResources->GetBackBufferCount();
-	m_aabbPrimitiveAttributeBuffer.Create(device, IntersectionShaderType::TotalPrimitiveCount, frameCount, L"AABB primitive attributes");
+	m_aabbPrimitiveAttributeBuffer->Create(device, IntersectionShaderType::TotalPrimitiveCount, frameCount, L"AABB primitive attributes");
 }
 
 // Create resources that depend on the device.
@@ -307,18 +307,18 @@ void ProceduralRtxEngineSample::CreateHitGroups()
 {
 	// Triangle Hit Groups.
 	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", L"", L"MyClosestHitShader_Triangle", L""));
-	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"MyClosestHitShader_Triangle", L""));
+	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"", L""));
 
 	// Procedural Hit Groups.
 	// Analytic.
 	m_scene->addHitGroup("Analytic", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
-	m_scene->addHitGroup("Analytic_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
+	m_scene->addHitGroup("Analytic_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_AnalyticPrimitive"));
 	// Volumetric.
 	m_scene->addHitGroup("Volumetric", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
-	m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
+	m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_VolumetricPrimitive"));
 	// Signed Distance.
 	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
-	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
+	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_SignedDistancePrimitive"));
 }
 
 void ProceduralRtxEngineSample::CreateAccelerationStructures()
@@ -337,7 +337,8 @@ void ProceduralRtxEngineSample::CreateAccelerationStructures()
 	XMMATRIX triangleBlasTransform;
 	{
 		// Calculate transformation matrix.
-		const XMVECTOR vBasePosition = vWidth * XMLoadFloat3(&XMFLOAT3(-0.35f, 0.0f, -0.35f));
+		XMFLOAT3 translation(-0.35f, 0.0f, -0.35f);
+		const XMVECTOR vBasePosition = vWidth * XMLoadFloat3(&translation);
 
 		// Scale in XZ dimensions.
 		XMMATRIX mScale = XMMatrixScaling(fWidth.x, fWidth.y, fWidth.z);
@@ -359,13 +360,13 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	// Global signature ranges.
 	auto outputRange = globalSignature->createRange(m_raytracingOutputHandles.gpu, RootSignature::UAV, 0, 1);
 	auto plane = m_scene->getGeometry().at("Plane");
-	auto vertexRange = globalSignature->createRange(plane->getVertexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
+	auto vertexRange = globalSignature->createRange(plane->getIndexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
 
 	// Global signature entries.
 	m_raytracingOutputHandles.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
 	globalSignature->addEntry(RootComponent(DontApply()), RootSignature::SRV, m_accelerationStruct->getBuilded(), 0);
-	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB.GetResource(), 0);
-	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_aabbPrimitiveAttributeBuffer.GetResource(), 3);
+	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB, 0);
+	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_aabbPrimitiveAttributeBuffer, 3);
 	globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{vertexRange});
 
 	m_scene->addGlobalSignature(globalSignature);
@@ -439,6 +440,14 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 				rootArgs.materialCb = m_aabbMaterialCB[instanceIndex];
 				rootArgs.aabbCB.instanceIndex = instanceIndex;
 				rootArgs.aabbCB.primitiveType = primitiveIndex;
+
+				// DEBUG
+				/*{
+					wstringstream ss;
+					ss << L"instance: " << rootArgs.aabbCB.instanceIndex << endl << L"primitive: " << rootArgs.aabbCB.primitiveType
+						<< endl << endl;
+					OutputDebugStringW(ss.str().c_str());
+				}*/
 
 				m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", hitGroupIds[iShader][RayType::Radiance], "Procedural", rootArgs });
 				m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", hitGroupIds[iShader][RayType::Shadow], "Procedural", rootArgs });
@@ -585,21 +594,21 @@ void ProceduralRtxEngineSample::OnUpdate()
 	m_timer.Tick();
 	CalculateFrameStats();
 	float elapsedTime = static_cast<float>(m_timer.GetElapsedSeconds());
+	
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 	auto prevFrameIndex = m_deviceResources->GetPreviousFrameIndex();
 
 	// Rotate the camera around Y axis.
-	//if (m_animateCamera)
-	//{
-	float secondsToRotateAround = 48.0f;
-	float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround);
-	XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
-	m_eye = XMVector3Transform(m_eye, rotate);
-	m_up = XMVector3Transform(m_up, rotate);
-	m_at = XMVector3Transform(m_at, rotate);
-	m_camCtrl.Update(elapsedTime);
-	UpdateCameraMatrices();
-	//}
+	if (m_animateCamera)
+	{
+		float secondsToRotateAround = 48.0f;
+		float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround);
+		XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
+		m_eye = XMVector3Transform(m_eye, rotate);
+		m_up = XMVector3Transform(m_up, rotate);
+		m_at = XMVector3Transform(m_at, rotate);
+		UpdateCameraMatrices();
+	}
 
 	// Rotate the second light around Y axis.
 	if (m_animateLight)
@@ -607,8 +616,8 @@ void ProceduralRtxEngineSample::OnUpdate()
 		float secondsToRotateAround = 8.0f;
 		float angleToRotateBy = -360.0f * (elapsedTime / secondsToRotateAround);
 		XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
-		const XMVECTOR& prevLightPosition = m_sceneCB->lightPosition;
-		m_sceneCB->lightPosition = XMVector3Transform(prevLightPosition, rotate);
+		const XMVECTOR& prevLightPosition = (*m_sceneCB)->lightPosition;
+		(*m_sceneCB)->lightPosition = XMVector3Transform(prevLightPosition, rotate);
 	}
 
 	// Transform the procedural geometry.
@@ -617,7 +626,7 @@ void ProceduralRtxEngineSample::OnUpdate()
 		m_animateGeometryTime += elapsedTime;
 	}
 	UpdateAABBPrimitiveAttributes(m_animateGeometryTime);
-	m_sceneCB->elapsedTime = m_animateGeometryTime;
+	(*m_sceneCB)->elapsedTime = m_animateGeometryTime;
 }
 
 // Update the application state with the new resolution.
@@ -666,8 +675,8 @@ void ProceduralRtxEngineSample::ReleaseDeviceDependentResources()
 	m_dxrDevice.Reset();
 	m_dxrCommandList.Reset();
 
-	m_sceneCB.Release();
-	m_aabbPrimitiveAttributeBuffer.Release();
+	m_sceneCB->Release();
+	m_aabbPrimitiveAttributeBuffer->Release();
 
 	m_raytracingOutput.Reset();
 	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;

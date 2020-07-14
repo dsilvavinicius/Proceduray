@@ -61,8 +61,8 @@ private:
 	ShaderTablePtr m_shaderTable = nullptr;
 
 	// Global Root Signature components.
-	ConstantBuffer<SceneConstantBuffer> m_sceneCB;
-	StructuredBuffer<PrimitiveInstancePerFrameBuffer> m_aabbPrimitiveAttributeBuffer;
+	shared_ptr<ConstantBuffer<SceneConstantBuffer>> m_sceneCB;
+	shared_ptr<StructuredBuffer<PrimitiveInstancePerFrameBuffer>> m_aabbPrimitiveAttributeBuffer;
 	std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
 	// Ray tracing output.
 	ComPtr<ID3D12Resource> m_raytracingOutput;
@@ -83,7 +83,6 @@ private:
 	DirectX::XMVECTOR m_up;
 
 	Math::Camera m_cam;
-	GameCore::CameraController m_camCtrl;
 
 	void InitializeScene();
 	void CreateDeviceDependentResources();

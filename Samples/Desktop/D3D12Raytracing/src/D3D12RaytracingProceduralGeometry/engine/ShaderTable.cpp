@@ -134,8 +134,25 @@ namespace RtxEngine
 				auto& entry = (*m_commonEntries)[i];
 				const auto& rootSignature = m_scene->getLocalSignatures().at(entry.rootSignatureId);
 				ThrowIfFalse(rootSignature->isRootArgumentsTypeEqual(entry.rootArguments));
-				void* rootArguments = ShaderCompatUtils::getRootArguments(entry.rootArguments);
-				hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIDs[i], shaderIDSize, rootArguments, sizeof(rootArguments)));
+				pair<void*, size_t> rootArguments = ShaderCompatUtils::getRootArguments(entry.rootArguments);
+
+				ShaderRecord record(hitGroupShaderIDs[i], shaderIDSize, rootArguments.first, rootArguments.second);
+				try
+				{
+					wstringstream ss;
+					auto rootArgsPtr = static_cast<ProceduralRootArguments*>(rootArguments.first);
+					ss << "hitgroup id: " << shaderIdToStringMap[hitGroupShaderIDs[i]] << endl
+						<< "shaderid size: " << shaderIDSize << endl
+						<< "instance idx: " << rootArgsPtr->aabbCB.instanceIndex << endl
+						<< "primitive type: " << rootArgsPtr->aabbCB.primitiveType << endl
+						<< "root args size: " << rootArguments.second << endl << endl;
+					OutputDebugStringW(ss.str().c_str());
+				}
+				catch (...)
+				{
+				}
+
+				hitGroupShaderTable.push_back(record);
 			}
 
 			hitGroupShaderTable.DebugPrint(shaderIdToStringMap);

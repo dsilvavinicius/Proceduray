@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 #include <list>
 #include <string>
