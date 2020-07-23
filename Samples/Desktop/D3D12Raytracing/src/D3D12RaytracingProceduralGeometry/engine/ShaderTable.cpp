@@ -69,7 +69,7 @@ namespace RtxEngine
 			for (UINT i = 0; i < m_commonEntries->size(); i++)
 			{
 				auto hitGroupName = (*m_commonEntries)[i].hitGroupId;
-				auto hitGroup = m_scene->getHitGroups().at(hitGroupName);
+				auto hitGroup = m_scene->getHitGroupMap().at(hitGroupName);
 				hitGroupShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(hitGroup->name.c_str());
 				shaderIdToStringMap[hitGroupShaderIDs[i]] = hitGroup->name;
 			}

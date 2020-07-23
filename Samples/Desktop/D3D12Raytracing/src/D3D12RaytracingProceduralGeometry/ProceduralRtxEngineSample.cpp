@@ -12,6 +12,9 @@
 #include "ProceduralRtxEngineSample.h"
 #include "CompiledShaders\Raytracing.hlsl.h"
 
+// DEBUG
+//#include <codecvt>
+
 using namespace std;
 using namespace DX;
 
@@ -443,9 +446,11 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 
 				// DEBUG
 				/*{
+					std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+					wstring hitgroupId = converter.from_bytes(hitGroupIds[iShader][RayType::Radiance]);
 					wstringstream ss;
-					ss << L"instance: " << rootArgs.aabbCB.instanceIndex << endl << L"primitive: " << rootArgs.aabbCB.primitiveType
-						<< endl << endl;
+					ss << L"Ray: Radiance (Shadow)" << endl << L"Hitgroup: " << hitgroupId << endl
+						<< L"instance: " << rootArgs.aabbCB.instanceIndex << endl << L"primitive: " << rootArgs.aabbCB.primitiveType << endl << endl;
 					OutputDebugStringW(ss.str().c_str());
 				}*/
 

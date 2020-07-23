@@ -18,11 +18,12 @@ namespace RtxEngine
 		void addGeometry(const string& name, const GeometryPtr& geometry) { m_geometry[name] = geometry; }
 		void addGlobalSignature(const RootSignaturePtr& rootSignature) { m_globalSignature = rootSignature; }
 		void addLocalSignature(const string& name, const RootSignaturePtr& rootSignature) { m_localSignatures[name] = rootSignature; }
-		void addHitGroup(const string& name, const HitGroupPtr& hitGroup) { m_hitGroups[name] = hitGroup; }
+		void addHitGroup(const string& name, const HitGroupPtr& hitGroup);
 
 		const RayMap& getRays() const { return m_rays; }
 		const GeometryMap& getGeometry() const { return m_geometry; }
-		const HitGroupMap& getHitGroups() const { return m_hitGroups; }
+		const HitGroupVector& getHitGroups() const { return m_hitGroups; }
+		const HitGroupMap& getHitGroupMap() const { return m_hitGroupMap; }
 		RootSignature& getGlobalSignature() const { return *m_globalSignature; }
 		const RootSignatureMap& getLocalSignatures() const { return m_localSignatures; }
 		UINT getMaxRecursion() const { return m_maxRecursion; }
@@ -37,7 +38,8 @@ namespace RtxEngine
 		RootSignatureMap m_localSignatures;
 		
 		// Hitgroups.
-		HitGroupMap m_hitGroups;
+		HitGroupVector m_hitGroups;
+		HitGroupMap m_hitGroupMap;
 
 		UINT m_maxRecursion = 3;
 	};

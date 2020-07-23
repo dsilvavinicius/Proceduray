@@ -21,4 +21,5 @@ namespace RtxEngine
 
 	using HitGroupPtr = shared_ptr<HitGroup>;
 	using HitGroupMap = unordered_map<string, HitGroupPtr>;
+	using HitGroupVector = vector<HitGroupPtr>;
 }

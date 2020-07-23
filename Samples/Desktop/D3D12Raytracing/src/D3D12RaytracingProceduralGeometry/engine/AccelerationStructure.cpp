@@ -248,7 +248,7 @@ namespace RtxEngine
 			D3D12_RAYTRACING_INSTANCE_DESC instanceDesc;
 			instanceDesc = {};
 			instanceDesc.InstanceMask = 1;
-			instanceDesc.InstanceContributionToHitGroupIndex = 0;
+			instanceDesc.InstanceContributionToHitGroupIndex = i * 2;
 			instanceDesc.AccelerationStructure = blas;
 			XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), m_blasTransforms[i]);
 

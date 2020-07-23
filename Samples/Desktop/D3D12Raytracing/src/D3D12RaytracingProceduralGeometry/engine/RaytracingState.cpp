@@ -79,9 +79,8 @@ namespace RtxEngine
 	{
 		auto hitGroups = m_scene->getHitGroups();
 
-		for (auto hitGroupEntry : hitGroups)
+		for (auto hitGroup : hitGroups)
 		{
-			auto hitGroup = hitGroupEntry.second;
 			auto hitGroupSO = raytracingPipeline->CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
 			if (!hitGroup->intersection.empty())
 			{
@@ -108,22 +107,23 @@ namespace RtxEngine
 // This is a root signature that enables a shader to have unique arguments that come from shader tables.
 	void RayTracingState::createLocalRootSignatureSubobjects(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
 	{
-		unordered_map<string, set<LPCWSTR>> rootToHit;
+		set<LPCWSTR> duplicateChecker;
+		unordered_map<string, vector<LPCWSTR>> rootToHit;
 		for(const auto& entry : *m_shaderTableEntries)
 		{
-			const auto hitGroup = m_scene->getHitGroups().at(entry.hitGroupId);
-			rootToHit[entry.rootSignatureId].insert(hitGroup->name.c_str());
+			const auto hitGroup = m_scene->getHitGroupMap().at(entry.hitGroupId);
+			auto hitGroupId = hitGroup->name.c_str();
+			if (duplicateChecker.find(hitGroupId) == duplicateChecker.end())
+			{
+				duplicateChecker.insert(hitGroupId);
+				rootToHit[entry.rootSignatureId].push_back(hitGroupId);
+			}
 		}
 
 		for (const auto& rootToHitEntry : rootToHit)
 		{
 			auto rootParametersId = rootToHitEntry.first;
-			auto hitGroupIdsSet = rootToHitEntry.second;
-			vector<LPCWSTR> hitGroupIds;
-			for (const auto& hitGroup : hitGroupIdsSet)
-			{
-				hitGroupIds.push_back(hitGroup);
-			}
+			auto hitGroupIds = rootToHitEntry.second;
 
 			const auto& rootSignature = m_scene->getLocalSignatures().at(rootParametersId);
 			auto rootSignatureSO = raytracingPipeline->CreateSubobject<CD3DX12_LOCAL_ROOT_SIGNATURE_SUBOBJECT>();

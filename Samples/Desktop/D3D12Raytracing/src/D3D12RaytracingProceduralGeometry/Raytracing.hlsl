@@ -231,6 +231,59 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 [shader("closesthit")]
 void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
+    // DEBUG
+    //{
+    //    switch(l_aabbCB.instanceIndex)
+    //    {
+    //        case 0u:
+    //            rayPayload.color = float4(0.3f, 0.f, 0.f, 1.f);
+    //            break;
+    //        case 1u:
+    //            rayPayload.color = float4(0.f, 0.3f, 0.f, 1.f);
+    //            break;
+    //        case 2u:
+    //            rayPayload.color = float4(0.f, 0.f, 0.3f, 1.f);
+    //            break;
+    //        case 3u:
+    //            rayPayload.color = float4(0.6f, 0.f, 0.f, 1.f);
+    //            break;
+    //        case 4u:
+    //            rayPayload.color = float4(0.f, 0.6f, 0.f, 1.f);
+    //            break;
+    //        case 5u:
+    //            rayPayload.color = float4(0.f, 0.f, 6.f, 1.f);
+    //            break;
+    //        case 6u:
+    //            rayPayload.color = float4(1.f, 0.f, 0.f, 1.f);
+    //            break;
+    //        case 7u:
+    //            rayPayload.color = float4(0.f, 1.f, 0.f, 1.f);
+    //            break;
+    //        case 8u:
+    //            rayPayload.color = float4(0.f, 0.f, 1.f, 1.f);
+    //            break;
+    //        case 9u:
+    //            rayPayload.color = float4(1.f, 1.f, 1.f, 1.f);
+    //            break;
+    //    }
+        
+    //    //switch(l_aabbCB.primitiveType)
+    //    //{
+    //    //    case 0u: rayPayload.color = float4(0.3f, 0.f, 0.f, 1.f); break;
+    //    //    case 1u: rayPayload.color = float4(0.f, 0.3f, 0.f, 1.f); break;
+    //    //    case 2u: rayPayload.color = float4(0.f, 0.f, 0.3f, 1.f); break;
+    //    //    case 3u: rayPayload.color = float4(0.6f, 0.f, 0.f, 1.f); break;
+    //    //    case 4u: rayPayload.color = float4(0.f, 0.6f, 0.f, 1.f); break;
+    //    //    case 5u: rayPayload.color = float4(0.f, 0.f, 6.f, 1.f); break;
+    //    //    case 6u: rayPayload.color = float4(1.f, 0.f, 0.f, 1.f); break;
+    //    //    case 7u: rayPayload.color = float4(0.f, 1.f, 0.f, 1.f); break;
+    //    //    case 8u: rayPayload.color = float4(0.f, 0.f, 1.f, 1.f); break;
+    //    //    case 9u: rayPayload.color = float4(1.f, 1.f, 1.f, 1.f); break;
+    //    //}
+        
+    //    return;
+    //}
+                    
     // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
 
@@ -295,7 +348,7 @@ void MyMissShader_ShadowRay(inout ShadowRayPayload rayPayload)
 // Get ray in AABB's local space.
 Ray GetRayInAABBPrimitiveLocalSpace()
 {
-    PrimitiveInstancePerFrameBuffer attr = g_AABBPrimitiveAttributes[/*l_aabbCB.instanceIndex*/0];
+    PrimitiveInstancePerFrameBuffer attr = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
 
     // Retrieve a ray origin position and direction in bottom level AS space 
     // and transform them into the AABB primitive's local space.
@@ -308,14 +361,20 @@ Ray GetRayInAABBPrimitiveLocalSpace()
 [shader("intersection")]
 void MyIntersectionShader_AnalyticPrimitive()
 {
+    // DEBUG
+    //{
+    //    ProceduralPrimitiveAttributes attr;
+    //    ReportHit(0, /*hitKind*/ 0, attr);
+    //}
+
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
-    AnalyticPrimitive::Enum primitiveType = (AnalyticPrimitive::Enum) /*l_aabbCB.primitiveType*/0;
+    AnalyticPrimitive::Enum primitiveType = (AnalyticPrimitive::Enum) l_aabbCB.primitiveType;
 
     float thit;
     ProceduralPrimitiveAttributes attr;
     if (RayAnalyticGeometryIntersectionTest(localRay, primitiveType, thit, attr))
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[/*l_aabbCB.instanceIndex*/0];
+        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
         attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
 
@@ -326,14 +385,20 @@ void MyIntersectionShader_AnalyticPrimitive()
 [shader("intersection")]
 void MyIntersectionShader_VolumetricPrimitive()
 {
+    // DEBUG
+    //{
+    //    ProceduralPrimitiveAttributes attr;
+    //    ReportHit(0, /*hitKind*/ 0, attr);
+    //}
+
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
-    VolumetricPrimitive::Enum primitiveType = (VolumetricPrimitive::Enum) /*l_aabbCB.primitiveType*/0;
+    VolumetricPrimitive::Enum primitiveType = (VolumetricPrimitive::Enum) l_aabbCB.primitiveType;
     
     float thit;
     ProceduralPrimitiveAttributes attr;
     if (RayVolumetricGeometryIntersectionTest(localRay, primitiveType, thit, attr, g_sceneCB.elapsedTime))
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[/*l_aabbCB.instanceIndex*/0];
+        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
         attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
 
@@ -344,14 +409,20 @@ void MyIntersectionShader_VolumetricPrimitive()
 [shader("intersection")]
 void MyIntersectionShader_SignedDistancePrimitive()
 {
+    // DEBUG
+    //{
+    //    ProceduralPrimitiveAttributes attr;
+    //    ReportHit(0, /*hitKind*/ 0, attr);
+    //}
+
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
-    SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) /*l_aabbCB.primitiveType*/0;
+    SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;
 
     float thit;
     ProceduralPrimitiveAttributes attr;
     if (RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale))
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[/*l_aabbCB.instanceIndex*/0];
+        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
         attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
         
