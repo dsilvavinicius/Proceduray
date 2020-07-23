@@ -82,9 +82,8 @@ namespace RtxEngine
 		vector<D3D12_RAYTRACING_GEOMETRY_DESC> triGeometryDescs;
 		vector<D3D12_RAYTRACING_GEOMETRY_DESC> procGeometryDescs;
 
-		for (const auto& geometryEntry : m_scene->getGeometry())
+		for (const auto& geometry : m_scene->getGeometry())
 		{
-			auto geometry = geometryEntry.second;
 			auto vertexBuffer = geometry->getVertexBuffer();
 
 			if (geometry->getType() == Geometry::Triangles)

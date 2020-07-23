@@ -45,5 +45,6 @@ namespace RtxEngine
 
 	using GeometryPtr = shared_ptr<Geometry>;
 	using GeometryMap = unordered_map<string, GeometryPtr>;
+	using GeometryVector = vector<GeometryPtr>;
 }
 
