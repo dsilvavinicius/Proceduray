@@ -36,7 +36,6 @@ namespace RtxEngine
 		commandList->Reset(commandAllocator, nullptr);
 
 		// Build bottom-level AS.
-		auto geometries = m_scene->getGeometry();
 		auto blasDescs = buildGeometryDescsForBottomLevelAS();
 		
 		vector<AccelerationStructureBuffers> bottomLevelAS;

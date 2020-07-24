@@ -231,59 +231,6 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 [shader("closesthit")]
 void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
-    // DEBUG
-    //{
-    //    switch(l_aabbCB.instanceIndex)
-    //    {
-    //        case 0u:
-    //            rayPayload.color = float4(0.3f, 0.f, 0.f, 1.f);
-    //            break;
-    //        case 1u:
-    //            rayPayload.color = float4(0.f, 0.3f, 0.f, 1.f);
-    //            break;
-    //        case 2u:
-    //            rayPayload.color = float4(0.f, 0.f, 0.3f, 1.f);
-    //            break;
-    //        case 3u:
-    //            rayPayload.color = float4(0.6f, 0.f, 0.f, 1.f);
-    //            break;
-    //        case 4u:
-    //            rayPayload.color = float4(0.f, 0.6f, 0.f, 1.f);
-    //            break;
-    //        case 5u:
-    //            rayPayload.color = float4(0.f, 0.f, 6.f, 1.f);
-    //            break;
-    //        case 6u:
-    //            rayPayload.color = float4(1.f, 0.f, 0.f, 1.f);
-    //            break;
-    //        case 7u:
-    //            rayPayload.color = float4(0.f, 1.f, 0.f, 1.f);
-    //            break;
-    //        case 8u:
-    //            rayPayload.color = float4(0.f, 0.f, 1.f, 1.f);
-    //            break;
-    //        case 9u:
-    //            rayPayload.color = float4(1.f, 1.f, 1.f, 1.f);
-    //            break;
-    //    }
-        
-    //    //switch(l_aabbCB.primitiveType)
-    //    //{
-    //    //    case 0u: rayPayload.color = float4(0.3f, 0.f, 0.f, 1.f); break;
-    //    //    case 1u: rayPayload.color = float4(0.f, 0.3f, 0.f, 1.f); break;
-    //    //    case 2u: rayPayload.color = float4(0.f, 0.f, 0.3f, 1.f); break;
-    //    //    case 3u: rayPayload.color = float4(0.6f, 0.f, 0.f, 1.f); break;
-    //    //    case 4u: rayPayload.color = float4(0.f, 0.6f, 0.f, 1.f); break;
-    //    //    case 5u: rayPayload.color = float4(0.f, 0.f, 6.f, 1.f); break;
-    //    //    case 6u: rayPayload.color = float4(1.f, 0.f, 0.f, 1.f); break;
-    //    //    case 7u: rayPayload.color = float4(0.f, 1.f, 0.f, 1.f); break;
-    //    //    case 8u: rayPayload.color = float4(0.f, 0.f, 1.f, 1.f); break;
-    //    //    case 9u: rayPayload.color = float4(1.f, 1.f, 1.f, 1.f); break;
-    //    //}
-        
-    //    return;
-    //}
-                    
     // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
 
@@ -324,13 +271,6 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
 void MyMissShader(inout RayPayload rayPayload)
 {
     float4 backgroundColor = float4(BackgroundColor);
- 
-    //debug
-    //{
-    //    float3 expected = float3(-12.0208, 5.3, -12.0208);
-    //    float3 camPos = g_sceneCB.cameraPosition.xyz;
-    //    backgroundColor = (length(expected - camPos) < 1.e-4) ? float4(0.f, 0.f, 0.f, 1.f) : float4(1.f, 0.f, 0.f, 1.f);
-    //}
    
     rayPayload.color = backgroundColor;
 }
@@ -361,12 +301,6 @@ Ray GetRayInAABBPrimitiveLocalSpace()
 [shader("intersection")]
 void MyIntersectionShader_AnalyticPrimitive()
 {
-    // DEBUG
-    //{
-    //    ProceduralPrimitiveAttributes attr;
-    //    ReportHit(0, /*hitKind*/ 0, attr);
-    //}
-
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
     AnalyticPrimitive::Enum primitiveType = (AnalyticPrimitive::Enum) l_aabbCB.primitiveType;
 
@@ -385,12 +319,6 @@ void MyIntersectionShader_AnalyticPrimitive()
 [shader("intersection")]
 void MyIntersectionShader_VolumetricPrimitive()
 {
-    // DEBUG
-    //{
-    //    ProceduralPrimitiveAttributes attr;
-    //    ReportHit(0, /*hitKind*/ 0, attr);
-    //}
-
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
     VolumetricPrimitive::Enum primitiveType = (VolumetricPrimitive::Enum) l_aabbCB.primitiveType;
     
@@ -409,12 +337,6 @@ void MyIntersectionShader_VolumetricPrimitive()
 [shader("intersection")]
 void MyIntersectionShader_SignedDistancePrimitive()
 {
-    // DEBUG
-    //{
-    //    ProceduralPrimitiveAttributes attr;
-    //    ReportHit(0, /*hitKind*/ 0, attr);
-    //}
-
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
     SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;
 
