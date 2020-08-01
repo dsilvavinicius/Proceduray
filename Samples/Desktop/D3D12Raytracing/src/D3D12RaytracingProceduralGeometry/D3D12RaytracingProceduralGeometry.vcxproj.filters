@@ -36,9 +36,6 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D3D12RaytracingProceduralGeometry.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DirectXRaytracingHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -59,9 +56,6 @@
     </ClInclude>
     <ClInclude Include="util\Win32Application.h">
       <Filter>Header Files\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="RaytracingSceneDefines.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util\HlslCompat.h">
       <Filter>Assets\Shaders\Util</Filter>
@@ -152,9 +146,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D3D12RaytracingProceduralGeometry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="util\DeviceResources.cpp">
       <Filter>Source Files\Util</Filter>
     </ClCompile>
@@ -201,6 +192,9 @@
   <ItemGroup>
     <None Include="readme.md" />
     <None Include="packages.config" />
+    <None Include="Graph3D.hlsli">
+      <Filter>Assets\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Raytracing.hlsl">

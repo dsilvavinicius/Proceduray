@@ -17,6 +17,11 @@
 #include "ProceduralPrimitivesLibrary.hlsli"
 #include "RaytracingShaderHelper.hlsli"
 
+#include "Graph3D.hlsli"
+
+static float gStep = 1.;
+static float gMaxLenght = 100.;
+
 //***************************************************************************
 //*****------ Shader resources bound via root signatures -------*************
 //***************************************************************************
@@ -90,6 +95,7 @@ float4 CalculatePhongLighting(in float4 albedo, in float3 normal, in bool isInSh
     return ambientColor + diffuseColor + specularColor;
 }
 
+
 //***************************************************************************
 //*****------ TraceRay wrappers for radiance and shadow rays. -------********
 //***************************************************************************
@@ -108,18 +114,41 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     rayDesc.Direction = ray.direction;
     // Set TMin to a zero value to avoid aliasing artifacts along contact areas.
     // Note: make sure to enable face culling so as to avoid surface face fighting.
-    rayDesc.TMin = 0;
-    rayDesc.TMax = 10000;
-    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1 };
-    TraceRay(g_scene,
-        RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
-        TraceRayParameters::InstanceMask,
-        TraceRayParameters::HitGroup::Offset[RayType::Radiance],
-        TraceRayParameters::HitGroup::GeometryStride,
-        TraceRayParameters::MissShader::Offset[RayType::Radiance],
-        rayDesc, rayPayload);
-
-    return rayPayload.color;
+    
+    float4 color = float4(0, 0, 0, 0);
+     
+    rayDesc.TMin = 0.;
+    rayDesc.TMax = 2.5*gStep; //why is it not working for rayDesc.TMax = step
+     
+    while(rayDesc.TMax < gMaxLenght)
+    {
+        RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, true };
+        TraceRay(g_scene,
+            RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+            TraceRayParameters::InstanceMask,
+            TraceRayParameters::HitGroup::Offset[RayType::Radiance],
+            TraceRayParameters::HitGroup::GeometryStride,
+            TraceRayParameters::MissShader::Offset[RayType::Radiance],
+            rayDesc, rayPayload);
+            
+         color = rayPayload.color;
+        
+         if(rayPayload.hit)
+         {  
+            break;
+         }
+         else
+         {
+            //update the ray
+            //evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep); //Riemannian metric induced by a graph of a function
+            rayDesc.Origin += gStep*rayDesc.Direction;
+            //rayDesc.Direction = ray.direction;
+            rayDesc.TMin += gStep;
+            rayDesc.TMax += gStep;
+         }
+    }
+    
+    return color;
 }
 
 // Trace a shadow ray and return true if it hits any geometry.
@@ -137,24 +166,44 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
     // Set TMin to a zero value to avoid aliasing artifcats along contact areas.
     // Note: make sure to enable back-face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
-    rayDesc.TMax = 10000;
+    rayDesc.TMax = 2.5*gStep; //why is it not working for rayDesc.TMax = step
 
+    bool hit = true;
+    
     // Initialize shadow ray payload.
     // Set the initial value to true since closest and any hit shaders are skipped. 
     // Shadow miss shader, if called, will set it to false.
-    ShadowRayPayload shadowPayload = { true };
-    TraceRay(g_scene,
-        RAY_FLAG_CULL_BACK_FACING_TRIANGLES
-        | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH
-        | RAY_FLAG_FORCE_OPAQUE             // ~skip any hit shaders
-        | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, // ~skip closest hit shaders,
-        TraceRayParameters::InstanceMask,
-        TraceRayParameters::HitGroup::Offset[RayType::Shadow],
-        TraceRayParameters::HitGroup::GeometryStride,
-        TraceRayParameters::MissShader::Offset[RayType::Shadow],
-        rayDesc, shadowPayload);
-
-    return shadowPayload.hit;
+    while(rayDesc.TMax < gMaxLenght)
+    { 
+        ShadowRayPayload shadowPayload = { true };
+        TraceRay(g_scene,
+            RAY_FLAG_CULL_BACK_FACING_TRIANGLES
+            | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH
+            | RAY_FLAG_FORCE_OPAQUE             // ~skip any hit shaders
+            | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, // ~skip closest hit shaders,
+            TraceRayParameters::InstanceMask,
+            TraceRayParameters::HitGroup::Offset[RayType::Shadow],
+            TraceRayParameters::HitGroup::GeometryStride,
+            TraceRayParameters::MissShader::Offset[RayType::Shadow],
+            rayDesc, shadowPayload);
+         
+         hit = shadowPayload.hit;
+         
+         if(shadowPayload.hit)
+         {  
+            break;
+         }
+         else
+         {
+            //update the ray
+           // evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep); //Riemannian metric induced by a graph of a function
+            rayDesc.Origin += gStep*rayDesc.Direction;
+            //rayDesc.Direction = ray.direction;
+            rayDesc.TMin += gStep;
+            rayDesc.TMax += gStep;
+         }
+    }
+    return hit;
 }
 
 //***************************************************************************
@@ -192,7 +241,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     const uint3 indices = Load3x16BitIndices(baseIndex, g_indices);
     
     // Retrieve corresponding vertex normals for the triangle vertices.
-    float3 triangleNormal = g_vertices[indices[0]].normal;
+    float3 triangleNormal = /*normalize(grad(HitWorldPosition()));*/g_vertices[indices[0]].normal;
 
     // PERFORMANCE TIP: it is recommended to avoid values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
@@ -273,6 +322,7 @@ void MyMissShader(inout RayPayload rayPayload)
     float4 backgroundColor = float4(BackgroundColor);
    
     rayPayload.color = backgroundColor;
+    rayPayload.hit = false;
 }
 
 [shader("miss")]
@@ -316,7 +366,7 @@ void MyIntersectionShader_AnalyticPrimitive()
     }
 }
 
-[shader("intersection")]
+//[shader("intersection")]
 void MyIntersectionShader_VolumetricPrimitive()
 {
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
@@ -334,7 +384,7 @@ void MyIntersectionShader_VolumetricPrimitive()
     }
 }
 
-[shader("intersection")]
+//[shader("intersection")]
 void MyIntersectionShader_SignedDistancePrimitive()
 {
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();

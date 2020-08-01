@@ -79,29 +79,29 @@ static const float InShadowRadiance = 0.35f;
 
 namespace AnalyticPrimitive {
     enum Enum {
-        AABB = 0,
-        Spheres,
-        Count
+        Spheres = 0,
+        AABB,
+        Count = 1
     };
 }
 
 namespace VolumetricPrimitive {
     enum Enum {
-        Metaballs = 0,
-        Count
+        Metaballs = 1,
+        Count = 0
     };
 }
 
 namespace SignedDistancePrimitive {
     enum Enum {
-        MiniSpheres = 0,
+        MiniSpheres = 1,
         TwistedTorus,
         IntersectedRoundCube,
         SquareTorus,
         Cog,
         Cylinder,
         FractalPyramid,
-        Count
+        Count = 0
     };
 }
 

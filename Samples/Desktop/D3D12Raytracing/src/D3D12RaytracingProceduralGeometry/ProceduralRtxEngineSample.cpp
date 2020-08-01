@@ -103,34 +103,34 @@ void ProceduralRtxEngineSample::UpdateAABBPrimitiveAttributes(float animationTim
 		(*m_aabbPrimitiveAttributeBuffer)[primitiveIndex].bottomLevelASToLocalSpace = XMMatrixInverse(nullptr, mTransform);
 	};
 
-	UINT offset = 0;
+	//UINT offset = 0;
 	// Analytic primitives.
 	{
 		using namespace AnalyticPrimitive;
-		SetTransformForAABB(offset + AABB, mScale15y, mIdentity);
-		SetTransformForAABB(offset + Spheres, mScale15, mRotation);
-		offset += AnalyticPrimitive::Count;
+		//SetTransformForAABB(offset + AABB, mScale15y, mIdentity);
+		SetTransformForAABB(Spheres, mScale15, mRotation);
+		//offset += AnalyticPrimitive::Count;
 	}
 
 	// Volumetric primitives.
-	{
-		using namespace VolumetricPrimitive;
-		SetTransformForAABB(offset + Metaballs, mScale15, mRotation);
-		offset += VolumetricPrimitive::Count;
-	}
+	//{
+	//	using namespace VolumetricPrimitive;
+	//	SetTransformForAABB(offset + Metaballs, mScale15, mRotation);
+	//	offset += VolumetricPrimitive::Count;
+	//}
 
-	// Signed distance primitives.
-	{
-		using namespace SignedDistancePrimitive;
+	//// Signed distance primitives.
+	//{
+	//	using namespace SignedDistancePrimitive;
 
-		SetTransformForAABB(offset + MiniSpheres, mIdentity, mIdentity);
-		SetTransformForAABB(offset + IntersectedRoundCube, mIdentity, mIdentity);
-		SetTransformForAABB(offset + SquareTorus, mScale15, mIdentity);
-		SetTransformForAABB(offset + TwistedTorus, mIdentity, mRotation);
-		SetTransformForAABB(offset + Cog, mIdentity, mRotation);
-		SetTransformForAABB(offset + Cylinder, mScale15y, mIdentity);
-		SetTransformForAABB(offset + FractalPyramid, mScale3, mIdentity);
-	}
+	//	SetTransformForAABB(offset + MiniSpheres, mIdentity, mIdentity);
+	//	SetTransformForAABB(offset + IntersectedRoundCube, mIdentity, mIdentity);
+	//	SetTransformForAABB(offset + SquareTorus, mScale15, mIdentity);
+	//	SetTransformForAABB(offset + TwistedTorus, mIdentity, mRotation);
+	//	SetTransformForAABB(offset + Cog, mIdentity, mRotation);
+	//	SetTransformForAABB(offset + Cylinder, mScale15y, mIdentity);
+	//	SetTransformForAABB(offset + FractalPyramid, mScale3, mIdentity);
+	//}
 }
 
 // Initialize scene rendering parameters.
@@ -159,40 +159,40 @@ void ProceduralRtxEngineSample::InitializeScene()
 		};
 
 
-		m_planeMaterialCB = { XMFLOAT4(0.9f, 0.9f, 0.9f, 1.0f), 0.25f, 1, 0.4f, 50, 1 };
+		m_planeMaterialCB = { XMFLOAT4(1.f, 0.9f, 0.7f, 1.0f), 0.25f, 1, 0.4f, 50, 1 };
 
 		// Albedos
 		XMFLOAT4 green = XMFLOAT4(0.1f, 1.0f, 0.5f, 1.0f);
 		XMFLOAT4 red = XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
 		XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.5f, 1.0f);
 
-		UINT offset = 0;
+		//UINT offset = 0;
 		// Analytic primitives.
 		{
 			using namespace AnalyticPrimitive;
-			SetAttributes(offset + AABB, red);
-			SetAttributes(offset + Spheres, ChromiumReflectance, 1);
-			offset += AnalyticPrimitive::Count;
+			//SetAttributes(offset + AABB, red);
+			SetAttributes(Spheres, ChromiumReflectance, 1);
+			//offset += AnalyticPrimitive::Count;
 		}
 
 		// Volumetric primitives.
-		{
-			using namespace VolumetricPrimitive;
-			SetAttributes(offset + Metaballs, ChromiumReflectance, 1);
-			offset += VolumetricPrimitive::Count;
-		}
+		//{
+		//	using namespace VolumetricPrimitive;
+		//	SetAttributes(offset + Metaballs, ChromiumReflectance, 1);
+		//	offset += VolumetricPrimitive::Count;
+		//}
 
-		// Signed distance primitives.
-		{
-			using namespace SignedDistancePrimitive;
-			SetAttributes(offset + MiniSpheres, green);
-			SetAttributes(offset + IntersectedRoundCube, green);
-			SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
-			SetAttributes(offset + TwistedTorus, yellow, 0, 1.0f, 0.7f, 50, 0.5f);
-			SetAttributes(offset + Cog, yellow, 0, 1.0f, 0.1f, 2);
-			SetAttributes(offset + Cylinder, red);
-			SetAttributes(offset + FractalPyramid, green, 0, 1, 0.1f, 4, 0.8f);
-		}
+		//// Signed distance primitives.
+		//{
+		//	using namespace SignedDistancePrimitive;
+		//	SetAttributes(offset + MiniSpheres, green);
+		//	SetAttributes(offset + IntersectedRoundCube, green);
+		//	SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
+		//	SetAttributes(offset + TwistedTorus, yellow, 0, 1.0f, 0.7f, 50, 0.5f);
+		//	SetAttributes(offset + Cog, yellow, 0, 1.0f, 0.1f, 2);
+		//	SetAttributes(offset + Cylinder, red);
+		//	SetAttributes(offset + FractalPyramid, green, 0, 1, 0.1f, 4, 0.8f);
+		//}
 	}
 
 	// Setup camera.
@@ -314,11 +314,11 @@ void ProceduralRtxEngineSample::CreateHitGroups()
 	m_scene->addHitGroup("Analytic", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
 	m_scene->addHitGroup("Analytic_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_AnalyticPrimitive"));
 	// Volumetric.
-	m_scene->addHitGroup("Volumetric", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
-	m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_VolumetricPrimitive"));
-	// Signed Distance.
-	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
-	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_SignedDistancePrimitive"));
+	//m_scene->addHitGroup("Volumetric", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
+	//m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_VolumetricPrimitive"));
+	//// Signed Distance.
+	//m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
+	//m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_SignedDistancePrimitive"));
 }
 
 void ProceduralRtxEngineSample::CreateAccelerationStructures()
@@ -422,8 +422,8 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 		const string hitGroupIds[][2] =
 		{
 			{ "Analytic", "Analytic_Shadow" },
-			{ "Volumetric", "Volumetric_Shadow" },
-			{ "SignedDist", "SignedDist_Shadow" },
+			/*{ "Volumetric", "Volumetric_Shadow" },
+			{ "SignedDist", "SignedDist_Shadow" },*/
 		};
 
 		ProceduralRootArguments rootArgs;
@@ -495,51 +495,51 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 			};
 		};
 		m_aabbs.resize(IntersectionShaderType::TotalPrimitiveCount);
-		UINT offset = 0;
+		//UINT offset = 0;
 
 		// Analytic primitives.
 		{
 			using namespace AnalyticPrimitive;
-			m_aabbs[offset + AABB] = InitializeAABB(XMINT3(3, 0, 0), XMFLOAT3(2, 3, 2));
-			m_scene->addGeometry("AABB", make_shared<Geometry>(m_aabbs[offset + AABB], *m_deviceResources));
+			/*m_aabbs[offset + AABB] = InitializeAABB(XMINT3(3, 0, 0), XMFLOAT3(2, 3, 2));
+			m_scene->addGeometry("AABB", make_shared<Geometry>(m_aabbs[offset + AABB], *m_deviceResources));*/
 
-			m_aabbs[offset + Spheres] = InitializeAABB(XMFLOAT3(2.25f, 0, 0.75f), XMFLOAT3(3, 3, 3));
-			m_scene->addGeometry("Spheres", make_shared<Geometry>(m_aabbs[offset + Spheres], *m_deviceResources));
-			offset += AnalyticPrimitive::Count;
+			m_aabbs[Spheres] = InitializeAABB(XMFLOAT3(2.25f, 0, 0.75f), XMFLOAT3(10, 10, 10));
+			m_scene->addGeometry("Spheres", make_shared<Geometry>(m_aabbs[Spheres], *m_deviceResources));
+			//offset += AnalyticPrimitive::Count;
 		}
 
 		// Volumetric primitives.
-		{
-			using namespace VolumetricPrimitive;
-			m_aabbs[offset + Metaballs] = InitializeAABB(XMINT3(0, 0, 0), XMFLOAT3(3, 3, 3));
-			m_scene->addGeometry("Metaballs", make_shared<Geometry>(m_aabbs[offset + Metaballs], *m_deviceResources));
-			offset += VolumetricPrimitive::Count;
-		}
+		//{
+		//	using namespace VolumetricPrimitive;
+		//	m_aabbs[offset + Metaballs] = InitializeAABB(XMINT3(0, 0, 0), XMFLOAT3(3, 3, 3));
+		//	m_scene->addGeometry("Metaballs", make_shared<Geometry>(m_aabbs[offset + Metaballs], *m_deviceResources));
+		//	offset += VolumetricPrimitive::Count;
+		//}
 
-		// Signed distance primitives.
-		{
-			using namespace SignedDistancePrimitive;
-			m_aabbs[offset + MiniSpheres] = InitializeAABB(XMINT3(2, 0, 0), XMFLOAT3(2, 2, 2));
-			m_scene->addGeometry("MiniSpheres", make_shared<Geometry>(m_aabbs[offset + MiniSpheres], *m_deviceResources));
-			
-			m_aabbs[offset + TwistedTorus] = InitializeAABB(XMINT3(0, 0, 1), XMFLOAT3(2, 2, 2));
-			m_scene->addGeometry("TwistedTorus", make_shared<Geometry>(m_aabbs[offset + TwistedTorus], *m_deviceResources));
+		//// Signed distance primitives.
+		//{
+		//	using namespace SignedDistancePrimitive;
+		//	m_aabbs[offset + MiniSpheres] = InitializeAABB(XMINT3(2, 0, 0), XMFLOAT3(2, 2, 2));
+		//	m_scene->addGeometry("MiniSpheres", make_shared<Geometry>(m_aabbs[offset + MiniSpheres], *m_deviceResources));
+		//	
+		//	m_aabbs[offset + TwistedTorus] = InitializeAABB(XMINT3(0, 0, 1), XMFLOAT3(2, 2, 2));
+		//	m_scene->addGeometry("TwistedTorus", make_shared<Geometry>(m_aabbs[offset + TwistedTorus], *m_deviceResources));
 
-			m_aabbs[offset + IntersectedRoundCube] = InitializeAABB(XMINT3(0, 0, 2), XMFLOAT3(2, 2, 2));
-			m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[offset + IntersectedRoundCube], *m_deviceResources));
+		//	m_aabbs[offset + IntersectedRoundCube] = InitializeAABB(XMINT3(0, 0, 2), XMFLOAT3(2, 2, 2));
+		//	m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[offset + IntersectedRoundCube], *m_deviceResources));
 
-			m_aabbs[offset + SquareTorus] = InitializeAABB(XMFLOAT3(0.75f, -0.1f, 2.25f), XMFLOAT3(3, 3, 3));
-			m_scene->addGeometry("SquareTorus", make_shared<Geometry>(m_aabbs[offset + SquareTorus], *m_deviceResources));
+		//	m_aabbs[offset + SquareTorus] = InitializeAABB(XMFLOAT3(0.75f, -0.1f, 2.25f), XMFLOAT3(3, 3, 3));
+		//	m_scene->addGeometry("SquareTorus", make_shared<Geometry>(m_aabbs[offset + SquareTorus], *m_deviceResources));
 
-			m_aabbs[offset + Cog] = InitializeAABB(XMINT3(1, 0, 0), XMFLOAT3(2, 2, 2));
-			m_scene->addGeometry("Cog", make_shared<Geometry>(m_aabbs[offset + Cog], *m_deviceResources));
+		//	m_aabbs[offset + Cog] = InitializeAABB(XMINT3(1, 0, 0), XMFLOAT3(2, 2, 2));
+		//	m_scene->addGeometry("Cog", make_shared<Geometry>(m_aabbs[offset + Cog], *m_deviceResources));
 
-			m_aabbs[offset + Cylinder] = InitializeAABB(XMINT3(0, 0, 3), XMFLOAT3(2, 3, 2));
-			m_scene->addGeometry("Cylinder", make_shared<Geometry>(m_aabbs[offset + Cylinder], *m_deviceResources));
+		//	m_aabbs[offset + Cylinder] = InitializeAABB(XMINT3(0, 0, 3), XMFLOAT3(2, 3, 2));
+		//	m_scene->addGeometry("Cylinder", make_shared<Geometry>(m_aabbs[offset + Cylinder], *m_deviceResources));
 
-			m_aabbs[offset + FractalPyramid] = InitializeAABB(XMINT3(2, 0, 2), XMFLOAT3(6, 6, 6));
-			m_scene->addGeometry("FractalPyramid", make_shared<Geometry>(m_aabbs[offset + FractalPyramid], *m_deviceResources));
-		}
+		//	m_aabbs[offset + FractalPyramid] = InitializeAABB(XMINT3(2, 0, 2), XMFLOAT3(6, 6, 6));
+		//	m_scene->addGeometry("FractalPyramid", make_shared<Geometry>(m_aabbs[offset + FractalPyramid], *m_deviceResources));
+		//}
 	}
 }
 

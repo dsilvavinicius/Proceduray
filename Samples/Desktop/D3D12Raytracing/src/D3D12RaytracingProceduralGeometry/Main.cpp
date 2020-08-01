@@ -11,21 +11,11 @@
 
 #include "stdafx.h"
 
-#define OUR_SAMPLE
-#ifdef OUR_SAMPLE
-    #include "ProceduralRtxEngineSample.h"
-#else
-    #include "D3D12RaytracingProceduralGeometry.h"
-#endif
-
+#include "ProceduralRtxEngineSample.h"
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-#ifdef OUR_SAMPLE
     ProceduralRtxEngineSample sample(1280, 720, L"D3D12 Raytracing - Procedural Geometry");
-#else
-    D3D12RaytracingProceduralGeometry sample(1280, 720, L"D3D12 Raytracing - Procedural Geometry");
-#endif
     return Win32Application::Run(&sample, hInstance, nCmdShow);
 }
