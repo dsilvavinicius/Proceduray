@@ -8,6 +8,9 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
+#define NONLINEAR_RAYTRACING
+//#define RAYTRACING
+
 
 #ifndef RAYTRACING_HLSL
 #define RAYTRACING_HLSL
@@ -107,6 +110,48 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     {
         return float4(0, 0, 0, 0);
     }
+#ifdef RAYTRACING
+    // Set the ray's extents.
+    RayDesc rayDesc;
+    rayDesc.Origin = ray.origin;
+    rayDesc.Direction = ray.direction;
+    // Set TMin to a zero value to avoid aliasing artifacts along contact areas.
+    // Note: make sure to enable face culling so as to avoid surface face fighting.
+    rayDesc.TMin = 0;
+    rayDesc.TMax = 10000;
+    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, true };
+    TraceRay(g_scene,
+        RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+        TraceRayParameters::InstanceMask,
+        TraceRayParameters::HitGroup::Offset[RayType::Radiance],
+        TraceRayParameters::HitGroup::GeometryStride,
+        TraceRayParameters::MissShader::Offset[RayType::Radiance],
+        rayDesc, rayPayload);
+
+    return rayPayload.color;
+
+#endif
+    
+#ifdef NONLINEAR_RAYTRACING 
+    // Set the ray's extents.
+    //RayDesc rayDesc;
+    //rayDesc.Origin = ray.origin;
+    //rayDesc.Direction = ray.direction;
+    //// Set TMin to a zero value to avoid aliasing artifacts along contact areas.
+    //// Note: make sure to enable face culling so as to avoid surface face fighting.
+    //rayDesc.TMin = 0;
+    //rayDesc.TMax = gStep;
+    
+    //RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.f, true };
+    //TraceRay(g_scene,
+    //    RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+    //    TraceRayParameters::InstanceMask,
+    //    TraceRayParameters::HitGroup::Offset[RayType::Radiance],
+    //    TraceRayParameters::HitGroup::GeometryStride,
+    //    TraceRayParameters::MissShader::Offset[RayType::Radiance],
+    //    rayDesc, rayPayload);
+
+    //return rayPayload.color;
 
     // Set the ray's extents.
     RayDesc rayDesc;
@@ -116,13 +161,15 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     // Note: make sure to enable face culling so as to avoid surface face fighting.
     
     float4 color = float4(0, 0, 0, 0);
-     
+    
     rayDesc.TMin = 0.;
-    rayDesc.TMax = 2.5*gStep; //why is it not working for rayDesc.TMax = step
-     
-    while(rayDesc.TMax < gMaxLenght)
+    rayDesc.TMax = 1. * gStep; //why is it not working for rayDesc.TMax = step
+   
+    float maxDist = 0;
+    
+    while ( /*rayDesc.TMax*/maxDist < gMaxLenght)
     {
-        RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, true };
+        RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.f, true };
         TraceRay(g_scene,
             RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
             TraceRayParameters::InstanceMask,
@@ -130,25 +177,27 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
             TraceRayParameters::HitGroup::GeometryStride,
             TraceRayParameters::MissShader::Offset[RayType::Radiance],
             rayDesc, rayPayload);
-            
-         color = rayPayload.color;
+         
+        color = rayPayload.color;
         
-         if(rayPayload.hit)
-         {  
+        if (rayPayload.hit)
+        {
             break;
-         }
-         else
-         {
-            //update the ray
-            //evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep); //Riemannian metric induced by a graph of a function
-            rayDesc.Origin += gStep*rayDesc.Direction;
-            //rayDesc.Direction = ray.direction;
-            rayDesc.TMin += gStep;
-            rayDesc.TMax += gStep;
-         }
+        }
+        else
+        {
+       //update the ray
+            evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep - 0.08); //Riemannian metric induced by a graph of a function
+       //rayDesc.Origin += (gStep-0.000001)*rayDesc.Direction;
+       //rayDesc.Direction = ray.direction;
+       //rayDesc.TMin += gStep;
+       //rayDesc.TMax += gStep;
+            maxDist += gStep;
+        }
     }
     
-    return color;
+ return color;
+#endif    
 }
 
 // Trace a shadow ray and return true if it hits any geometry.
@@ -159,6 +208,35 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
         return false;
     }
 
+ #ifdef RAYTRACING
+// Set the ray's extents.
+    RayDesc rayDesc;
+    rayDesc.Origin = ray.origin;
+    rayDesc.Direction = ray.direction;
+    // Set TMin to a zero value to avoid aliasing artifcats along contact areas.
+    // Note: make sure to enable back-face culling so as to avoid surface face fighting.
+    rayDesc.TMin = 0;
+    rayDesc.TMax = 10000;
+
+    // Initialize shadow ray payload.
+    // Set the initial value to true since closest and any hit shaders are skipped. 
+    // Shadow miss shader, if called, will set it to false.
+    ShadowRayPayload shadowPayload = { true };
+    TraceRay(g_scene,
+        RAY_FLAG_CULL_BACK_FACING_TRIANGLES
+        | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH
+        | RAY_FLAG_FORCE_OPAQUE             // ~skip any hit shaders
+        | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, // ~skip closest hit shaders,
+        TraceRayParameters::InstanceMask,
+        TraceRayParameters::HitGroup::Offset[RayType::Shadow],
+        TraceRayParameters::HitGroup::GeometryStride,
+        TraceRayParameters::MissShader::Offset[RayType::Shadow],
+        rayDesc, shadowPayload);
+
+    return shadowPayload.hit;
+#endif
+    
+#ifdef NONLINEAR_RAYTRACING   
     // Set the ray's extents.
     RayDesc rayDesc;
     rayDesc.Origin = ray.origin;
@@ -166,14 +244,16 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
     // Set TMin to a zero value to avoid aliasing artifcats along contact areas.
     // Note: make sure to enable back-face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
-    rayDesc.TMax = 2.5*gStep; //why is it not working for rayDesc.TMax = step
+    rayDesc.TMax = gStep; //why is it not working for rayDesc.TMax = step
 
+    float maxDist = 0.f;
+    
     bool hit = true;
     
     // Initialize shadow ray payload.
     // Set the initial value to true since closest and any hit shaders are skipped. 
     // Shadow miss shader, if called, will set it to false.
-    while(rayDesc.TMax < gMaxLenght)
+    while(maxDist < gMaxLenght)
     { 
         ShadowRayPayload shadowPayload = { true };
         TraceRay(g_scene,
@@ -196,14 +276,14 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
          else
          {
             //update the ray
-           // evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep); //Riemannian metric induced by a graph of a function
-            rayDesc.Origin += gStep*rayDesc.Direction;
+            evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep); //Riemannian metric induced by a graph of a function
+            //rayDesc.Origin += gStep*rayDesc.Direction;
             //rayDesc.Direction = ray.direction;
-            rayDesc.TMin += gStep;
-            rayDesc.TMax += gStep;
+            maxDist += gStep;
          }
     }
     return hit;
+#endif    
 }
 
 //***************************************************************************
@@ -252,8 +332,8 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     Ray shadowRay = { hitPosition, normalize(g_sceneCB.lightPosition.xyz - hitPosition) };
     bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
 
-    float checkers = AnalyticalCheckersTexture(HitWorldPosition(), triangleNormal, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
-
+    //float checkers = AnalyticalCheckersTexture(HitWorldPosition(), triangleNormal, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
+    float checkers = indices[0]%2;
     // Reflected component.
     float4 reflectedColor = float4(0, 0, 0, 0);
     if (l_materialCB.reflectanceCoef > 0.001 )
@@ -268,7 +348,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 
     // Calculate final color.
     float4 phongColor = CalculatePhongLighting(l_materialCB.albedo, triangleNormal, shadowRayHit, l_materialCB.diffuseCoef, l_materialCB.specularCoef, l_materialCB.specularPower);
-    float4 color = checkers * (phongColor + reflectedColor);
+    float4 color = checkers * (phongColor + reflectedColor) + abs(checkers-1.)* 0.8 * (phongColor + reflectedColor);
 
     // Apply visibility falloff.
     float t = RayTCurrent();
@@ -319,10 +399,47 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
 [shader("miss")]
 void MyMissShader(inout RayPayload rayPayload)
 {
+//#ifdef RAYTRACING    
     float4 backgroundColor = float4(BackgroundColor);
-   
     rayPayload.color = backgroundColor;
     rayPayload.hit = false;
+//#endif    
+    
+// #ifdef NONLINEAR_RAYTRACING  
+
+//    rayPayload.dist += gStep;
+    
+//    if(rayPayload.dist < gMaxLenght)
+//    {
+//        RayDesc rayDesc;
+//        rayDesc.Origin = WorldRayOrigin();
+//        rayDesc.Direction = WorldRayDirection();
+//        rayDesc.TMin = 0;
+//        rayDesc.TMax = gStep;
+
+//        //update the ray
+//        //evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep-0.08); //Riemannian metric induced by a graph of a function
+//        rayDesc.Origin += (gStep-0.000001)*rayDesc.Direction;
+        
+//       // rayPayload.hit = true;
+        
+//        TraceRay(g_scene,
+//            RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+//            TraceRayParameters::InstanceMask,
+//            TraceRayParameters::HitGroup::Offset[RayType::Radiance],
+//            TraceRayParameters::HitGroup::GeometryStride,
+//            TraceRayParameters::MissShader::Offset[RayType::Radiance],
+//            rayDesc, rayPayload);
+      
+//         //rayPayload.color = float4(1.f,0,0,0);   
+//    }
+//    else
+//    {
+//        float4 backgroundColor = float4(BackgroundColor);
+//        rayPayload.color = backgroundColor;
+//       // rayPayload.hit = false;
+//    }
+//#endif   
 }
 
 [shader("miss")]

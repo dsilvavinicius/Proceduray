@@ -545,14 +545,44 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 
 void ProceduralRtxEngineSample::BuildPlaneGeometry()
 {
-	vector<Index> indices{3, 1, 0, 2, 1, 3};
+	/*vector<Index> indices{3, 1, 0, 2, 1, 3};
 	
 	vector<Vertex> vertices{
 		{ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 		{ XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 		{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 		{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-	};
+	};*/
+
+	int n = 256;
+
+	vector<Index> indices;
+	vector<Vertex> vertices;
+
+	//this for iterates in a nxn grid
+	for (int k = 0; k < n * n; k++)
+	{
+		//creating vertices coordinates
+		int i = k % n;
+		int j = k / n;
+
+		float x = float(i) / float(n - 1);
+		float z = float(j) / float(n - 1);
+
+		vertices.push_back({ XMFLOAT3(x, 0.f, z), XMFLOAT3(0.0f, 1.0f, 0.0f) });
+
+		//index of the two triangle inside the square
+		if (i < n - 1 && j < n - 1)
+		{
+			indices.push_back(k);
+			indices.push_back(k + n);
+			indices.push_back(k + 1);
+
+			indices.push_back(k + 1);
+			indices.push_back(k + n);
+			indices.push_back(k + n + 1);
+		}
+	}
 
 	m_scene->addGeometry("Plane", make_shared<Geometry>(vertices, indices, *m_deviceResources, *m_descriptorHeap));
 }

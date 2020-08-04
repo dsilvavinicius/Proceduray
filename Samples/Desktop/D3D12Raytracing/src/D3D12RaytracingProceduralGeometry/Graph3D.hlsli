@@ -2,9 +2,9 @@
 #ifndef GRAPH3D_H
 #define GRAPH3D_H
 
-static float amplitude = 8.5;
+static float amplitude = 18.5;
 static float spread = 7.;
-static float3 gaussianCenter =  float3(-7., .0, -7.);
+static float3 gaussianCenter =  float3(-10., -3.0, -10.);
 
 //Initial conditions of a geodesic
 struct graphRay
