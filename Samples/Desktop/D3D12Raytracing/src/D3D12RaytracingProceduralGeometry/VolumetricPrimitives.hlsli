@@ -102,12 +102,12 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
 #else
     float3 keyFrameCenters[N_METABALLS][2] =
     {
-        { float3(-0.3, -0.3, -0.4),float3(0.3,-0.3,-0.0) },
-        { float3(0.0, -0.2, 0.5), float3(0.0, 0.4, 0.5) },
-        { float3(0.4,0.4, 0.4), float3(-0.4, 0.2, -0.4) }
+        { float3(-1.6, -1.9, -0.4),float3(1.6,-1.8,-0.0) },
+        { float3(1.0, -1.4, 2.5), float3(1.0, -0.5, 2.5) },
+        { float3(1.4, -.8, 1.4), float3(-1.4, -.8, -1.4) }
     };
     // Metaball field radii of max influence
-    float radii[N_METABALLS] = { 0.45, 0.55, 0.45 };
+    float radii[N_METABALLS] = { 2.45, 2.65, 2.45 };
 #endif
 
     // Calculate animated metaball center positions.

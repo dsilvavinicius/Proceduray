@@ -14,11 +14,13 @@ struct RayPayload
 	XMFLOAT4 color;
 	UINT   recursionDepth;
 	float dist;
+	int count;
 	bool hit;
 };
 
 struct ShadowRayPayload
 {
+	float dist;
 	bool hit;
 };
 

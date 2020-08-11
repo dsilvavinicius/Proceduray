@@ -69,7 +69,7 @@ float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistan
 
     case SignedDistancePrimitive::IntersectedRoundCube:
         return opS(opS(udRoundBox(position, (float3) 0.75, 0.2), sdSphere(position, 1.20)), -sdSphere(position, 1.32));
-
+       
     case SignedDistancePrimitive::SquareTorus: 
         return sdTorus82(position, float2(0.75, 0.15));
     
