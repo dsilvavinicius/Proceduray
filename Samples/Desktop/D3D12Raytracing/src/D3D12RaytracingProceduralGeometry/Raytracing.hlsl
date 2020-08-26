@@ -8,8 +8,8 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
-#define NONLINEAR_RAYTRACING
-//#define RAYTRACING
+//#define NONLINEAR_RAYTRACING
+#define RAYTRACING
 
 
 #ifndef RAYTRACING_HLSL
@@ -119,7 +119,7 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     // Note: make sure to enable face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
     rayDesc.TMax = 10000;
-    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.f, false};
+    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.f, 0, false};
     TraceRay(g_scene,
         RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
         TraceRayParameters::InstanceMask,
@@ -129,7 +129,7 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
         rayDesc, rayPayload);
 
     return rayPayload.color;
-
+    
 #endif
     
 #ifdef NONLINEAR_RAYTRACING 
@@ -264,10 +264,10 @@ void MyRaygenShader()
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
     // DEBUG
-    {
-        rayPayload.color = float4(0, 0, 1.0f, 0);
-        return;
-    }
+    //{
+    //    rayPayload.color = float4(0, 0, 1.0f, 0);
+    //    return;
+    //}
 
     // Get the base index of the triangle's first 16 bit index.
     uint indexSizeInBytes = 2;
@@ -320,10 +320,10 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
     // DEBUG
-    {
-        rayPayload.color = float4(0, 0, 1.0f, 0);
-        return;
-    }
+    //{
+    //    rayPayload.color = float4(0, 0, 1.0f, 0);
+    //    return;
+    //}
 
     // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
