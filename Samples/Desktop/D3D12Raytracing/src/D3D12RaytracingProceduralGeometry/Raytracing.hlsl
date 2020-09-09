@@ -130,7 +130,7 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
         rayDesc, rayPayload);
 
     return rayPayload.color;
-
+    
 #endif
     
 #ifdef NONLINEAR_RAYTRACING 
