@@ -68,7 +68,20 @@ float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistan
         return opI(sdSphere(opRep(position + 1, (float3) 2/4), 0.65 / 4), sdBox(position, (float3)1));
 
     case SignedDistancePrimitive::IntersectedRoundCube:
-        return opS(opS(udRoundBox(position, (float3) 0.75, 0.2), sdSphere(position, 1.20)), -sdSphere(position, 1.32));
+        //return opS(opS(udRoundBox(position, (float3) 0.75, 0.2), sdSphere(position, 1.20)), -sdSphere(position, 1.32));
+        //Möbius strip
+        //{
+        //    return mobiusStrip(position);
+        //}
+        //Visgraf's torus 
+        //{
+        //    return torusVisgraf(position);
+        //}
+        //PacMans
+        {
+            return opU(opU(pacMan(position),pacMan(position+float3(25,0,5))),pacMan(position-float3(30,0,5)));
+        }
+       
        
     case SignedDistancePrimitive::SquareTorus: 
         return sdTorus82(position, float2(0.75, 0.15));

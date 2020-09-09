@@ -272,6 +272,64 @@ float sdCylinder6(float3 p, float2 h)
     return max(length_toPowNegative6(p.xz) - h.x, abs(p.y) - h.y);
 }
 
+//by tiago
+float mobiusStrip(float3 p)
+{
+    float result = 1000000.f;//sdCapsule(position, float3(20,0,0), float3(0,1,0), float(1.5));
+    
+    int n_copies = 70;
+    
+    float R = 25.f;
+    float s = 10.;
+    
+    for (int i = 0; i<n_copies; i++)
+    {
+        float theta = ((float)i/(float)(n_copies-1))*3.14159265359*2.0;
+      
+        float3 center = R*float3(cos(theta),0,sin(theta));//- /*float3(0,10,0) +*/ float3(cos(theta)*10.f,-2,sin(theta)*10.f);
+        float3 Xv = float3((cos(theta/2.)/2.)*cos(theta),sin(theta/2.)/2.,(cos(theta/2.)/2.)*sin(theta));
+      
+        float3 a =  center + s*Xv;
+        float3 b =  center - s*Xv;
+      
+        result = smin(result, sdCapsule(p, a, b, float(.6)),0.6);
+    }
+    
+    return result;
+}
+
+//by tiago
+float torusVisgraf(float3 p)
+{
+    float2 r1 = float2(6.f,3.f);
+    float2 r2 = float2(6.f,3.f);
+    
+    float3 rot_p = float3(p.y, -p.x, p.z + 6.);
+    
+    return opU(sdTorus(p,r1), sdTorus(rot_p,r2));
+}
+
+//by tiago
+float pacMan(float3 p)
+{
+    //rotating pacman
+    float theta = 0.6*3.14159265359*2.0; 
+    float x =  cos(theta)*p.x + sin(theta)*p.z;
+    float z = -sin(theta)*p.x + cos(theta)*p.z;
+    p = float3(x, p.y, z);
+
+    float r1 = float(10.f); //head radius
+    float2 r2 = float2(5,10.f); //mouth radius
+    
+    float3 rot_p = float3(p.y, -p.x+8, p.z); //mouth orientation
+    float mouth =  sdTriPrism(rot_p,r2);
+   
+    float eyes =  opU(sdSphere(p+float3(-5,-7.3,4.5),1.5), sdSphere(p+float3(-5,-7.3,-4.5),1.5));
+   
+    return opS(opS(sdSphere(p,r1), mouth),eyes);
+}
+
+
 float3 sdCalculateNormal(in float3 pos, in SignedDistancePrimitive::Enum sdPrimitive)
 {
     float2 e = float2(1.0, -1.0) * 0.5773 * 0.0001;

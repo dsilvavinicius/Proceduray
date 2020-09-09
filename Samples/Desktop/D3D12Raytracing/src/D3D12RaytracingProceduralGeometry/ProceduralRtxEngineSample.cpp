@@ -186,7 +186,7 @@ void ProceduralRtxEngineSample::InitializeScene()
 		//{
 			using namespace SignedDistancePrimitive;
 		//	SetAttributes(offset + MiniSpheres, green);
-			SetAttributes(/*offset +*/ IntersectedRoundCube, green);
+			SetAttributes(/*offset +*/ IntersectedRoundCube, yellow, 0.2,0.6);//ChromiumReflectance, 1);
 		//	SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
 		//	SetAttributes(offset + TwistedTorus, yellow, 0, 1.0f, 0.7f, 50, 0.5f);
 		//	SetAttributes(offset + Cog, yellow, 0, 1.0f, 0.1f, 2);
@@ -198,8 +198,8 @@ void ProceduralRtxEngineSample::InitializeScene()
 	// Setup camera.
 	{
 		// Initialize the view and projection inverse matrices.
-		m_eye = { 0.0f, 9.3f, -17.0f, 1.0f };
-		m_at = { 0.0f, 3.0f, 0.0f, 1.0f };
+		m_eye = { 0.0f, 23.3f, -9.0f, 1.0f };
+		m_at = { 0.0f, 20.0f, 0.0f, 1.0f };
 		XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
 
 		XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
@@ -325,7 +325,7 @@ void ProceduralRtxEngineSample::CreateAccelerationStructures()
 {
 	// Width of a bottom-level AS geometry.
 	// Make the plane a little larger than the actual number of primitives in each dimension.
-	const XMUINT3 NUM_AABB = XMUINT3(700, 1, 700);
+	const XMUINT3 NUM_AABB = XMUINT3(300, 1, 300);
 	const XMFLOAT3 fWidth = XMFLOAT3(
 		NUM_AABB.x * c_aabbWidth + (NUM_AABB.x - 1) * c_aabbDistance,
 		NUM_AABB.y * c_aabbWidth + (NUM_AABB.y - 1) * c_aabbDistance,
@@ -525,7 +525,7 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs()
 		//	m_aabbs[offset + TwistedTorus] = InitializeAABB(XMINT3(0, 0, 1), XMFLOAT3(2, 2, 2));
 		//	m_scene->addGeometry("TwistedTorus", make_shared<Geometry>(m_aabbs[offset + TwistedTorus], *m_deviceResources));
 
-			m_aabbs[/*offset +*/ IntersectedRoundCube] = InitializeAABB(XMINT3(0, 0, 2), XMFLOAT3(15, 15, 15));
+			m_aabbs[/*offset +*/ IntersectedRoundCube] = InitializeAABB(XMINT3(0, 0, 2), XMFLOAT3(100, 20, 100));
 			m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[/*offset +*/ IntersectedRoundCube], *m_deviceResources));
 
 		//	m_aabbs[offset + SquareTorus] = InitializeAABB(XMFLOAT3(0.75f, -0.1f, 2.25f), XMFLOAT3(3, 3, 3));

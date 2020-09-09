@@ -22,8 +22,8 @@
 
 #include "Graph3D.hlsli"
 
-static float gStep = 40.;
-static float gMaxLenght = 100.;
+static float gStep = 1.;
+static float gMaxLenght = 200.;
 
 //***************************************************************************
 //*****------ Shader resources bound via root signatures -------*************
@@ -119,7 +119,7 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     // Note: make sure to enable face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
     rayDesc.TMax = 10000;
-    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.f, false};
+    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.f, 0, false};
     TraceRay(g_scene,
         RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
         TraceRayParameters::InstanceMask,
@@ -145,8 +145,8 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
    
     RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.f, 0, false};
     
-    //while (rayPayload.dist < gMaxLenght && !rayPayload.hit)
-   // {
+    while (rayPayload.dist < gMaxLenght && !rayPayload.hit)
+    {
         rayPayload.hit = true;
         TraceRay(g_scene,
             RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
@@ -157,9 +157,9 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
             rayDesc, rayPayload);
 
         //update the ray
-        //evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep - 0.08); //Riemannian metric induced by a graph of a function
-       // rayDesc.Origin += (gStep-0.000001)*rayDesc.Direction;
-    //}
+        evalGraphRay(rayDesc.Origin, rayDesc.Direction, gStep - 0.08); //Riemannian metric induced by a graph of a function
+        //rayDesc.Origin += (gStep-0.000001)*rayDesc.Direction;
+    }
     return rayPayload.color;
 #endif    
 }
@@ -264,10 +264,10 @@ void MyRaygenShader()
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
     // DEBUG
-    {
-        rayPayload.color = float4(0, 0, 1.0f, 0);
-        return;
-    }
+    //{
+    //    rayPayload.color = float4(0, 0, 1.0f, 0);
+    //    return;
+    //}
 
     // Get the base index of the triangle's first 16 bit index.
     uint indexSizeInBytes = 2;
@@ -311,7 +311,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     // Apply visibility falloff.
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
-    color = lerp(color, BackgroundColor, 1.0 - exp(-0.000002*t*t*t));
+    color = lerp(color, BackgroundColor, 1.0 - exp(-0.0000002*t*t*t));
 
     rayPayload.color = color;
 }
@@ -320,10 +320,10 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
     // DEBUG
-    {
-        rayPayload.color = float4(0, 0, 1.0f, 0);
-        return;
-    }
+    //{
+    //    rayPayload.color = float4(0, 0, 1.0f, 0);
+    //    return;
+    //}
 
     // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
@@ -353,7 +353,7 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
     // Apply visibility falloff.
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
-    color = lerp(color, BackgroundColor, 1.0 - exp(-0.000002*t*t*t));
+    color = lerp(color, BackgroundColor, 1.0 - exp(-0.0000002*t*t*t));
 
     rayPayload.color = color;
 }
@@ -396,17 +396,17 @@ void MyMissShader(inout RayPayload rayPayload)
     rayPayload.dist += (gStep - 0.000001);
     rayPayload.count += 1;
    
-    if (/*distance < gMaxLenght &&*/ rayPayload.count < 4)
-    {
-        traceRaySegment(rayPayload);
-        // rayPayload.color = float4(1,0,0,0);   
-    }
-    else
-    {
+    //if (/*distance < gMaxLenght &&*/ rayPayload.count < 4)
+    //{
+    //    traceRaySegment(rayPayload);
+    //    // rayPayload.color = float4(1,0,0,0);   
+    //}
+    //else
+    //{
         float4 backgroundColor = float4(BackgroundColor);
         rayPayload.color = backgroundColor;
         rayPayload.hit = false;
-    }
+    //}
 #endif 
 }
 

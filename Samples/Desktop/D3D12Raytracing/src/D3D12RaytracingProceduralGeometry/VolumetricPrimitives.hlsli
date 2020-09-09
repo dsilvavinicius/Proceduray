@@ -117,6 +117,30 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
         blobs[j].center = lerp(keyFrameCenters[j][0], keyFrameCenters[j][1], tAnimate);
         blobs[j].radius = radii[j];
     }
+    
+    
+    //mobius strip
+    //{
+    //    int N = 4;
+    //    int M = 10;
+    
+    //    float R = 25.f;
+    //    float s = 10.;
+    
+    //    for (int i = 0; i< M; i++)
+    //    {
+    //        float theta = ((float)i/(float)(M-1))*3.14159265359*2.0;
+      
+    //        float3 center = R*float3(cos(theta),0,sin(theta));//- /*float3(0,10,0) +*/ float3(cos(theta)*10.f,-2,sin(theta)*10.f);
+    //        float3 Xv = float3((cos(theta/2.)/2.)*cos(theta),sin(theta/2.)/2.,(cos(theta/2.)/2.)*sin(theta));
+      
+    //        float3 a =  center + s*Xv;
+    //        float3 b =  center - s*Xv;
+      
+    //        result = smin(result, sdCapsule(p, a, b, float(.6)),0.6);
+    //    }
+    //}
+    
 }
 
 // Find all metaballs that ray intersects.
