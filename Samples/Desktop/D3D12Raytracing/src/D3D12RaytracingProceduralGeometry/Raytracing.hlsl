@@ -8,9 +8,10 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
-#define NONLINEAR_RAYTRACING
-//#define RAYTRACING
+//#define NONLINEAR_RAYTRACING
+#define RAYTRACING
 
+//#define SECTIONALCURVATURE
 
 #ifndef RAYTRACING_HLSL
 #define RAYTRACING_HLSL
@@ -23,7 +24,7 @@
 #include "Graph3D.hlsli"
 
 static float gStep = 1.;
-static float gMaxLenght = 200.;
+static float gMaxLenght = 300.;
 
 //***************************************************************************
 //*****------ Shader resources bound via root signatures -------*************
@@ -307,7 +308,27 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     // Calculate final color.
     float4 phongColor = CalculatePhongLighting(l_materialCB.albedo, triangleNormal, shadowRayHit, l_materialCB.diffuseCoef, l_materialCB.specularCoef, l_materialCB.specularPower);
     float4 color = (checkers + abs(checkers-1.)* 0.8) * (phongColor + reflectedColor);
-
+    
+    #ifdef SECTIONALCURVATURE
+    //computing sectional curvature
+    float3 p1 = g_vertices[indices[0]].position;
+    float3 p2 = g_vertices[indices[1]].position;
+    
+    float3 u = normalize(p1 - p2);
+    float3 v = cross(triangleNormal, u);
+    
+    float curvature = secCurv(hitPosition, u, v);
+    
+    if(curvature < 0 )
+    {
+        color.x += -curvature*10000.;
+    }
+    else
+    {
+        color.z += curvature*10000.;
+    }
+    #endif
+   
     // Apply visibility falloff.
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;

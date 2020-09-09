@@ -2,9 +2,9 @@
 #ifndef GRAPH3D_H
 #define GRAPH3D_H
 
-static float amplitude = 18.5;
-static float spread = 9.;
-static float3 gaussianCenter =  float3(-15., 12.0, -15.);
+static float amplitude = 15.5;
+static float spread = 20.;
+static float3 gaussianCenter =  float3(45., 20.0, 45.);
 
 //Initial conditions of a geodesic
 struct graphRay
@@ -305,6 +305,46 @@ float graphNorm(float3 u, float3 p)
 float3 graphNormalize(float3 u, float3 p)
 {
     return u / graphNorm(u, p);
+}
+//*********************************************************************************************************
+
+
+//*********************************************************************************************************
+// Rijks coefficient of the curvature tensor
+//*********************************************************************************************************
+float coefCurvTensor(float3 p, int i, int j, int k, int s)
+{
+    float result = diff(p, s, j)*diff(p, i, k) - diff(p, s, i)*diff(p, j, k);
+
+    //float3 gradf = grad(p);
+    
+    //result /= 1.f + dot(gradf, gradf);
+    
+    return result;
+}
+//*********************************************************************************************************
+
+
+//*********************************************************************************************************
+// sectional curvature
+//*********************************************************************************************************
+float secCurv(float3 p, float3 u, float3 v)
+{
+    float result = 0.f;
+
+    result += coefCurvTensor(p, 1, 2, 1, 2)*(u.x*v.y*u.x*v.y - u.x*v.y*u.y*v.x - u.y*v.x*u.x*v.y + u.y*v.x*u.y*v.x);
+    result += coefCurvTensor(p, 1, 2, 1, 3)*(u.x*v.y*u.x*v.z - u.x*v.y*u.z*v.x - u.y*v.x*u.x*v.z + u.y*v.x*u.z*v.x);
+    result += coefCurvTensor(p, 1, 2, 2, 3)*(u.x*v.y*u.y*v.z - u.x*v.y*u.z*v.y - u.y*v.x*u.y*v.z + u.y*v.x*u.z*v.y);
+    
+    result += coefCurvTensor(p, 1, 3, 1, 2)*(u.x*v.z*u.x*v.y - u.x*v.z*u.y*v.x - u.z*v.x*u.x*v.y + u.z*v.x*u.y*v.x);
+    result += coefCurvTensor(p, 1, 3, 1, 3)*(u.x*v.z*u.x*v.z - u.x*v.z*u.z*v.x - u.z*v.x*u.x*v.z + u.z*v.x*u.z*v.x);
+    result += coefCurvTensor(p, 1, 3, 2, 3)*(u.x*v.z*u.y*v.z - u.x*v.z*u.z*v.y - u.z*v.x*u.y*v.z + u.z*v.x*u.z*v.y);
+    
+    result += coefCurvTensor(p, 2, 3, 1, 2)*(u.y*v.z*u.x*v.y - u.y*v.z*u.y*v.x - u.z*v.y*u.x*v.y + u.z*v.y*u.y*v.x);
+    result += coefCurvTensor(p, 2, 3, 1, 3)*(u.y*v.z*u.x*v.z - u.y*v.z*u.z*v.x - u.z*v.y*u.x*v.z + u.z*v.y*u.z*v.x);
+    result += coefCurvTensor(p, 2, 3, 2, 3)*(u.y*v.z*u.y*v.z - u.y*v.z*u.z*v.y - u.z*v.y*u.y*v.z + u.z*v.y*u.z*v.y);
+    
+    return result;
 }
 //*********************************************************************************************************
 
