@@ -168,6 +168,7 @@
     <ClInclude Include="DirectXRaytracingHelper.h" />
     <ClInclude Include="engine\AccelerationStructure.h" />
     <ClInclude Include="engine\AttribStructs.h" />
+    <ClInclude Include="engine\CamController.h" />
     <ClInclude Include="engine\DescriptorHeap.h" />
     <ClInclude Include="engine\DeviceHelper.h" />
     <ClInclude Include="engine\Geometry.h" />

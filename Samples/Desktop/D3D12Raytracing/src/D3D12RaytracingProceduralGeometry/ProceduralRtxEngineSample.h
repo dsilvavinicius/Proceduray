@@ -20,8 +20,8 @@
 #include "engine/AccelerationStructure.h"
 #include "engine/RayTracingState.h"
 #include "engine/ShaderTable.h"
+#include "engine/CamController.h"
 #include "Camera.h"
-#include "CameraController.h"
 
 using namespace RtxEngine;
 
@@ -36,6 +36,9 @@ public:
 
 	// Messages
 	virtual void OnInit();
+	virtual void OnMouseMove(UINT x, UINT y) override;
+	virtual void OnLeftButtonDown(UINT x, UINT y) override;
+	virtual void OnLeftButtonUp(UINT x, UINT y) override;
 	virtual void OnKeyDown(UINT8 key);
 	virtual void OnUpdate();
 	virtual void OnRender();
@@ -78,11 +81,10 @@ private:
 	bool m_animateGeometry;
 	bool m_animateCamera;
 	bool m_animateLight;
-	DirectX::XMVECTOR m_eye;
-	DirectX::XMVECTOR m_at;
-	DirectX::XMVECTOR m_up;
 
-	Math::Camera m_cam;
+	CameraPtr m_cam;
+	CamController m_camController;
+	InputManager m_input;
 
 	void InitializeScene();
 	void CreateDeviceDependentResources();
@@ -106,7 +108,7 @@ private:
 	void ReleaseWindowSizeDependentResources();
 	
 	void RecreateD3D();
-	void UpdateCameraMatrices();
+	void UpdateCameraMatrices(float deltaT);
 	void UpdateAABBPrimitiveAttributes(float animationTime);
 	void UpdateForSizeChange(UINT clientWidth, UINT clientHeight);
 	void CopyRaytracingOutputToBackbuffer();

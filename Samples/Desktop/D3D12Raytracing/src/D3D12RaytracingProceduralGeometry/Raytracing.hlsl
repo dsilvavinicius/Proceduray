@@ -417,17 +417,28 @@ void MyMissShader(inout RayPayload rayPayload)
     rayPayload.dist += (gStep - 0.000001);
     rayPayload.count += 1;
    
-    //if (/*distance < gMaxLenght &&*/ rayPayload.count < 4)
+    //if ( rayPayload.dist < gMaxLenght)
     //{
-    //    traceRaySegment(rayPayload);
-    //    // rayPayload.color = float4(1,0,0,0);   
+    //    //computing coefficients of the curvature tensor 
+    //    float3 p = WorldRayOrigin() + (gStep - 0.000001) * WorldRayDirection();
+    
+    //    float curvature = coefCurvTensor(p, 1, 2, 1, 2);
+    
+    //    if(curvature < 0 )
+    //    {
+    //        rayPayload.color.x += -curvature*500.;
+    //    }
+    //    else
+    //    {
+    //        rayPayload.color.z += curvature*500.;
+    //    }
     //}
     //else
     //{
         float4 backgroundColor = float4(BackgroundColor);
-        rayPayload.color = backgroundColor;
-        rayPayload.hit = false;
+        rayPayload.color += backgroundColor;
     //}
+    rayPayload.hit = false;
 #endif 
 }
 

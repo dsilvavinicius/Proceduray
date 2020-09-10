@@ -21,6 +21,8 @@ ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, st
 	m_animateCamera(false),
 	m_animateGeometry(true),
 	m_animateLight(false),
+	m_cam(make_shared<Camera>()),
+	m_camController(m_cam),
 	m_scene(make_shared<StaticScene>())
 {
 	m_sceneCB = make_shared<ConstantBuffer<SceneConstantBuffer>>();
@@ -59,19 +61,28 @@ void ProceduralRtxEngineSample::OnInit()
 }
 
 // Update camera matrices passed into the shader.
-void ProceduralRtxEngineSample::UpdateCameraMatrices()
+void ProceduralRtxEngineSample::UpdateCameraMatrices(float deltaT)
 {
-
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
-	(*m_sceneCB)->cameraPosition = m_eye;
-	//(*m_sceneCB)->cameraPosition = m_cam.GetPosition();
-	float fovAngleY = 45.0f;
-	XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
-	XMMATRIX viewProj = view * proj;
-	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
-	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam.GetViewProjMatrix());
+	//(*m_sceneCB)->cameraPosition = m_eye;
+	float fovRadiansY = 3.14159265359/4.;
+
+	//stringstream ss;
+	//ss << "Aspect: " << m_aspectRatio << endl << endl;
+	//OutputDebugStringA(ss.str().c_str());
+
+	m_cam->SetPerspectiveMatrix(fovRadiansY, 1.f / m_aspectRatio, 0.01f, 125.0f);
+	m_camController.Update(deltaT, m_input);
+	//m_cam->Update();
+
+	(*m_sceneCB)->cameraPosition = m_cam->GetPosition();
+	//XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
+	
+	//XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
+	//XMMATRIX viewProj = view * proj;
+	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
+	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam->GetViewProjMatrix());
 }
 
 // Update AABB primite attributes buffers passed into the shader.
@@ -198,12 +209,12 @@ void ProceduralRtxEngineSample::InitializeScene()
 	// Setup camera.
 	{
 		// Initialize the view and projection inverse matrices.
-		m_eye = { 0.0f, 23.3f, -9.0f, 1.0f };
-		m_at = { 0.0f, 20.0f, 0.0f, 1.0f };
+		DirectX::XMVECTOR m_eye = { 0.0f, 23.3f, -9.0f, 1.0f };
+		DirectX::XMVECTOR m_at = { 0.0f, 20.0f, 0.0f, 1.0f };
 		XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
 
 		XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
-		m_up = XMVector3Normalize(XMVector3Cross(direction, right));
+		DirectX::XMVECTOR m_up = XMVector3Normalize(XMVector3Cross(direction, right));
 
 		// Rotate camera around Y axis.
 		XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(45.0f));
@@ -211,11 +222,11 @@ void ProceduralRtxEngineSample::InitializeScene()
 		m_up = XMVector3Transform(m_up, rotate);
 
 		// Init cam.
-		m_cam.SetEyeAtUp(Math::Vector3(m_eye), Math::Vector3(m_at), Math::Vector3(m_up));
-		float fovAngleY = 45.0f;
-		m_cam.SetPerspectiveMatrix(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
+		m_cam->SetEyeAtUp(Math::Vector3(m_eye), Math::Vector3(m_at), Math::Vector3(m_up));
+		//float fovAngleY = 45.0f;
+		//m_cam.SetPerspectiveMatrix(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
 
-		UpdateCameraMatrices();
+		UpdateCameraMatrices(0.f);
 	}
 
 	// Setup lights.
@@ -594,6 +605,23 @@ void ProceduralRtxEngineSample::BuildGeometry()
 	BuildPlaneGeometry();
 }
 
+void ProceduralRtxEngineSample::OnMouseMove(UINT x, UINT y)
+{
+	m_input.newMousePos(XMFLOAT2(x, y));
+}
+
+void ProceduralRtxEngineSample::OnLeftButtonDown(UINT x, UINT y)
+{
+	m_input.setMouseButton(InputManager::LEFT, true);
+	m_input.newMousePos(XMFLOAT2(x, y));
+}
+
+void ProceduralRtxEngineSample::OnLeftButtonUp(UINT x, UINT y)
+{
+	m_input.setMouseButton(InputManager::LEFT, false);
+	m_input.newMousePos(XMFLOAT2(x, y));
+}
+
 void ProceduralRtxEngineSample::OnKeyDown(UINT8 key)
 {
 	switch (key)
@@ -607,6 +635,8 @@ void ProceduralRtxEngineSample::OnKeyDown(UINT8 key)
 	case 'L':
 		m_animateLight = !m_animateLight;
 		break;
+	case 'W':
+		m_animateCamera = true;
 	}
 }
 
@@ -621,16 +651,24 @@ void ProceduralRtxEngineSample::OnUpdate()
 	auto prevFrameIndex = m_deviceResources->GetPreviousFrameIndex();
 
 	// Rotate the camera around Y axis.
+	//if (m_animateCamera)
+	//{
+	//	float secondsToRotateAround = 48.0f;
+	//	float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround);
+	//	XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
+	//	//m_eye = XMVector3Transform(m_eye, rotate);
+	//	//m_up = XMVector3Transform(m_up, rotate);
+	//	//m_at = XMVector3Transform(m_at, rotate);
+	//	auto eye = XMVector3Transform(m_cam.GetPosition(), rotate);
+	//	UpdateCameraMatrices();
+	//}
 	if (m_animateCamera)
 	{
-		float secondsToRotateAround = 48.0f;
-		float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround);
-		XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
-		m_eye = XMVector3Transform(m_eye, rotate);
-		m_up = XMVector3Transform(m_up, rotate);
-		m_at = XMVector3Transform(m_at, rotate);
-		UpdateCameraMatrices();
+		m_cam->SetPosition(m_cam->GetPosition() + Normalize(m_cam->GetForwardVec()) * elapsedTime * 100.f);
+		m_animateCamera = false;
 	}
+
+	UpdateCameraMatrices(elapsedTime);
 
 	// Rotate the second light around Y axis.
 	if (m_animateLight)
@@ -682,7 +720,7 @@ void ProceduralRtxEngineSample::CreateWindowSizeDependentResources()
 {
 	CreateRaytracingOutputResource();
 	m_scene->getGlobalSignature().updateHeapHandle(m_raytracingOutputHandles.baseHandleIndex, m_raytracingOutputHandles.gpu);
-	UpdateCameraMatrices();
+	UpdateCameraMatrices(0.f);
 }
 
 // Release resources that are dependent on the size of the main window.
