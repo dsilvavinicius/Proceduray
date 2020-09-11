@@ -614,30 +614,38 @@ void ProceduralRtxEngineSample::OnLeftButtonDown(UINT x, UINT y)
 {
 	m_input.setMouseButton(InputManager::LEFT, true);
 	m_input.newMousePos(XMFLOAT2(x, y));
+	m_input.newMousePos(XMFLOAT2(x, y));
 }
 
 void ProceduralRtxEngineSample::OnLeftButtonUp(UINT x, UINT y)
 {
 	m_input.setMouseButton(InputManager::LEFT, false);
-	m_input.newMousePos(XMFLOAT2(x, y));
 }
 
 void ProceduralRtxEngineSample::OnKeyDown(UINT8 key)
 {
+	m_input.setKey(key, true);
+
 	switch (key)
 	{
-	case 'C':
-		m_animateCamera = !m_animateCamera;
-		break;
 	case 'G':
 		m_animateGeometry = !m_animateGeometry;
 		break;
 	case 'L':
 		m_animateLight = !m_animateLight;
 		break;
-	case 'W':
-		m_animateCamera = true;
 	}
+}
+
+void ProceduralRtxEngineSample::OnKeyUp(UINT8 key)
+{
+	// DEBUG
+	/*{
+		stringstream ss; ss << key << " up" << endl << endl;
+		OutputDebugStringA(ss.str().c_str());
+	}*/
+
+	m_input.setKey(key, false);
 }
 
 // Update frame-based values.
@@ -649,24 +657,6 @@ void ProceduralRtxEngineSample::OnUpdate()
 	
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 	auto prevFrameIndex = m_deviceResources->GetPreviousFrameIndex();
-
-	// Rotate the camera around Y axis.
-	//if (m_animateCamera)
-	//{
-	//	float secondsToRotateAround = 48.0f;
-	//	float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround);
-	//	XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
-	//	//m_eye = XMVector3Transform(m_eye, rotate);
-	//	//m_up = XMVector3Transform(m_up, rotate);
-	//	//m_at = XMVector3Transform(m_at, rotate);
-	//	auto eye = XMVector3Transform(m_cam.GetPosition(), rotate);
-	//	UpdateCameraMatrices();
-	//}
-	if (m_animateCamera)
-	{
-		m_cam->SetPosition(m_cam->GetPosition() + Normalize(m_cam->GetForwardVec()) * elapsedTime * 100.f);
-		m_animateCamera = false;
-	}
 
 	UpdateCameraMatrices(elapsedTime);
 

@@ -39,7 +39,8 @@ public:
 	virtual void OnMouseMove(UINT x, UINT y) override;
 	virtual void OnLeftButtonDown(UINT x, UINT y) override;
 	virtual void OnLeftButtonUp(UINT x, UINT y) override;
-	virtual void OnKeyDown(UINT8 key);
+	virtual void OnKeyDown(UINT8 key) override;
+	virtual void OnKeyUp(UINT8 key) override;
 	virtual void OnUpdate();
 	virtual void OnRender();
 	virtual void OnSizeChanged(UINT width, UINT height, bool minimized);
