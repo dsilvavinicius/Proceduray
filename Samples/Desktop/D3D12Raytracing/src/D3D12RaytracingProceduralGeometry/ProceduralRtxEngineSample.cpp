@@ -171,7 +171,7 @@ void ProceduralRtxEngineSample::InitializeScene()
 
 
 		m_planeMaterialCB = { XMFLOAT4(1.f, 0.9f, 0.7f, 1.0f), 0.25f, 1, 0.4f, 50, 1 };
-
+		
 		// Albedos
 		XMFLOAT4 green = XMFLOAT4(0.1f, 1.0f, 0.5f, 1.0f);
 		XMFLOAT4 red = XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
@@ -336,7 +336,7 @@ void ProceduralRtxEngineSample::CreateAccelerationStructures()
 {
 	// Width of a bottom-level AS geometry.
 	// Make the plane a little larger than the actual number of primitives in each dimension.
-	const XMUINT3 NUM_AABB = XMUINT3(700, 1, 700);
+	const XMUINT3 NUM_AABB = XMUINT3(100, 100, 100);
 	const XMFLOAT3 fWidth = XMFLOAT3(
 		NUM_AABB.x * c_aabbWidth + (NUM_AABB.x - 1) * c_aabbDistance,
 		NUM_AABB.y * c_aabbWidth + (NUM_AABB.y - 1) * c_aabbDistance,
@@ -564,34 +564,137 @@ void ProceduralRtxEngineSample::BuildPlaneGeometry()
 		{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 		{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 	};*/
-
-	int n = 256;
-
+	
 	vector<Index> indices;
 	vector<Vertex> vertices;
 
-	//it iterates in a nxn grid
-	for (int k = 0; k < n * n; k++)
+	////build floor
+	//{
+	//	int n = 256;
+
+	//	//it iterates in a nxn grid
+	//	for (int k = 0; k < n * n; k++)
+	//	{
+	//		//creating vertices coordinates
+	//		int i = k % n;
+	//		int j = k / n;
+
+	//		float x = float(i) / float(n - 1);
+	//		float z = float(j) / float(n - 1);
+
+	//		vertices.push_back({ XMFLOAT3(x, 0.f, z), XMFLOAT3(0.0f, 1.0f, 0.0f) });
+
+	//		//index of the two triangle inside the square
+	//		if (i < n - 1 && j < n - 1)
+	//		{
+	//			indices.push_back(k);
+	//			indices.push_back(k + n);
+	//			indices.push_back(k + 1);
+
+	//			indices.push_back(k + 1);
+	//			indices.push_back(k + n);
+	//			indices.push_back(k + n + 1);
+	//		}
+	//	}
+	//}
+	//build floor
 	{
-		//creating vertices coordinates
-		int i = k % n;
-		int j = k / n;
+		int N = 30;
 
-		float x = float(i) / float(n - 1);
-		float z = float(j) / float(n - 1);
-
-		vertices.push_back({ XMFLOAT3(x, 0.f, z), XMFLOAT3(0.0f, 1.0f, 0.0f) });
-
-		//index of the two triangle inside the square
-		if (i < n - 1 && j < n - 1)
+		//it iterates in a nxn grid
+		for (int m = 0; m < N * N * N; m++)
 		{
-			indices.push_back(k);
-			indices.push_back(k + n);
-			indices.push_back(k + 1);
+			//creating vertices coordinates
+			int k = m / (N * N);
+			int l = m % (N * N);
+			int i = l % N;
+			int j = l / N;
 
-			indices.push_back(k + 1);
-			indices.push_back(k + n);
-			indices.push_back(k + n + 1);
+			float x = float(i) / float(N - 1);
+			float x1 = float(i+1) / float(N - 1);
+			float z = float(j) / float(N - 1);
+			float y = float(k) / float(N - 1);
+
+			XMFLOAT3 p = XMFLOAT3(x1, y, z);
+			XMFLOAT3 q = XMFLOAT3(x, y, z);
+
+			XMFLOAT3 p1 = XMFLOAT3(0.25f * q.x + 0.75f * p.x, 0.25f * q.y + 0.75f * p.y, 0.25f * q.z + 0.75f * p.z);
+			XMFLOAT3 q1 = XMFLOAT3(0.75f * q.x + 0.25f * p.x, 0.75f * q.y + 0.25f * p.y, 0.75f * q.z + 0.25f * p.z);
+
+			float d = 0.002;
+
+			//for each point, we creat a parallelepiped in the x-direction, thus 8 vertices
+			XMFLOAT3 q01 = XMFLOAT3(q1.x, q1.y - d, q1.z + d);
+			XMFLOAT3 q00 = XMFLOAT3(q1.x, q1.y - d, q1.z - d);
+			XMFLOAT3 q10 = XMFLOAT3(q1.x, q1.y + d, q1.z - d);
+			XMFLOAT3 q11 = XMFLOAT3(q1.x, q1.y + d, q1.z + d);
+			
+			XMFLOAT3 p01 = XMFLOAT3(p1.x, p1.y - d, p1.z + d);
+			XMFLOAT3 p00 = XMFLOAT3(p1.x, p1.y - d, p1.z - d);
+			XMFLOAT3 p10 = XMFLOAT3(p1.x, p1.y + d, p1.z - d);
+			XMFLOAT3 p11 = XMFLOAT3(p1.x, p1.y + d, p1.z + d);
+
+			vertices.push_back({ q01, XMFLOAT3(0.0f, 0.0f, 1.0f) });
+			vertices.push_back({ q00, XMFLOAT3(0.0f, 1.0f, 0.0f) });
+			vertices.push_back({ q10, XMFLOAT3(1.0f, 0.0f, 0.0f) });
+			vertices.push_back({ q11, XMFLOAT3(0.0f, -1.0f, 0.0f) });
+
+			vertices.push_back({ p01, XMFLOAT3(-1.0f, 0.0f, 0.0f) });
+			vertices.push_back({ p00, XMFLOAT3(0.0f, 0.0f, -1.0f) });
+			vertices.push_back({ p10, XMFLOAT3(0.0f, 1.0f, 0.0f) });
+			vertices.push_back({ p11, XMFLOAT3(0.0f, 1.0f, 0.0f) });
+
+			//index of the two triangle inside the square
+			//if (i < N - 1 && j < N - 1 && k < N - 1)
+			//{
+				indices.push_back(8*m + 0);//T1
+				indices.push_back(8*m + 4);
+				indices.push_back(8*m + 7);
+								  
+				indices.push_back(8*m + 0);//T2
+				indices.push_back(8*m + 7);
+				indices.push_back(8*m + 3);
+
+				indices.push_back(8*m + 1);//T3
+				indices.push_back(8*m + 5);
+				indices.push_back(8*m + 4);
+
+				indices.push_back(8*m + 1);//T4
+				indices.push_back(8*m + 4);
+				indices.push_back(8*m + 0);
+
+				indices.push_back(8*m + 5);//T5
+				indices.push_back(8*m + 2);
+				indices.push_back(8*m + 6);
+
+				indices.push_back(8*m + 5);//T6
+				indices.push_back(8*m + 1);
+				indices.push_back(8*m + 2);
+
+				indices.push_back(8*m + 3);//T7
+				indices.push_back(8*m + 7);
+				indices.push_back(8*m + 6);
+								  
+				indices.push_back(8*m + 3);//T8
+				indices.push_back(8*m + 6);
+				indices.push_back(8*m + 2);
+								  
+				indices.push_back(8*m + 2);//T9
+				indices.push_back(8*m + 0);
+				indices.push_back(8*m + 3);
+								  
+				indices.push_back(8*m + 2);//T10
+				indices.push_back(8*m + 1);
+				indices.push_back(8*m + 0);
+								  
+				indices.push_back(8*m + 4);//T11
+				indices.push_back(8*m + 6);
+				indices.push_back(8*m + 7);
+
+				indices.push_back(8*m + 4);//T12
+				indices.push_back(8*m + 5);
+				indices.push_back(8*m + 6);
+			//}
 		}
 	}
 

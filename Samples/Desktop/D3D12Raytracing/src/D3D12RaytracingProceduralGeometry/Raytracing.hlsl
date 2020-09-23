@@ -8,8 +8,8 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
-//#define NONLINEAR_RAYTRACING
-#define RAYTRACING
+#define NONLINEAR_RAYTRACING
+//#define RAYTRACING
 
 //#define SECTIONALCURVATURE
 
@@ -23,8 +23,8 @@
 
 #include "Graph3D.hlsli"
 
-static float gStep = 1.;
-static float gMaxLenght = 300.;
+static float gStep = 0.5;
+static float gMaxLenght = 200.;
 
 //***************************************************************************
 //*****------ Shader resources bound via root signatures -------*************
@@ -292,7 +292,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
 
     //float checkers = AnalyticalCheckersTexture(HitWorldPosition(), triangleNormal, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
-    float checkers = indices[0]%2;
+    float checkers = 0;//indices[0]%2;
     // Reflected component.
     float4 reflectedColor = float4(0, 0, 0, 0);
     if (l_materialCB.reflectanceCoef > 0.001 )
@@ -329,11 +329,14 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     }
     #endif
    
+    color += rayPayload.color;
+    
     // Apply visibility falloff.
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
-    color = lerp(color, BackgroundColor, 1.0 - exp(-0.0000002*t*t*t));
-
+        
+    color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+   
     rayPayload.color = color;
 }
 
@@ -371,11 +374,14 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
     float4 phongColor = CalculatePhongLighting(l_materialCB.albedo, attr.normal, shadowRayHit, l_materialCB.diffuseCoef, l_materialCB.specularCoef, l_materialCB.specularPower);
     float4 color = phongColor + reflectedColor;
 
+    color += rayPayload.color;
+    
     // Apply visibility falloff.
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
-    color = lerp(color, BackgroundColor, 1.0 - exp(-0.0000002*t*t*t));
-
+        
+    color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+   
     rayPayload.color = color;
 }
 
@@ -417,27 +423,63 @@ void MyMissShader(inout RayPayload rayPayload)
     rayPayload.dist += (gStep - 0.000001);
     rayPayload.count += 1;
    
-    //if ( rayPayload.dist < gMaxLenght)
-    //{
-    //    //computing coefficients of the curvature tensor 
-    //    float3 p = WorldRayOrigin() + (gStep - 0.000001) * WorldRayDirection();
+    if (rayPayload.dist < gMaxLenght)
+    {
+        //computing coefficients of the curvature tensor 
+        float3 p = WorldRayOrigin() + (gStep - 0.000001) * WorldRayDirection();
     
-    //    float curvature = coefCurvTensor(p, 1, 2, 1, 2);
-    
-    //    if(curvature < 0 )
-    //    {
-    //        rayPayload.color.x += -curvature*500.;
-    //    }
-    //    else
-    //    {
-    //        rayPayload.color.z += curvature*500.;
-    //    }
-    //}
-    //else
-    //{
+        //float curvature = coefCurvTensor(p, 1, 2, 1, 2);
+        
+        //scalar curvature
+        //{
+        //    float curvature = scalarCurv(p);
+        //    if (curvature < 0)
+        //    {
+        //        rayPayload.color.x += -curvature * 10.;
+        //    }
+        //    else
+        //    {
+        //        rayPayload.color.z += curvature * 10.;
+        //    }       
+        //}
+        
+        //coefficient curvature tensor
+        {
+            float curv1 = coefCurvTensor(p, 1, 2, 1, 2);
+            float curv2 = coefCurvTensor(p, 1, 2, 1, 3);
+            float curv3 = coefCurvTensor(p, 1, 2, 2, 3);
+            float curv4 = coefCurvTensor(p, 1, 3, 1, 3);
+            float curv5 = coefCurvTensor(p, 1, 3, 2, 3);
+            float curv6 = coefCurvTensor(p, 2, 3, 2, 3);
+            
+            float t = 1.f;
+            
+            rayPayload.color.x += curv1*t;//red
+            rayPayload.color.y += curv2*t;//green
+            rayPayload.color.z += curv3*t;//blue
+                                        
+            rayPayload.color.y += curv4*t;//cyan
+            rayPayload.color.z += curv4*t;//
+                                        
+            rayPayload.color.x += curv5*t;//magenta
+            rayPayload.color.z += curv5*t;//
+                                        
+            rayPayload.color.x += curv6*t;//yellow
+            rayPayload.color.y += curv6*t;//
+            
+            
+            
+            
+        }
+    }
+    else
+    {
         float4 backgroundColor = float4(BackgroundColor);
+            
+        //float t = rayPayload.dist;
+        //rayPayload.color = lerp(rayPayload.color, BackgroundColor, 1.0 - exp(-0.0000002*t*t*t));
         rayPayload.color += backgroundColor;
-    //}
+    }
     rayPayload.hit = false;
 #endif 
 }
@@ -505,6 +547,10 @@ void MyIntersectionShader_VolumetricPrimitive()
 [shader("intersection")]
 void MyIntersectionShader_SignedDistancePrimitive()
 {
+
+    //debub
+    return;
+
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
     SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;
 

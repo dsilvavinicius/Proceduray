@@ -79,7 +79,7 @@ float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistan
         //}
         //PacMans
         {
-            return opU(opU(pacMan(position),pacMan(position+float3(25,0,5))),pacMan(position-float3(30,0,5)));
+            return /*opU(*/opU(/*pacMan(position),*/pacMan(position/*+float3(25,0,5)*/),pacMan(position-float3(30,0,5)) );
         }
        
        
