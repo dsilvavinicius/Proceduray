@@ -549,7 +549,7 @@ void MyIntersectionShader_SignedDistancePrimitive()
 {
 
     //debub
-    return;
+   // return;
 
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
     SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;

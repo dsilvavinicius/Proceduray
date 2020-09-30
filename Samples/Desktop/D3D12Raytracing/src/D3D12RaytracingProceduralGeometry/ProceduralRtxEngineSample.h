@@ -97,8 +97,10 @@ private:
 	void CreateRays();
 	void CreateHitGroups();
 	void BuildGeometry();
-	void BuildProceduralGeometryAABBs();
-	void BuildPlaneGeometry();
+	void BuildProceduralGeometryAABBs(const XMMATRIX& proceduralBlasTransform);
+	void BuildParallelepipeds(const XMFLOAT3& width);
+	void BuildInstancedParallelepipeds(const XMFLOAT3& width);
+	void BuildPlaneGeometry(const XMFLOAT3& width);
 	void CreateRaytracingOutputResource();
 
 	void CreateAccelerationStructures();
