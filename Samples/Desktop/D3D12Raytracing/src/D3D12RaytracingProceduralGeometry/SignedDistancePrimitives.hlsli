@@ -313,18 +313,19 @@ float torusVisgraf(float3 p)
 float pacMan(float3 p)
 {
     //rotating pacman
-    float theta = 0.6*3.14159265359*2.0; 
-    float x =  cos(theta)*p.x + sin(theta)*p.z;
-    float z = -sin(theta)*p.x + cos(theta)*p.z;
-    p = float3(x, p.y, z);
+    //float theta = 0.6*3.14159265359*2.0; 
+    //float x =  cos(theta)*p.x + sin(theta)*p.z;
+    //float z = -sin(theta)*p.x + cos(theta)*p.z;
+    //p = float3(x, p.y, z);
 
     float r1 = float(10.f); //head radius
     float2 r2 = float2(5,10.f); //mouth radius
     
-    float3 rot_p = float3(p.y, -p.x+8, p.z); //mouth orientation
+    float3 rot_p = float3(p.z, p.y, -p.x); //mouth orientation
+     rot_p = float3(rot_p.y, -rot_p.x+10, rot_p.z); //mouth orientation
     float mouth =  sdTriPrism(rot_p,r2);
    
-    float eyes =  opU(sdSphere(p+float3(-5,-7.3,4.5),1.5), sdSphere(p+float3(-5,-7.3,-4.5),1.5));
+    float eyes =  opU(sdSphere(p+float3(-5,7.3,-4.5),1.5), sdSphere(p+float3(5,7.3,-4.5),1.5));
    
     return opS(opS(sdSphere(p,r1), mouth),eyes);
 }

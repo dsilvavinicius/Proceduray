@@ -102,46 +102,17 @@ void ProceduralRtxEngineSample::UpdateAABBPrimitiveAttributes(float animationTim
 	// Apply scale, rotation and translation transforms.
 	// The intersection shader tests in this sample work with local space, so here
 	// we apply the BLAS object space translation that was passed to geometry descs.
-	auto SetTransformForAABB = [&](UINT primitiveIndex, XMMATRIX& mScale, XMMATRIX& mRotation)
+	auto SetTransformForAABB = [&](UINT instanceIndex, XMMATRIX& mTransform)
 	{
-		XMVECTOR vTranslation =
-			0.5f * (XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&m_aabbs[primitiveIndex].MinX))
-				+ XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&m_aabbs[primitiveIndex].MaxX)));
-		XMMATRIX mTranslation = XMMatrixTranslationFromVector(vTranslation);
-
-		XMMATRIX mTransform = mScale * mRotation * mTranslation;
-		(*m_aabbPrimitiveAttributeBuffer)[primitiveIndex].localSpaceToBottomLevelAS = mTransform;
-		(*m_aabbPrimitiveAttributeBuffer)[primitiveIndex].bottomLevelASToLocalSpace = XMMatrixInverse(nullptr, mTransform);
+		(*m_aabbPrimitiveAttributeBuffer)[instanceIndex].localSpaceToBottomLevelAS = XMMatrixInverse(nullptr, mTransform);
+		(*m_aabbPrimitiveAttributeBuffer)[instanceIndex].bottomLevelASToLocalSpace = mTransform;
 	};
-
-	//UINT offset = 0;
-	// Analytic primitives.
-	//{
-	//	using namespace AnalyticPrimitive;
-	//	//SetTransformForAABB(offset + AABB, mScale15y, mIdentity);
-	//	SetTransformForAABB(Spheres, mScale15, mRotation);
-	//	//offset += AnalyticPrimitive::Count;
-	//}
-
-	// Volumetric primitives.
-	//{
-	//	using namespace VolumetricPrimitive;
-	//	SetTransformForAABB(/*offset +*/ Metaballs, mScale15, mRotation);
-	//	//offset += VolumetricPrimitive::Count;
-	//}
-
-	//// Signed distance primitives.
-	//{
-		using namespace SignedDistancePrimitive;
-
-	//	SetTransformForAABB(offset + MiniSpheres, mIdentity, mIdentity);
-		SetTransformForAABB(/*offset +*/ IntersectedRoundCube, mIdentity, mIdentity);
-	//	SetTransformForAABB(offset + SquareTorus, mScale15, mIdentity);
-	//	SetTransformForAABB(offset + TwistedTorus, mIdentity, mRotation);
-	//	SetTransformForAABB(offset + Cog, mIdentity, mRotation);
-	//	SetTransformForAABB(offset + Cylinder, mScale15y, mIdentity);
-	//	SetTransformForAABB(offset + FractalPyramid, mScale3, mIdentity);
-	//}
+	
+	auto instances = m_scene->getGeometry()[proceduralGeometryIndex]->getInstances();
+	for(int i = 0; i < instances->size(); ++i)
+	{
+		SetTransformForAABB(i, (*instances)[i]);
+	}
 }
 
 // Initialize scene rendering parameters.
@@ -209,17 +180,17 @@ void ProceduralRtxEngineSample::InitializeScene()
 	// Setup camera.
 	{
 		// Initialize the view and projection inverse matrices.
-		DirectX::XMVECTOR m_eye = { 0.0f, 23.3f, -9.0f, 1.0f };
-		DirectX::XMVECTOR m_at = { 0.0f, 20.0f, 0.0f, 1.0f };
+		DirectX::XMVECTOR m_eye = { 0.f, 0.f, 50.0f, 1.0f };
+		DirectX::XMVECTOR m_at = { 0.0f, 0.f, 0.0f, 1.0f };
 		XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
 
 		XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
 		DirectX::XMVECTOR m_up = XMVector3Normalize(XMVector3Cross(direction, right));
 
 		// Rotate camera around Y axis.
-		XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(45.0f));
-		m_eye = XMVector3Transform(m_eye, rotate);
-		m_up = XMVector3Transform(m_up, rotate);
+		//XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(45.0f));
+		//m_eye = XMVector3Transform(m_eye, rotate);
+		//m_up = XMVector3Transform(m_up, rotate);
 
 		// Init cam.
 		m_cam->SetEyeAtUp(Math::Vector3(m_eye), Math::Vector3(m_at), Math::Vector3(m_up));
@@ -262,7 +233,10 @@ void ProceduralRtxEngineSample::CreateAABBPrimitiveAttributesBuffers()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto frameCount = m_deviceResources->GetBackBufferCount();
-	m_aabbPrimitiveAttributeBuffer->Create(device, IntersectionShaderType::TotalPrimitiveCount, frameCount, L"AABB primitive attributes");
+
+	UINT nProceduralInstances = m_scene->getGeometry()[proceduralGeometryIndex]->getInstances()->size();
+
+	m_aabbPrimitiveAttributeBuffer->Create(device, nProceduralInstances, frameCount, L"AABB primitive attributes");
 }
 
 // Create resources that depend on the device.
@@ -317,8 +291,8 @@ void ProceduralRtxEngineSample::CreateRays()
 void ProceduralRtxEngineSample::CreateHitGroups()
 {
 	// Triangle Hit Groups.
-	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", L"", L"MyClosestHitShader_Triangle", L""));
-	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"", L""));
+	//m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", L"", L"MyClosestHitShader_Triangle", L""));
+	//m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"", L""));
 
 	// Procedural Hit Groups.
 	// Analytic.
@@ -344,15 +318,15 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	
 	// Global signature ranges.
 	auto outputRange = globalSignature->createRange(m_raytracingOutputHandles.gpu, RootSignature::UAV, 0, 1);
-	auto globalGeometry = m_scene->getGeometryMap().at("GlobalGeometry");
-	auto vertexRange = globalSignature->createRange(globalGeometry->getIndexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
+	//auto globalGeometry = m_scene->getGeometryMap().at("GlobalGeometry");
+	//auto vertexRange = globalSignature->createRange(globalGeometry->getIndexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
 
 	// Global signature entries.
 	m_raytracingOutputHandles.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
 	globalSignature->addEntry(RootComponent(DontApply()), RootSignature::SRV, m_accelerationStruct->getBuilded(), 0);
 	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB, 0);
 	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_aabbPrimitiveAttributeBuffer, 3);
-	globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{vertexRange});
+	//globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{vertexRange});
 
 	m_scene->addGlobalSignature(globalSignature);
 
@@ -397,9 +371,9 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 	
 	// Triangle Hit Groups.
 	{
-		TriangleRootArguments rootArgs{ m_planeMaterialCB };
-		m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "Triangle", "Triangle", rootArgs });
-		m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "Triangle_Shadow", "Triangle", rootArgs });
+		//TriangleRootArguments rootArgs{ m_planeMaterialCB };
+		//m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "Triangle", "Triangle", rootArgs });
+		//m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "Triangle_Shadow", "Triangle", rootArgs });
 	}
 	
 	// Procedural hit groups.
@@ -459,7 +433,7 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs(const XMMATRIX& pro
 {
 	// Set up AABBs on a grid.
 	{
-		XMINT3 aabbGrid = XMINT3(4, 1, 4);
+		/*XMINT3 aabbGrid = XMINT3(4, 1, 4);
 		const XMFLOAT3 basePosition =
 		{
 			-(aabbGrid.x * c_aabbWidth + (aabbGrid.x - 1) * c_aabbDistance) / 2.0f,
@@ -478,7 +452,7 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs(const XMMATRIX& pro
 				basePosition.y + offsetIndex.y * stride.y + size.y,
 				basePosition.z + offsetIndex.z * stride.z + size.z,
 			};
-		};
+		};*/
 		m_aabbs.resize(IntersectionShaderType::TotalPrimitiveCount);
 		//UINT offset = 0;
 
@@ -511,9 +485,40 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs(const XMMATRIX& pro
 		//	m_scene->addGeometry("TwistedTorus", make_shared<Geometry>(m_aabbs[offset + TwistedTorus], *m_deviceResources));
 
 			//m_aabbs[/*offset +*/ IntersectedRoundCube] = InitializeAABB(XMINT3(0, 0, 2), XMFLOAT3(100, 20, 100));
-			m_aabbs[/*offset +*/ IntersectedRoundCube] = D3D12_RAYTRACING_AABB{ -10, -10, -10, 10, 10, 10 };
+			int N = 30;
+
+			// Bottom-level AS with a single plane.
+			Geometry::Instances instances;
+
+			//it iterates in a nxn grid
+			for (int m = 0; m < N * N * N; m++)
+			{
+				//creating vertices coordinates
+				int k = m / (N * N);
+				int l = m % (N * N);
+				int i = l % N;
+				int j = l / N;
+
+				/*float x = float(i) / float(N - 1);
+				float x1 = float(i + 1) / float(N - 1);
+				float z = float(j) / float(N - 1);
+				float y = float(k) / float(N - 1);*/
+
+				float x = float(i);
+				float x1 = float(i + 1);
+				float z = float(j);
+				float y = float(k);
+
+				XMFLOAT3 float3((x1 + x) * 0.5, y, z);
+
+				XMMATRIX mTranslation = XMMatrixTranslationFromVector(1. * XMLoadFloat3(&float3));
+
+				instances.push_back(mTranslation);
+			}
+
+			m_aabbs[/*offset +*/ IntersectedRoundCube] = D3D12_RAYTRACING_AABB{ 0.f, 0.f, 0.f, 1.f, 1.f, 1.f };
 			m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[/*offset +*/ IntersectedRoundCube], *m_deviceResources,
-				Geometry::Instances(1, proceduralBlasTransform)));
+				instances));
 
 		//	m_aabbs[offset + SquareTorus] = InitializeAABB(XMFLOAT3(0.75f, -0.1f, 2.25f), XMFLOAT3(3, 3, 3));
 		//	m_scene->addGeometry("SquareTorus", make_shared<Geometry>(m_aabbs[offset + SquareTorus], *m_deviceResources));
@@ -530,125 +535,35 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs(const XMMATRIX& pro
 	}
 }
 
-void ProceduralRtxEngineSample::BuildParallelepipeds(const XMFLOAT3& width)
+void ProceduralRtxEngineSample::BuildInstancedProcedural()
 {
-	vector<Index> indices;
-	vector<Vertex> vertices;
+	int N = 3;
 
-	//bluid cubes
+	// Bottom-level AS with a single plane.
+	Geometry::Instances instances;
+	
+	XMMATRIX mScale = XMMatrixScaling(20.f, 20.f, 20.f);
+
+	//it iterates in a nxn grid
+	for (int i = 0; i < N; i++)
 	{
-		int N = 30;
-
-		//it iterates in a nxn grid
-		for (int m = 0; m < N * N * N; m++)
+		for (int j = 0; j < N; ++j)
 		{
-			//creating vertices coordinates
-			int k = m / (N * N);
-			int l = m % (N * N);
-			int i = l % N;
-			int j = l / N;
+			for (int k = 0; k < N; ++k)
+			{
+				XMFLOAT3 float3(i, j, k);
+				XMMATRIX mTranslation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
 
-			float x = float(i);
-			float x1 = float(i+1);
-			float z = float(j);
-			float y = float(k);
-
-			XMFLOAT3 p = XMFLOAT3(x1, y, z);
-			XMFLOAT3 q = XMFLOAT3(x, y, z);
-
-			XMFLOAT3 p1 = XMFLOAT3(0.25f * q.x + 0.75f * p.x, 0.25f * q.y + 0.75f * p.y, 0.25f * q.z + 0.75f * p.z);
-			XMFLOAT3 q1 = XMFLOAT3(0.75f * q.x + 0.25f * p.x, 0.75f * q.y + 0.25f * p.y, 0.75f * q.z + 0.25f * p.z);
-
-			float d = 0.04;
-
-			//for each point, we creat a parallelepiped in the x-direction, thus 8 vertices
-			XMFLOAT3 q01 = XMFLOAT3(q1.x, q1.y - d, q1.z + d);
-			XMFLOAT3 q00 = XMFLOAT3(q1.x, q1.y - d, q1.z - d);
-			XMFLOAT3 q10 = XMFLOAT3(q1.x, q1.y + d, q1.z - d);
-			XMFLOAT3 q11 = XMFLOAT3(q1.x, q1.y + d, q1.z + d);
-			
-			XMFLOAT3 p01 = XMFLOAT3(p1.x, p1.y - d, p1.z + d);
-			XMFLOAT3 p00 = XMFLOAT3(p1.x, p1.y - d, p1.z - d);
-			XMFLOAT3 p10 = XMFLOAT3(p1.x, p1.y + d, p1.z - d);
-			XMFLOAT3 p11 = XMFLOAT3(p1.x, p1.y + d, p1.z + d);
-
-			vertices.push_back({ q01, XMFLOAT3(0.0f, 0.0f, 1.0f) });
-			vertices.push_back({ q00, XMFLOAT3(0.0f, 1.0f, 0.0f) });
-			vertices.push_back({ q10, XMFLOAT3(1.0f, 0.0f, 0.0f) });
-			vertices.push_back({ q11, XMFLOAT3(0.0f, -1.0f, 0.0f) });
-
-			vertices.push_back({ p01, XMFLOAT3(-1.0f, 0.0f, 0.0f) });
-			vertices.push_back({ p00, XMFLOAT3(0.0f, 0.0f, -1.0f) });
-			vertices.push_back({ p10, XMFLOAT3(0.0f, 1.0f, 0.0f) });
-			vertices.push_back({ p11, XMFLOAT3(0.0f, 1.0f, 0.0f) });
-
-			//index of the two triangle inside the square
-			//if (i < N - 1 && j < N - 1 && k < N - 1)
-			//{
-				indices.push_back(8*m + 0);//T1
-				indices.push_back(8*m + 4);
-				indices.push_back(8*m + 7);
-								  
-				indices.push_back(8*m + 0);//T2
-				indices.push_back(8*m + 7);
-				indices.push_back(8*m + 3);
-
-				indices.push_back(8*m + 1);//T3
-				indices.push_back(8*m + 5);
-				indices.push_back(8*m + 4);
-
-				indices.push_back(8*m + 1);//T4
-				indices.push_back(8*m + 4);
-				indices.push_back(8*m + 0);
-
-				indices.push_back(8*m + 5);//T5
-				indices.push_back(8*m + 2);
-				indices.push_back(8*m + 6);
-
-				indices.push_back(8*m + 5);//T6
-				indices.push_back(8*m + 1);
-				indices.push_back(8*m + 2);
-
-				indices.push_back(8*m + 3);//T7
-				indices.push_back(8*m + 7);
-				indices.push_back(8*m + 6);
-								  
-				indices.push_back(8*m + 3);//T8
-				indices.push_back(8*m + 6);
-				indices.push_back(8*m + 2);
-								  
-				indices.push_back(8*m + 2);//T9
-				indices.push_back(8*m + 0);
-				indices.push_back(8*m + 3);
-								  
-				indices.push_back(8*m + 2);//T10
-				indices.push_back(8*m + 1);
-				indices.push_back(8*m + 0);
-								  
-				indices.push_back(8*m + 4);//T11
-				indices.push_back(8*m + 6);
-				indices.push_back(8*m + 7);
-
-				indices.push_back(8*m + 4);//T12
-				indices.push_back(8*m + 5);
-				indices.push_back(8*m + 6);
-			//}
+				instances.push_back(mScale * mTranslation);
+			}
 		}
 	}
 
-	XMFLOAT3 translation(-10, 0.0f, -10);
-	XMMATRIX mScale = XMMatrixScaling(10, 10, 10);
-	//const XMVECTOR vWidth = XMLoadFloat3(&width);
-	const XMVECTOR vBasePosition = 10. * XMLoadFloat3(&translation);
-	auto wTranslation = XMMatrixTranslationFromVector(vBasePosition);
-	//XMMATRIX mScale = XMMatrixScaling(width.x, width.y, width.z);
-	auto triangleBlasTransform = mScale * wTranslation;
-
-	m_scene->addGeometry("GlobalGeometry", make_shared<Geometry>(vertices, indices, *m_deviceResources, *m_descriptorHeap,
-		Geometry::Instances(1, triangleBlasTransform)));
+	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
+	m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[0], *m_deviceResources, instances));
 }
 
-void ProceduralRtxEngineSample::BuildInstancedParallelepipeds(const XMFLOAT3& width)
+void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 {
 	XMFLOAT3 p = XMFLOAT3(0.75f, 0.f, 0.f);
 	XMFLOAT3 q = XMFLOAT3(0.25f, 0.f, 0.f);
@@ -693,59 +608,30 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds(const XMFLOAT3& wi
 		4, 5, 6
 	};
 
-	int N = 30;
+	int N = 3;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances instances;
-
-	// Calculate transformation matrix.
-	XMFLOAT3 translation(-10, 0.0f, -10);
-
-	const XMVECTOR vWidth = XMLoadFloat3(&width);
+		
 	// Scale in XZ dimensions.
-	//XMMATRIX mScale = XMMatrixScaling(width.x, width.y, width.z);
-	XMMATRIX mScale = XMMatrixScaling(10, 10, 10);
+	XMMATRIX mScale = XMMatrixScaling(30, 50, 30);
 
 	//it iterates in a nxn grid
-	for (int m = 0; m < N * N * N; m++)
+	for (int i = 0; i < N; i++)
 	{
-		//creating vertices coordinates
-		int k = m / (N * N);
-		int l = m % (N * N);
-		int i = l % N;
-		int j = l / N;
+		for (int j = 0; j < N; j++)
+		{
+			for (int k = 0; k < N; k++)
+			{
+				XMFLOAT3 globalTranslation(100.f, 0.f, 0.f);
+				XMFLOAT3 float3(i, j, k);
 
-		/*float x = float(i) / float(N - 1);
-		float x1 = float(i + 1) / float(N - 1);
-		float z = float(j) / float(N - 1);
-		float y = float(k) / float(N - 1);*/
+				XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&globalTranslation) + (40. * XMLoadFloat3(&float3)));
 
-		float x = float(i);
-		float x1 = float(i + 1);
-		float z = float(j);
-		float y = float(k);
-
-		XMFLOAT3 float3((x1 + x) * 0.5, y, z);
-
-		XMMATRIX mTranslation = XMMatrixTranslationFromVector(10. * (XMLoadFloat3(&translation) + XMLoadFloat3(&float3)));
-
-		instances.push_back(mScale * mTranslation);
+				instances.push_back(mScale * mTranslation);
+			}
+		}
 	}
-
-	/*auto scale = XMMatrixScaling(10, 10, 10);
-	instances.push_back(scale);
-	XMFLOAT3 float3(10, 0.f, 0.f);
-	instances.push_back(scale * XMMatrixTranslationFromVector(DirectX::XMLoadFloat3(&float3)));
-	float3 = XMFLOAT3(20, 0.f, 0.f);
-	instances.push_back(scale * XMMatrixTranslationFromVector(DirectX::XMLoadFloat3(&float3)));
-	float3 = XMFLOAT3(0, 10.f, 0.f);
-	instances.push_back(scale * XMMatrixTranslationFromVector(DirectX::XMLoadFloat3(&float3)));
-	float3 = XMFLOAT3(0, 20.f, 0.f);
-	instances.push_back(scale * XMMatrixTranslationFromVector(DirectX::XMLoadFloat3(&float3)));
-	float3 = XMFLOAT3(0, 0.f, 10.f);
-	instances.push_back(scale * XMMatrixTranslationFromVector(DirectX::XMLoadFloat3(&float3)));
-	float3 = XMFLOAT3(0, 0.f, 20.f);
-	instances.push_back(scale * XMMatrixTranslationFromVector(DirectX::XMLoadFloat3(&float3)));*/
 
 	m_scene->addGeometry("GlobalGeometry", make_shared<Geometry>(vertices, indices, *m_deviceResources, *m_descriptorHeap, instances));
 }
@@ -799,22 +685,8 @@ void ProceduralRtxEngineSample::BuildPlaneGeometry(const XMFLOAT3& width)
 // Build geometry used in the sample.
 void ProceduralRtxEngineSample::BuildGeometry()
 {
-	// Width of a bottom-level AS geometry.
-// Make the plane a little larger than the actual number of primitives in each dimension.
-	const XMUINT3 NUM_AABB = XMUINT3(10, 10, 10);
-	const XMFLOAT3 fWidth = XMFLOAT3(
-		NUM_AABB.x * c_aabbWidth + (NUM_AABB.x - 1) * c_aabbDistance,
-		NUM_AABB.y * c_aabbWidth + (NUM_AABB.y - 1) * c_aabbDistance,
-		NUM_AABB.z * c_aabbWidth + (NUM_AABB.z - 1) * c_aabbDistance);
-
-	//BuildPlaneGeometry(fWidth);
-	//BuildParallelepipeds(fWidth);
-	BuildInstancedParallelepipeds(fWidth);
-
-	// Move all AABBS above the ground plane.
-	//XMMATRIX ProceduralBlasTransform = XMMatrixTranslationFromVector(XMLoadFloat3(&XMFLOAT3(0, c_aabbWidth / 2, 0)));
-	XMMATRIX ProceduralBlasTransform = XMMatrixIdentity();
-	BuildProceduralGeometryAABBs(ProceduralBlasTransform);
+	BuildInstancedParallelepipeds();
+	BuildInstancedProcedural();
 }
 
 void ProceduralRtxEngineSample::OnMouseMove(UINT x, UINT y)

@@ -51,8 +51,7 @@ private:
 	static const UINT FrameCount = 3;
 
 	// Constants.
-	const float c_aabbWidth = 2;      // AABB width.
-	const float c_aabbDistance = 2;   // Distance between AABBs.
+	const UINT proceduralGeometryIndex = 1;
 
 	// DirectX Raytracing (DXR) attributes
 	ComPtr<ID3D12Device5> m_dxrDevice;
@@ -98,8 +97,8 @@ private:
 	void CreateHitGroups();
 	void BuildGeometry();
 	void BuildProceduralGeometryAABBs(const XMMATRIX& proceduralBlasTransform);
-	void BuildParallelepipeds(const XMFLOAT3& width);
-	void BuildInstancedParallelepipeds(const XMFLOAT3& width);
+	void BuildInstancedProcedural();
+	void BuildInstancedParallelepipeds();
 	void BuildPlaneGeometry(const XMFLOAT3& width);
 	void CreateRaytracingOutputResource();
 

@@ -8,8 +8,8 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
-#define NONLINEAR_RAYTRACING
-//#define RAYTRACING
+//#define NONLINEAR_RAYTRACING
+#define RAYTRACING
 
 //#define SECTIONALCURVATURE
 
@@ -261,14 +261,14 @@ void MyRaygenShader()
 //******************------ Closest hit shaders -------***********************
 //***************************************************************************
 
-[shader("closesthit")]
+//[shader("closesthit")]
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
     // DEBUG
-    //{
-    //    rayPayload.color = float4(0, 0, 1.0f, 0);
-    //    return;
-    //}
+    {
+        rayPayload.color = float4(0.f, 0.f, 1.0f, 0.f);
+        return;
+    }
 
     // Get the base index of the triangle's first 16 bit index.
     uint indexSizeInBytes = 2;
@@ -335,7 +335,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
         
-    color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+    //color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
    
     rayPayload.color = color;
 }
@@ -345,7 +345,7 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
 {
     // DEBUG
     //{
-    //    rayPayload.color = float4(0, 0, 1.0f, 0);
+    //    rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
     //    return;
     //}
 
@@ -380,7 +380,7 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
         
-    color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+    //color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
    
     rayPayload.color = color;
 }
@@ -505,6 +505,8 @@ Ray GetRayInAABBPrimitiveLocalSpace()
     Ray ray;
     ray.origin = mul(float4(ObjectRayOrigin(), 1), attr.bottomLevelASToLocalSpace).xyz;
     ray.direction = mul(ObjectRayDirection(), (float3x3) attr.bottomLevelASToLocalSpace);
+    //ray.origin = ObjectRayOrigin();
+    //ray.direction = ObjectRayDirection();
     return ray;
 }
 
@@ -547,9 +549,12 @@ void MyIntersectionShader_VolumetricPrimitive()
 [shader("intersection")]
 void MyIntersectionShader_SignedDistancePrimitive()
 {
-
-    //debub
-   // return;
+    // DEBUG
+    //{
+    //    ProceduralPrimitiveAttributes procAttr;
+    //    ReportHit(0.f, /*hitKind*/ 0, procAttr);
+    //    return;
+    //}
 
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
     SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;
