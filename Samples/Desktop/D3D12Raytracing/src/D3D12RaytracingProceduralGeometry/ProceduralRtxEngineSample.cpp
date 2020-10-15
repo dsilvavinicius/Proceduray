@@ -168,7 +168,7 @@ void ProceduralRtxEngineSample::InitializeScene()
 		//{
 			using namespace SignedDistancePrimitive;
 		//	SetAttributes(offset + MiniSpheres, green);
-			SetAttributes(/*offset +*/ IntersectedRoundCube, yellow, 0.2,0.6);//ChromiumReflectance, 1);
+			SetAttributes(Mandelbulb, yellow, 0.2,0.6);//ChromiumReflectance, 1);
 		//	SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
 		//	SetAttributes(offset + TwistedTorus, yellow, 0, 1.0f, 0.7f, 50, 0.5f);
 		//	SetAttributes(offset + Cog, yellow, 0, 1.0f, 0.1f, 2);
@@ -516,8 +516,8 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs(const XMMATRIX& pro
 				instances.push_back(mTranslation);
 			}
 
-			m_aabbs[/*offset +*/ IntersectedRoundCube] = D3D12_RAYTRACING_AABB{ 0.f, 0.f, 0.f, 1.f, 1.f, 1.f };
-			m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[/*offset +*/ IntersectedRoundCube], *m_deviceResources,
+			m_aabbs[Mandelbulb] = D3D12_RAYTRACING_AABB{ 0.f, 0.f, 0.f, 1.f, 1.f, 1.f };
+			m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[Mandelbulb], *m_deviceResources,
 				instances));
 
 		//	m_aabbs[offset + SquareTorus] = InitializeAABB(XMFLOAT3(0.75f, -0.1f, 2.25f), XMFLOAT3(3, 3, 3));
@@ -560,7 +560,7 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 	}
 
 	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
-	m_scene->addGeometry("IntersectedRoundCube", make_shared<Geometry>(m_aabbs[0], *m_deviceResources, instances));
+	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[0], *m_deviceResources, instances));
 }
 
 void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()

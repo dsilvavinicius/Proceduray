@@ -452,7 +452,7 @@ float3 calcNormal( in float3 pos, in float t )
 					  e.xxx*map( pos + e.xxx,tmp ) );
 }
 
-bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum sdPrimitive, out float thit, out ProceduralPrimitiveAttributes attr, in float stepScale = 1.0f)
+bool MandelbulbDistance(in Ray ray, in SignedDistancePrimitive::Enum sdPrimitive, out float thit, out ProceduralPrimitiveAttributes attr, in float stepScale = 1.0f)
 {
     float res = -1.0;
 
@@ -493,45 +493,45 @@ bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum
 
 // Test ray against a signed distance primitive.
 // Ref: https://www.scratchapixel.com/lessons/advanced-rendering/rendering-distance-fields/basic-sphere-tracer
-//bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum sdPrimitive, out float thit, out ProceduralPrimitiveAttributes attr, in float stepScale = 1.0f)
-//{
-//    const float threshold = 0.0001;
-//    float t = RayTMin();
-//    const UINT MaxSteps = 512;
+bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum sdPrimitive, out float thit, out ProceduralPrimitiveAttributes attr, in float stepScale = 1.0f)
+{
+    const float threshold = 0.0001;
+    float t = RayTMin();
+    const UINT MaxSteps = 512;
 
-//    float4 sph = float4(0.f, 0.f, 0.f, 1.25f);
-//    float2 dis = isphere(sph, ray.origin, ray.direction);
+    float4 sph = float4(0.f, 0.f, 0.f, 1.25f);
+    float2 dis = isphere(sph, ray.origin, ray.direction);
     
-//    if( dis.y < 0.0 )
-//        return -1.0;
+    if (dis.y < 0.0)
+        return -1.0;
     
-//    // Do sphere tracing through the AABB.
-//    UINT i = 0;
-//    while (i++ < MaxSteps && t <= RayTCurrent())
-//    {
-//        float3 position = ray.origin + t * ray.direction;
-//        float distance = GetDistanceFromSignedDistancePrimitive(position, sdPrimitive);
+    // Do sphere tracing through the AABB.
+    UINT i = 0;
+    while (i++ < MaxSteps && t <= RayTCurrent())
+    {
+        float3 position = ray.origin + t * ray.direction;
+        float distance = GetDistanceFromSignedDistancePrimitive(position, sdPrimitive);
 
-//        // Has the ray intersected the primitive? 
-//        if (distance <= threshold * t)
-//        {
-//            float3 hitSurfaceNormal = sdCalculateNormal(position, sdPrimitive);
-//            if (IsAValidHit(ray, t, hitSurfaceNormal))
-//            {
-//                thit = t;
-//                attr.normal = hitSurfaceNormal;
-//                return true;
-//            }
-//        }
+    // Has the ray intersected the primitive? 
+        if (distance <= threshold * t)
+        {
+            float3 hitSurfaceNormal = sdCalculateNormal(position, sdPrimitive);
+            if (IsAValidHit(ray, t, hitSurfaceNormal))
+            {
+                thit = t;
+                attr.normal = hitSurfaceNormal;
+                return true;
+            }
+        }
 
-//        // Since distance is the minimum distance to the primitive, 
-//        // we can safely jump by that amount without intersecting the primitive.
-//        // We allow for scaling of steps per primitive type due to any pre-applied 
-//        // transformations that don't preserve true distances.
-//        t += stepScale * distance;
-//    }
-//    return false;
-//}
+        // Since distance is the minimum distance to the primitive, 
+        // we can safely jump by that amount without intersecting the primitive.
+        // We allow for scaling of steps per primitive type due to any pre-applied 
+        // transformations that don't preserve true distances.
+        t += stepScale * distance;
+    }
+    return false;
+}
 
 // Analytically integrated checkerboard grid (box filter).
 // Ref: http://iquilezles.org/www/articles/filterableprocedurals/filterableprocedurals.htm

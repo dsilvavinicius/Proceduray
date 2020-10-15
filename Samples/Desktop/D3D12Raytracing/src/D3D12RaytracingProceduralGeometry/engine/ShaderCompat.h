@@ -94,14 +94,9 @@ namespace VolumetricPrimitive {
 
 namespace SignedDistancePrimitive {
     enum Enum {
-        IntersectedRoundCube=0,
-        MiniSpheres,
-        TwistedTorus,
-        SquareTorus,
-        Cog,
-        Cylinder,
-        FractalPyramid,
-        Count = 1
+        Mandelbulb=0,
+        IntersectedRoundCube,
+        Count
     };
 }
 

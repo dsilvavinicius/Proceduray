@@ -549,19 +549,23 @@ void MyIntersectionShader_VolumetricPrimitive()
 [shader("intersection")]
 void MyIntersectionShader_SignedDistancePrimitive()
 {
-    // DEBUG
-    //{
-    //    ProceduralPrimitiveAttributes procAttr;
-    //    ReportHit(0.f, /*hitKind*/ 0, procAttr);
-    //    return;
-    //}
-
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
     SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;
 
     float thit;
     ProceduralPrimitiveAttributes attr;
-    if (RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale))
+    
+    bool primitiveTest;
+    if(primitiveType == SignedDistancePrimitive::Mandelbulb)
+    {
+        primitiveTest = MandelbulbDistance(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
+    }
+    else
+    {
+        primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
+    }
+    
+    if (primitiveTest)
     {
         PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
