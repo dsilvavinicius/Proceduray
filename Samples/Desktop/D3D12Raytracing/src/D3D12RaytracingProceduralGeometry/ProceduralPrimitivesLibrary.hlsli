@@ -77,10 +77,15 @@ float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistan
         //{
         //    return torusVisgraf(position);
         //}
-        //PacMans
+        ////PacMans
+        //{
+        //    //return /*opU(*/opU(/*pacMan(position),*/pacMan(position/*+float3(25,0,5)*/),pacMan(position-float3(30,0,5)) );
+        //    return pacMan(position);
+        //}
+        //Mandelbulb 
         {
             //return /*opU(*/opU(/*pacMan(position),*/pacMan(position/*+float3(25,0,5)*/),pacMan(position-float3(30,0,5)) );
-            return pacMan(position);
+            return mandelbulb(position);
         }
        
        

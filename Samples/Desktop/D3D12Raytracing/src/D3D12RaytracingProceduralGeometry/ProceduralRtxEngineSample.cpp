@@ -537,7 +537,7 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs(const XMMATRIX& pro
 
 void ProceduralRtxEngineSample::BuildInstancedProcedural()
 {
-	int N = 3;
+	int N = 1;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances instances;

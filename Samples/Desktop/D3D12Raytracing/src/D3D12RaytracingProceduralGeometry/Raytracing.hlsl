@@ -335,7 +335,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
         
-    //color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+    color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
    
     rayPayload.color = color;
 }
@@ -380,7 +380,7 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
         
-    //color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+    color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
    
     rayPayload.color = color;
 }
