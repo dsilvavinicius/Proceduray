@@ -108,10 +108,17 @@ void ProceduralRtxEngineSample::UpdateAABBPrimitiveAttributes(float animationTim
 		(*m_aabbPrimitiveAttributeBuffer)[instanceIndex].bottomLevelASToLocalSpace = mTransform;
 	};
 	
-	auto instances = m_scene->getGeometry()[proceduralGeometryIndex]->getInstances();
-	for(int i = 0; i < instances->size(); ++i)
+	UINT i = 0;
+	for (auto geometry : m_scene->getGeometry())
 	{
-		SetTransformForAABB(i, (*instances)[i]);
+		if (geometry->getType() == Geometry::Procedural)
+		{
+			for (auto instance : *geometry->getInstances())
+			{
+				SetTransformForAABB(i, instance);
+				++i;
+			}
+		}
 	}
 }
 
@@ -167,8 +174,10 @@ void ProceduralRtxEngineSample::InitializeScene()
 		//// Signed distance primitives.
 		//{
 			using namespace SignedDistancePrimitive;
+			SetAttributes(Mandelbulb, yellow, 0.2, 0.6);
+			SetAttributes(IntersectedRoundCube, ChromiumReflectance, 1);
 		//	SetAttributes(offset + MiniSpheres, green);
-			SetAttributes(Mandelbulb, yellow, 0.2,0.6);//ChromiumReflectance, 1);
+			//ChromiumReflectance, 1);
 		//	SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
 		//	SetAttributes(offset + TwistedTorus, yellow, 0, 1.0f, 0.7f, 50, 0.5f);
 		//	SetAttributes(offset + Cog, yellow, 0, 1.0f, 0.1f, 2);
@@ -234,7 +243,14 @@ void ProceduralRtxEngineSample::CreateAABBPrimitiveAttributesBuffers()
 	auto device = m_deviceResources->GetD3DDevice();
 	auto frameCount = m_deviceResources->GetBackBufferCount();
 
-	UINT nProceduralInstances = m_scene->getGeometry()[proceduralGeometryIndex]->getInstances()->size();
+	UINT nProceduralInstances = 0;
+	for (auto geometry : m_scene->getGeometry())
+	{
+		if(geometry->getType() == Geometry::Procedural)
+		{
+			nProceduralInstances += geometry->getInstances()->size();
+		}
+	}
 
 	m_aabbPrimitiveAttributeBuffer->Create(device, nProceduralInstances, frameCount, L"AABB primitive attributes");
 }
@@ -291,8 +307,8 @@ void ProceduralRtxEngineSample::CreateRays()
 void ProceduralRtxEngineSample::CreateHitGroups()
 {
 	// Triangle Hit Groups.
-	//m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", L"", L"MyClosestHitShader_Triangle", L""));
-	//m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"", L""));
+	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", L"", L"MyClosestHitShader_Triangle", L""));
+	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"", L""));
 
 	// Procedural Hit Groups.
 	// Analytic.
@@ -318,15 +334,15 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	
 	// Global signature ranges.
 	auto outputRange = globalSignature->createRange(m_raytracingOutputHandles.gpu, RootSignature::UAV, 0, 1);
-	//auto globalGeometry = m_scene->getGeometryMap().at("GlobalGeometry");
-	//auto vertexRange = globalSignature->createRange(globalGeometry->getIndexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
+	auto globalGeometry = m_scene->getGeometryMap().at("GlobalGeometry");
+	auto vertexRange = globalSignature->createRange(globalGeometry->getIndexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
 
 	// Global signature entries.
 	m_raytracingOutputHandles.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
 	globalSignature->addEntry(RootComponent(DontApply()), RootSignature::SRV, m_accelerationStruct->getBuilded(), 0);
 	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB, 0);
 	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_aabbPrimitiveAttributeBuffer, 3);
-	//globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{vertexRange});
+	globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{vertexRange});
 
 	m_scene->addGlobalSignature(globalSignature);
 
@@ -371,9 +387,9 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 	
 	// Triangle Hit Groups.
 	{
-		//TriangleRootArguments rootArgs{ m_planeMaterialCB };
-		//m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "Triangle", "Triangle", rootArgs });
-		//m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "Triangle_Shadow", "Triangle", rootArgs });
+		TriangleRootArguments rootArgs{ m_planeMaterialCB };
+		m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "Triangle", "Triangle", rootArgs });
+		m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "Triangle_Shadow", "Triangle", rootArgs });
 	}
 	
 	// Procedural hit groups.
@@ -560,7 +576,15 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 	}
 
 	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
-	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[0], *m_deviceResources, instances));
+	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::Mandelbulb], *m_deviceResources, instances));
+
+	XMFLOAT3 float3(1, 1, 1);
+	XMMATRIX mTranslation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
+	XMMATRIX pacManTransform(mScale * mTranslation);
+	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
+
+	m_scene->addGeometry("Pacman", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::IntersectedRoundCube], *m_deviceResources,
+		Geometry::Instances{ pacManTransform }));
 }
 
 void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()

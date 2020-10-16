@@ -261,14 +261,14 @@ void MyRaygenShader()
 //******************------ Closest hit shaders -------***********************
 //***************************************************************************
 
-//[shader("closesthit")]
+[shader("closesthit")]
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
     // DEBUG
-    {
-        rayPayload.color = float4(0.f, 0.f, 1.0f, 0.f);
-        return;
-    }
+    //{
+    //    rayPayload.color = float4(0.f, 0.f, 1.0f, 0.f);
+    //    return;
+    //}
 
     // Get the base index of the triangle's first 16 bit index.
     uint indexSizeInBytes = 2;
@@ -344,10 +344,20 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
     // DEBUG
-    //{
-    //    rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
-    //    return;
-    //}
+    {
+        //int hitKind = HitKind();
+        //if (hitKind == 1)
+        //{
+        //    rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
+        //    return;
+        //}
+        
+        //if (hitKind == 2)
+        //{
+        //    rayPayload.color = float4(0.f, 0.f, 1.f, 0.f);
+        //    return;
+        //}
+    }
 
     // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
@@ -558,10 +568,22 @@ void MyIntersectionShader_SignedDistancePrimitive()
     bool primitiveTest;
     if(primitiveType == SignedDistancePrimitive::Mandelbulb)
     {
+        // DEBUG
+        //{
+        //    ReportHit(0, 1, attr);
+        //    return;
+        //}
+    
         primitiveTest = MandelbulbDistance(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
     }
     else
     {
+        // DEBUG
+        //{
+        //    ReportHit(0, 2, attr);
+        //    return;
+        //}
+    
         primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
     }
     

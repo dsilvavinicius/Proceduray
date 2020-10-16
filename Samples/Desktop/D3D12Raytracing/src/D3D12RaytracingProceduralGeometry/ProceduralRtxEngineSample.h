@@ -50,9 +50,6 @@ public:
 private:
 	static const UINT FrameCount = 3;
 
-	// Constants.
-	const UINT proceduralGeometryIndex = 1;
-
 	// DirectX Raytracing (DXR) attributes
 	ComPtr<ID3D12Device5> m_dxrDevice;
 	ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
