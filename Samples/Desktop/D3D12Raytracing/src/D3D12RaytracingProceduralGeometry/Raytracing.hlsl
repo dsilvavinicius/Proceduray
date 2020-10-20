@@ -335,7 +335,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
         
-    color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+    //color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
    
     rayPayload.color = color;
 }
@@ -345,18 +345,24 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
 {
     // DEBUG
     {
-        //int hitKind = HitKind();
-        //if (hitKind == 1)
-        //{
-        //    rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
-        //    return;
-        //}
+        int hitKind = HitKind();
+        if (hitKind == 1)
+        {
+            rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
+            return;
+        }
         
-        //if (hitKind == 2)
-        //{
-        //    rayPayload.color = float4(0.f, 0.f, 1.f, 0.f);
-        //    return;
-        //}
+        if (hitKind == 2)
+        {
+            rayPayload.color = float4(0.f, 1.f, 0.f, 0.f);
+            return;
+        }
+        
+        if (hitKind == 3)
+        {
+            rayPayload.color = float4(0.f, 0.f, 1.f, 0.f);
+            return;
+        }
     }
 
     // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 
@@ -390,7 +396,7 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
     rayPayload.dist+=RayTCurrent();
     float t = rayPayload.dist;
         
-    color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+    //color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
    
     rayPayload.color = color;
 }
@@ -571,20 +577,25 @@ void MyIntersectionShader_SignedDistancePrimitive()
         // DEBUG
         //{
         //    ReportHit(0, 1, attr);
-        //    return;
         //}
     
         primitiveTest = MandelbulbDistance(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
     }
-    else
+    else if(primitiveType == SignedDistancePrimitive::IntersectedRoundCube)
     {
         // DEBUG
         //{
-        //    ReportHit(0, 2, attr);
-        //    return;
+        //    ReportHit(0, 1, attr);
         //}
     
         primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
+    }
+    else
+    {
+        {
+            ReportHit(0, 3, attr);
+            return;
+        }
     }
     
     if (primitiveTest)

@@ -113,11 +113,8 @@ void ProceduralRtxEngineSample::UpdateAABBPrimitiveAttributes(float animationTim
 	{
 		if (geometry->getType() == Geometry::Procedural)
 		{
-			for (auto instance : *geometry->getInstances())
-			{
-				SetTransformForAABB(i, instance);
-				++i;
-			}
+			SetTransformForAABB(i, (*geometry->getInstances())[0]);
+			++i;
 		}
 	}
 }
@@ -175,7 +172,7 @@ void ProceduralRtxEngineSample::InitializeScene()
 		//{
 			using namespace SignedDistancePrimitive;
 			SetAttributes(Mandelbulb, yellow, 0.2, 0.6);
-			SetAttributes(IntersectedRoundCube, ChromiumReflectance, 1);
+			SetAttributes(IntersectedRoundCube, green, 0.2, 0.6);
 		//	SetAttributes(offset + MiniSpheres, green);
 			//ChromiumReflectance, 1);
 		//	SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
@@ -248,7 +245,7 @@ void ProceduralRtxEngineSample::CreateAABBPrimitiveAttributesBuffers()
 	{
 		if(geometry->getType() == Geometry::Procedural)
 		{
-			nProceduralInstances += geometry->getInstances()->size();
+			++nProceduralInstances;
 		}
 	}
 
@@ -553,7 +550,7 @@ void ProceduralRtxEngineSample::BuildProceduralGeometryAABBs(const XMMATRIX& pro
 
 void ProceduralRtxEngineSample::BuildInstancedProcedural()
 {
-	int N = 1;
+	int N = 4;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances instances;
@@ -578,21 +575,16 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
 	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::Mandelbulb], *m_deviceResources, instances));
 
-	XMFLOAT3 float3(1, 1, 1);
-	XMMATRIX mTranslation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
-	XMMATRIX pacManTransform(mScale * mTranslation);
 	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
-
-	m_scene->addGeometry("Pacman", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::IntersectedRoundCube], *m_deviceResources,
-		Geometry::Instances{ pacManTransform }));
+	m_scene->addGeometry("Pacman", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::IntersectedRoundCube], *m_deviceResources, instances));
 }
 
 void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 {
-	XMFLOAT3 p = XMFLOAT3(0.75f, 0.f, 0.f);
-	XMFLOAT3 q = XMFLOAT3(0.25f, 0.f, 0.f);
+	XMFLOAT3 q = XMFLOAT3(-0.5f, 0.f, 0.f);
+	XMFLOAT3 p = XMFLOAT3(0.5f, 0.f, 0.f);
 
-	float d = 0.04;
+	float d = 0.02;
 
 	//for each point, we creat a parallelepiped in the x-direction, thus 8 vertices
 	XMFLOAT3 q01 = XMFLOAT3(q.x, q.y - d, q.z + d);
@@ -632,13 +624,13 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 		4, 5, 6
 	};
 
-	int N = 3;
+	int N = 4;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances instances;
 		
 	// Scale in XZ dimensions.
-	XMMATRIX mScale = XMMatrixScaling(30, 50, 30);
+	XMMATRIX mScale = XMMatrixScaling(20, 20, 20);
 
 	//it iterates in a nxn grid
 	for (int i = 0; i < N; i++)
@@ -647,10 +639,10 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 		{
 			for (int k = 0; k < N; k++)
 			{
-				XMFLOAT3 globalTranslation(100.f, 0.f, 0.f);
+				XMFLOAT3 globalTranslation(0.f, 0.f, 0.f);
 				XMFLOAT3 float3(i, j, k);
 
-				XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&globalTranslation) + (40. * XMLoadFloat3(&float3)));
+				XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&globalTranslation) + (30. * XMLoadFloat3(&float3)));
 
 				instances.push_back(mScale * mTranslation);
 			}

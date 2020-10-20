@@ -312,22 +312,16 @@ float torusVisgraf(float3 p)
 //by tiago
 float pacMan(float3 p)
 {
-    //rotating pacman
-    //float theta = 0.6*3.14159265359*2.0; 
-    //float x =  cos(theta)*p.x + sin(theta)*p.z;
-    //float z = -sin(theta)*p.x + cos(theta)*p.z;
-    //p = float3(x, p.y, z);
-
     float r1 = float(10.f); //head radius
-    float2 r2 = float2(5,10.f); //mouth radius
+    float2 r2 = float2(5, 10.f); //mouth radius
     
     float3 rot_p = float3(p.z, p.y, -p.x); //mouth orientation
-     rot_p = float3(rot_p.y, -rot_p.x+10, rot_p.z); //mouth orientation
-    float mouth =  sdTriPrism(rot_p,r2);
+    rot_p = float3(rot_p.y, -rot_p.x + 10, rot_p.z); //mouth orientation
+    float mouth = sdTriPrism(rot_p, r2);
    
-    float eyes =  opU(sdSphere(p+float3(-5,7.3,-4.5),1.5), sdSphere(p+float3(5,7.3,-4.5),1.5));
+    float eyes = opU(sdSphere(p + float3(-5, 7.3, -4.5), 1.5), sdSphere(p + float3(5, 7.3, -4.5), 1.5));
    
-    return opS(opS(sdSphere(p,r1), mouth),eyes);
+    return opS(opS(sdSphere(p, r1), mouth), eyes);
 }
 
 float2 isphere( in float4 sph, in float3 ro, in float3 rd )
@@ -343,41 +337,6 @@ float2 isphere( in float4 sph, in float3 ro, in float3 rd )
     h = sqrt( h );
 
     return -b + float2(-h,h);
-}
-
-
-//by Vinícius and tiago
-float mandelbulb(float3 pos) 
-{   
-    float3 z = pos*0.5;
-    float dr = 1.0;
-    float r = 0.0;
-    
-    int ITERATIONS = 200;
-    float ESCAPE_RADIUS = 2.05f;
-    float POWER = 8.f;
-    
-    for (int i = 0; i < ITERATIONS; ++i) {
-        // Convert to polar coordinates
-        r = length(z);
-        if (r > ESCAPE_RADIUS) {
-            break;
-        }
-        float theta = acos(z.y/r);
-        float phi = atan2(z.z,z.x);
-        dr = pow(r, POWER - 1.0) * POWER * dr + 1.0;
-        
-        // Scale and rotate the point
-        float zr = pow(r, POWER);
-        theta = theta * POWER;
-        phi = phi * POWER;
-        
-        // Convert back to cartesian coordinates
-        z = zr * float3(sin(theta)*cos(phi), cos(theta), sin(phi)*sin(theta));
-        z += pos;
-    }
-    
-    return 0.5 * log(r) * r / dr;
 }
 
 
@@ -499,12 +458,6 @@ bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum
     float t = RayTMin();
     const UINT MaxSteps = 512;
 
-    float4 sph = float4(0.f, 0.f, 0.f, 1.25f);
-    float2 dis = isphere(sph, ray.origin, ray.direction);
-    
-    if (dis.y < 0.0)
-        return -1.0;
-    
     // Do sphere tracing through the AABB.
     UINT i = 0;
     while (i++ < MaxSteps && t <= RayTCurrent())
@@ -512,7 +465,7 @@ bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum
         float3 position = ray.origin + t * ray.direction;
         float distance = GetDistanceFromSignedDistancePrimitive(position, sdPrimitive);
 
-    // Has the ray intersected the primitive? 
+        // Has the ray intersected the primitive? 
         if (distance <= threshold * t)
         {
             float3 hitSurfaceNormal = sdCalculateNormal(position, sdPrimitive);

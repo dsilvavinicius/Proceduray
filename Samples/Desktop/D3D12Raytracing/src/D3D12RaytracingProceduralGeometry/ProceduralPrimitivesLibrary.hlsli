@@ -62,6 +62,11 @@ bool RayVolumetricGeometryIntersectionTest(in Ray ray, in VolumetricPrimitive::E
 // Ref: http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistancePrimitive::Enum signedDistancePrimitive)
 {
+    // DEBUG
+    //{
+    //    return pacMan(position*0.5);
+    //}
+
     switch (signedDistancePrimitive)
     {
     //case SignedDistancePrimitive::MiniSpheres:
