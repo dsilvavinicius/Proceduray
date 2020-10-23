@@ -434,16 +434,16 @@ void ProceduralRtxEngineSample::CreateRaytracingOutputResource()
 
 void ProceduralRtxEngineSample::BuildInstancedProcedural()
 {
-	int N = 2;
+	int N = 4;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances mandelbulbInstances;
 	Geometry::Instances pacManInstances;
 	
-	XMMATRIX mScale = XMMatrixScaling(20.f, 20.f, 20.f);
+	XMMATRIX scale = XMMatrixScaling(10.f, 10.f, 10.f);
 
 	//it iterates in a nxn grid
-	for (int i = 0; i < N; i++)
+	for (int i = 0; i < N; i+=2)
 	{
 		for (int j = 0; j < N; ++j)
 		{
@@ -451,22 +451,24 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 			{
 				{
 					XMFLOAT3 float3(i, j, k);
-					XMMATRIX mTranslation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
+					XMMATRIX rotation = XMMatrixRotationZ(6.28318530718f * (float(j) / N));
+					XMMATRIX translation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
 
-					mandelbulbInstances.push_back(mScale * mTranslation);
+					mandelbulbInstances.push_back(scale * rotation * translation);
 				}
 				
 				{
-					XMFLOAT3 float3(i, j, k);
-					XMMATRIX mTranslation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
+					XMFLOAT3 float3(i + 0.95, j + 0.01, k + 0.01);
+					XMMATRIX rotation = XMMatrixRotationY(6.28318530718f * (float(j) / N));
+					XMMATRIX translation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
 
-					pacManInstances.push_back(mScale * mTranslation);
+					pacManInstances.push_back(scale * rotation * translation);
 				}
 			}
 		}
 	}
 
-	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
+	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -1.5f, -1.5f, -1.5f, 1.5f, 1.5f, 1.5f });
 	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::Mandelbulb], *m_deviceResources, mandelbulbInstances));
 
 	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
@@ -478,7 +480,7 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 	XMFLOAT3 q = XMFLOAT3(-0.5f, 0.f, 0.f);
 	XMFLOAT3 p = XMFLOAT3(0.5f, 0.f, 0.f);
 
-	float d = 0.02;
+	float d = 0.2;
 
 	//for each point, we creat a parallelepiped in the x-direction, thus 8 vertices
 	XMFLOAT3 q01 = XMFLOAT3(q.x, q.y - d, q.z + d);
@@ -518,13 +520,13 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 		4, 5, 6
 	};
 
-	int N = 2;
+	int N = 1;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances instances;
 		
 	// Scale in XZ dimensions.
-	XMMATRIX mScale = XMMatrixScaling(20, 20, 20);
+	XMMATRIX mScale = XMMatrixScaling(200, 20, 200);
 
 	//it iterates in a nxn grid
 	for (int i = 0; i < N; i++)
@@ -534,7 +536,7 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 			for (int k = 0; k < N; k++)
 			{
 				XMFLOAT3 globalTranslation(0.f, 0.f, 0.f);
-				XMFLOAT3 float3(i, j, k);
+				XMFLOAT3 float3(i, j+2.5, k);
 
 				XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&globalTranslation) + (30. * XMLoadFloat3(&float3)));
 

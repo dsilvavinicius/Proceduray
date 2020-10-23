@@ -519,8 +519,8 @@ Ray GetRayInAABBPrimitiveLocalSpace()
     // Retrieve a ray origin position and direction in bottom level AS space 
     // and transform them into the AABB primitive's local space.
     Ray ray;
-    ray.origin = mul(float4(ObjectRayOrigin(), 1), attr.bottomLevelASToLocalSpace).xyz;
-    ray.direction = mul(ObjectRayDirection(), (float3x3) attr.bottomLevelASToLocalSpace);
+    ray.origin = mul(float4(WorldRayOrigin(), 1), attr.localSpaceToBottomLevelAS).xyz;
+    ray.direction = mul(WorldRayDirection(), (float3x3) attr.localSpaceToBottomLevelAS);
     ray.direction = normalize(ray.direction);
     return ray;
 }
@@ -577,7 +577,6 @@ void MyIntersectionShader_SignedDistancePrimitive()
         //{
         //    ReportHit(0, 1, attr);
         //}
-    
         primitiveTest = MandelbulbDistance(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
     }
     else if(primitiveType == SignedDistancePrimitive::IntersectedRoundCube)
@@ -586,7 +585,6 @@ void MyIntersectionShader_SignedDistancePrimitive()
         //{
         //    ReportHit(0, 1, attr);
         //}
-    
         primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
     }
     else
@@ -600,8 +598,8 @@ void MyIntersectionShader_SignedDistancePrimitive()
     if (primitiveTest)
     {
         PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
-        attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
-        attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
+        //attr.normal = normalize(mul(attr.normal, (float3x3) aabbAttribute.bottomLevelASToLocalSpace));
+        attr.normal = normalize(mul(attr.normal, (float3x3) WorldToObject3x4()));
         
         ReportHit(thit, /*hitKind*/ 0, attr);
     }
