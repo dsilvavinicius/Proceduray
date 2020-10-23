@@ -253,19 +253,32 @@ namespace RtxEngine
 
 		auto device = m_deviceResources->GetD3DDevice();
 
+		UINT instanceIndex = 0;
 		for (int i = 0; i < bottomLevelASaddresses.size(); ++i)
 		{
+			bool isTriangleBlas = blasInput[i].descriptors[0].Type == D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+			
 			for (auto instance : *blasInput[i].instances)
 			{
 				auto& blas = bottomLevelASaddresses[i];
 				D3D12_RAYTRACING_INSTANCE_DESC instanceDesc;
 				instanceDesc = {};
 				instanceDesc.InstanceMask = 1;
-				instanceDesc.InstanceContributionToHitGroupIndex = i * TraceRayParameters::HitGroup::GeometryStride;
+				instanceDesc.InstanceContributionToHitGroupIndex = instanceIndex * TraceRayParameters::HitGroup::GeometryStride;
 				instanceDesc.AccelerationStructure = blas;
 				XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), instance);
 
 				instanceDescs.push_back(instanceDesc);
+
+				if (!isTriangleBlas)
+				{
+					++instanceIndex;
+				}
+			}
+
+			if (isTriangleBlas)
+			{
+				++instanceIndex;
 			}
 		}
 

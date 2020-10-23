@@ -521,8 +521,7 @@ Ray GetRayInAABBPrimitiveLocalSpace()
     Ray ray;
     ray.origin = mul(float4(ObjectRayOrigin(), 1), attr.bottomLevelASToLocalSpace).xyz;
     ray.direction = mul(ObjectRayDirection(), (float3x3) attr.bottomLevelASToLocalSpace);
-    //ray.origin = ObjectRayOrigin();
-    //ray.direction = ObjectRayDirection();
+    ray.direction = normalize(ray.direction);
     return ray;
 }
 
