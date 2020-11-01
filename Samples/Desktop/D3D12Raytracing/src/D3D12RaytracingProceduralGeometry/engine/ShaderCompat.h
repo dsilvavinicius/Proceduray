@@ -96,7 +96,7 @@ namespace SignedDistancePrimitive {
     enum Enum {
         Mandelbulb = 0,
         IntersectedRoundCube,
-        Count
+        Count = 2
     };
 }
 

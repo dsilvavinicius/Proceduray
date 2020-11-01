@@ -39,6 +39,7 @@ struct SceneConstantBuffer
 	XMVECTOR lightDiffuseColor;
 	float    reflectance;
 	float    elapsedTime;                 // Elapsed application time.
+	int		 debugFlag;
 };
 
 // Dynamic attributes per primitive instance.

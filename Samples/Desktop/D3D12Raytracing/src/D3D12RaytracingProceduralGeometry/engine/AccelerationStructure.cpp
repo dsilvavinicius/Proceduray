@@ -75,12 +75,8 @@ namespace RtxEngine
 	// Build geometry descs for bottom-level AS.
 	vector<AccelerationStructure::BlasInput> AccelerationStructure::buildGeometryDescsForBottomLevelAS() const
 	{
-		// Mark the geometry as opaque. 
-		// PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
-		// Note: When rays encounter opaque geometry an any hit shader will not be executed whether it is present or not.
-		D3D12_RAYTRACING_GEOMETRY_FLAGS geometryFlags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-
 		vector<BlasInput> blasVector;
+		D3D12_RAYTRACING_GEOMETRY_FLAGS flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 
 		for (const auto& geometry : m_scene->getGeometry())
 		{
@@ -99,7 +95,7 @@ namespace RtxEngine
 				geometryDesc.Triangles.VertexCount = static_cast<UINT>(vertexBuffer.resource->GetDesc().Width) / sizeof(Vertex);
 				geometryDesc.Triangles.VertexBuffer.StartAddress = vertexBuffer.resource->GetGPUVirtualAddress();
 				geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
-				geometryDesc.Flags = geometryFlags;
+				geometryDesc.Flags = flags;
 
 				blasVector.push_back(BlasInput{ BlasDescriptors(1, geometryDesc), geometry->getInstances() });
 			}
@@ -109,7 +105,7 @@ namespace RtxEngine
 				geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS;
 				geometryDesc.AABBs.AABBCount = 1;
 				geometryDesc.AABBs.AABBs.StrideInBytes = sizeof(D3D12_RAYTRACING_AABB);
-				geometryDesc.Flags = geometryFlags;
+				geometryDesc.Flags = flags;
 				geometryDesc.AABBs.AABBs.StartAddress = vertexBuffer.resource->GetGPUVirtualAddress();
 
 				blasVector.push_back(BlasInput{ BlasDescriptors(1, geometryDesc), geometry->getInstances() });
@@ -266,6 +262,7 @@ namespace RtxEngine
 				instanceDesc.InstanceMask = 1;
 				instanceDesc.InstanceContributionToHitGroupIndex = instanceIndex * TraceRayParameters::HitGroup::GeometryStride;
 				instanceDesc.AccelerationStructure = blas;
+				instanceDesc.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 				XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), instance);
 
 				instanceDescs.push_back(instanceDesc);

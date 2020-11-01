@@ -265,10 +265,11 @@ void MyRaygenShader()
 void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
     // DEBUG
-    //{
-    //    rayPayload.color = float4(0.f, 0.f, 1.0f, 0.f);
-    //    return;
-    //}
+    if(g_sceneCB.debugFlag)
+    {
+        rayPayload.color = float4(0.f, 0.f, 1.0f, 0.f);
+        return;
+    }
 
     // Get the base index of the triangle's first 16 bit index.
     uint indexSizeInBytes = 2;
@@ -400,7 +401,6 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
    
     rayPayload.color = color;
 }
-
 
 void traceRaySegment(inout RayPayload payload)
 {
@@ -574,17 +574,21 @@ void MyIntersectionShader_SignedDistancePrimitive()
     if(primitiveType == SignedDistancePrimitive::Mandelbulb)
     {
         // DEBUG
-        //{
-        //    ReportHit(0, 1, attr);
-        //}
+        if(g_sceneCB.debugFlag)
+        {
+            ReportHit(0, 1, attr);
+            return;
+        }
         primitiveTest = MandelbulbDistance(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
     }
     else if(primitiveType == SignedDistancePrimitive::IntersectedRoundCube)
     {
         // DEBUG
-        //{
-        //    ReportHit(0, 1, attr);
-        //}
+        if(g_sceneCB.debugFlag)
+        {
+            ReportHit(0, 2, attr);
+            return;
+        }
         primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
     }
     else

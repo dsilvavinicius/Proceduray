@@ -214,6 +214,7 @@ void ProceduralRtxEngineSample::InitializeScene()
 		lightDiffuseColor = XMFLOAT4(d, d, d, 1.0f);
 		(*m_sceneCB)->lightDiffuseColor = XMLoadFloat4(&lightDiffuseColor);
 	}
+	(*m_sceneCB)->debugFlag = false;
 }
 
 // Create constant buffers.
@@ -450,17 +451,19 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 			for (int k = 0; k < N; ++k)
 			{
 				{
+					//XMFLOAT3 float3(i + 3, j + 3, k);
 					XMFLOAT3 float3(i, j, k);
 					XMMATRIX rotation = XMMatrixRotationZ(6.28318530718f * (float(j) / N));
-					XMMATRIX translation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
+					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
 					mandelbulbInstances.push_back(scale * rotation * translation);
 				}
 				
 				{
-					XMFLOAT3 float3(i + 0.95, j + 0.01, k + 0.01);
+					XMFLOAT3 float3(i + 1, j, k);
+					//XMFLOAT3 float3(i, j, k);
 					XMMATRIX rotation = XMMatrixRotationY(6.28318530718f * (float(j) / N));
-					XMMATRIX translation = XMMatrixTranslationFromVector(30.f * XMLoadFloat3(&float3));
+					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
 					pacManInstances.push_back(scale * rotation * translation);
 				}
@@ -642,6 +645,11 @@ void ProceduralRtxEngineSample::OnKeyUp(UINT8 key)
 	}*/
 
 	m_input.setKey(key, false);
+
+	if (key == 'Z')
+	{
+		(*m_sceneCB)->debugFlag = !(*m_sceneCB)->debugFlag;
+	}
 }
 
 // Update frame-based values.
@@ -673,6 +681,8 @@ void ProceduralRtxEngineSample::OnUpdate()
 	}
 	UpdateAABBPrimitiveAttributes(m_animateGeometryTime);
 	(*m_sceneCB)->elapsedTime = m_animateGeometryTime;
+	
+	auto keyState = m_input.getKeyState();
 }
 
 // Update the application state with the new resolution.
