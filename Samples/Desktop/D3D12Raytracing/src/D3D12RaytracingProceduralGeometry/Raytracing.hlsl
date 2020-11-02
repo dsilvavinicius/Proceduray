@@ -579,7 +579,7 @@ void MyIntersectionShader_SignedDistancePrimitive()
             ReportHit(0, 1, attr);
             return;
         }
-        primitiveTest = MandelbulbDistance(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
+        primitiveTest = MandelbulbDistance(localRay, g_sceneCB.elapsedTime, l_aabbCB.instanceIndex, thit, attr, l_materialCB.stepScale);
     }
     else if(primitiveType == SignedDistancePrimitive::IntersectedRoundCube)
     {

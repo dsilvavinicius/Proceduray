@@ -357,7 +357,7 @@ float map( in float3 p, out float4 resColor )
     float m = dot(w,w);
 
     float4 trap = float4(abs(w),m);
-	float dz = 1.0;
+	float dz = 1.;
     
     
 	for( int i=0; i<4; i++ )
@@ -412,7 +412,8 @@ float3 calcNormal( in float3 pos, in float t )
 					  e.xxx*map( pos + e.xxx,tmp ) );
 }
 
-bool MandelbulbDistance(in Ray ray, in SignedDistancePrimitive::Enum sdPrimitive, out float thit, out ProceduralPrimitiveAttributes attr, in float stepScale = 1.0f)
+bool MandelbulbDistance(in Ray ray, in float time, int instanceId, out float thit, out ProceduralPrimitiveAttributes attr,
+                        in float stepScale = 1.0f)
 {
     float res = -1.0;
 
@@ -431,7 +432,17 @@ bool MandelbulbDistance(in Ray ray, in SignedDistancePrimitive::Enum sdPrimitive
 
 	float t = dis.x;
     float3 pos;
-	for( int i=0; i<128; i++  )
+    
+    // Number of iterations is used to animate the Mandelbulbs.
+    int iAnimMin = 1;
+    int iAnimMax = 128;
+    int iMax = iAnimMin + (pow(time,2)+instanceId) % (iAnimMax*2);
+    if(iMax>iAnimMax) 
+    {
+        iMax = 2*iAnimMax - iMax; 
+    }
+    
+	for( int i=0; i<iMax; i++  )
     { 
         pos = ro + rd*t;
         float th =  0.0001*t;

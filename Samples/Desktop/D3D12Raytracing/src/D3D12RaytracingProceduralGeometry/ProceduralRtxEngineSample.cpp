@@ -435,7 +435,7 @@ void ProceduralRtxEngineSample::CreateRaytracingOutputResource()
 
 void ProceduralRtxEngineSample::BuildInstancedProcedural()
 {
-	int N = 4;
+	int N = 10;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances mandelbulbInstances;
@@ -452,20 +452,20 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 			{
 				{
 					//XMFLOAT3 float3(i + 3, j + 3, k);
-					XMFLOAT3 float3(i, j, k);
-					XMMATRIX rotation = XMMatrixRotationZ(6.28318530718f * (float(j) / N));
+					XMFLOAT3 float3(i + 1, j, k);
+					//XMMATRIX rotation = XMMatrixRotationZ(6.28318530718f * (float(j) / N));
 					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
-					mandelbulbInstances.push_back(scale * rotation * translation);
+					mandelbulbInstances.push_back(scale * /*rotation **/ translation);
 				}
 				
 				{
-					XMFLOAT3 float3(i + 1, j, k);
+					XMFLOAT3 float3(i, j, k);
 					//XMFLOAT3 float3(i, j, k);
-					XMMATRIX rotation = XMMatrixRotationY(6.28318530718f * (float(j) / N));
+					//XMMATRIX rotation = XMMatrixRotationY(6.28318530718f * (float(j) / N));
 					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
-					pacManInstances.push_back(scale * rotation * translation);
+					pacManInstances.push_back(scale * /* rotation **/ translation);
 				}
 			}
 		}
@@ -539,7 +539,7 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 			for (int k = 0; k < N; k++)
 			{
 				XMFLOAT3 globalTranslation(0.f, 0.f, 0.f);
-				XMFLOAT3 float3(i, j+2.5, k);
+				XMFLOAT3 float3(i-6, j+6.5, k);
 
 				XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&globalTranslation) + (30. * XMLoadFloat3(&float3)));
 
