@@ -312,6 +312,9 @@ void ProceduralRtxEngineSample::CreateHitGroups()
 	//// Signed Distance.
 	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
 	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_SignedDistancePrimitive"));
+
+	m_scene->addHitGroup("Mandelbulb", make_shared<HitGroup>(L"HitGroup_Mandelbulb", L"", L"MandelbulbClosestHit", L"MandelbulbIntersection"));
+	m_scene->addHitGroup("Mandelbulb_Shadow", make_shared<HitGroup>(L"HitGroup_Mandelbulb_Shadow", L"", L"", L"MandelbulbIntersection"));
 }
 
 void ProceduralRtxEngineSample::CreateAccelerationStructures()
@@ -401,8 +404,16 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 					rootArgs.aabbCB.primitiveType = primitiveIndex;
 					rootArgs.aabbCB.instanceIndex = instanceIndex;
 
-					m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "SignedDist", "Procedural", rootArgs });
-					m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "SignedDist_Shadow", "Procedural", rootArgs });
+					if (primitiveIndex == SignedDistancePrimitive::IntersectedRoundCube)
+					{
+						m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "SignedDist", "Procedural", rootArgs });
+						m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "SignedDist_Shadow", "Procedural", rootArgs });
+					}
+					else
+					{
+						m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "Mandelbulb", "Procedural", rootArgs });
+						m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "Mandelbulb_Shadow", "Procedural", rootArgs });
+					}
 					
 					++instanceIndex;
 				}

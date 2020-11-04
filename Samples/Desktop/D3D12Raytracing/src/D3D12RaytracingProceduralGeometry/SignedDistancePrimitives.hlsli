@@ -436,11 +436,13 @@ bool MandelbulbDistance(in Ray ray, in float time, int instanceId, out float thi
     // Number of iterations is used to animate the Mandelbulbs.
     int iAnimMin = 1;
     int iAnimMax = 128;
-    int iMax = iAnimMin + (pow(time,2)+instanceId) % (iAnimMax*2);
+    int iMax = (0.5*pow(time,2.)+instanceId) % (iAnimMax*2);
     if(iMax>iAnimMax) 
     {
         iMax = 2*iAnimMax - iMax; 
     }
+   
+    iMax += iAnimMin;
     
 	for( int i=0; i<iMax; i++  )
     { 
