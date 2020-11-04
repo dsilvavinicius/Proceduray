@@ -456,6 +456,7 @@ bool MandelbulbDistance(in Ray ray, in float time, int instanceId, out float thi
         float3 hitSurfaceNormal = calcNormal(pos, t);
         thit = t;
         attr.normal = hitSurfaceNormal;
+        attr.color = trap;
         return true;
     }
 

@@ -364,6 +364,55 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
             rayPayload.color = float4(0.f, 0.f, 1.f, 0.f);
             return;
         }
+        
+        if(l_aabbCB.primitiveType == SignedDistancePrimitive::Mandelbulb)
+        {
+            // color
+            float3 col = float3(0.01, 0.01, 0.01);
+		    col = lerp( col, float3(0.10,0.20,0.30), clamp(attr.color.y,0.0,1.0) );
+	 	    col = lerp( col, float3(0.02,0.10,0.30), clamp(attr.color.z*attr.color.z,0.0,1.0) );
+            col = lerp( col, float3(0.30,0.10,0.02), clamp(pow(attr.color.w,6.0),0.0,1.0) );
+            col *= 0.5;
+		    //col = float3(0.1);
+        
+            // lighting terms
+            float3 light1 = float3(0.577, 0.577, -0.577);
+            float3 light2 = float3(-0.707, 0.000,  0.707);
+            
+            float3 pos = HitWorldPosition();
+            float3 nor = attr.normal;
+            float3 hal = normalize( light1-WorldRayDirection());
+            float3 ref = reflect( WorldRayDirection(), nor );
+            float occ = clamp(0.05*log(attr.color.x),0.0,1.0);
+            float fac = clamp(1.0+dot(WorldRayDirection(),nor),0.0,1.0);
+            
+            // sun
+            float sha1 = 1.f;//softshadow( pos+0.001*nor, light1, 32.0 );
+            float dif1 = clamp( dot( light1, nor ), 0.0, 1.0 )*sha1;
+            float spe1 = pow( clamp(dot(nor,hal),0.0,1.0), 32.0 )*dif1*(0.04+0.96*pow(clamp(1.0-dot(hal,light1),0.0,1.0),5.0));
+            // bounce
+            float dif2 = clamp( 0.5 + 0.5*dot( light2, nor ), 0.0, 1.0 )*occ;
+            // sky
+            float dif3 = (0.7+0.3*nor.y)*(0.2+0.8*occ);
+        
+		    float3 lin = float3(0.0, 0.0, 0.0); 
+		         lin += 7.0*float3(1.50,1.10,0.70)*dif1;
+		         lin += 4.0*float3(0.25,0.20,0.15)*dif2;
+        	     lin += 1.5*float3(0.10,0.20,0.30)*dif3;
+                 lin += 2.5*float3(0.35,0.30,0.25)*(0.05+0.95*occ); // ambient
+        	     lin += 4.0*fac*occ;                          // fake SSS
+		    col *= lin;
+		    col = pow( col, float3(0.7,0.9,1.0) );                  // fake SSS
+            col += spe1*15.0;
+            //col += 8.0*float3(0.8,0.9,1.0)*(0.2+0.8*occ)*(0.03+0.97*pow(fac,5.0))*smoothstep(0.0,0.1,ref.y )*softshadow( pos+0.01*nor, ref, 2.0 );
+            //col = float3(occ*occ);
+        
+            // gamma
+	        col = sqrt( col );
+            
+            rayPayload.color = float4(col, 1.f);
+            return;
+        }
     }
 
     // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 

@@ -13,6 +13,7 @@ using namespace DirectX;
 struct ProceduralPrimitiveAttributes
 {
 	XMFLOAT3 normal;
+	XMFLOAT4 color;
 };
 
 #endif
