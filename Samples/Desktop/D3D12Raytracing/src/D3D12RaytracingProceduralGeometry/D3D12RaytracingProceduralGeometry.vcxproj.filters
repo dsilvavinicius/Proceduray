@@ -198,6 +198,9 @@
     <None Include="Graph3D.hlsli">
       <Filter>Assets\Shaders</Filter>
     </None>
+    <None Include="JuliaSets.hlsli">
+      <Filter>Assets\Shaders\ProceduralPrimitives</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Raytracing.hlsl">

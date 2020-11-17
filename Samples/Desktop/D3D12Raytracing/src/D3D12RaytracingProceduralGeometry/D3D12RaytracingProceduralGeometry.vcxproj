@@ -265,6 +265,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Graph3D.hlsli" />
+    <None Include="JuliaSets.hlsli" />
     <None Include="packages.config" />
     <None Include="readme.md" />
   </ItemGroup>

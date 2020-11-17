@@ -20,6 +20,7 @@
 #include "engine/ShaderCompat.h"
 #include "ProceduralPrimitivesLibrary.hlsli"
 #include "RaytracingShaderHelper.hlsli"
+#include "JuliaSets.hlsli"
 
 #include "Graph3D.hlsli"
 
@@ -257,6 +258,16 @@ void MyRaygenShader()
     g_renderTarget[DispatchRaysIndex().xy] = color;
 }
 
+//[shader("raygeneration")]
+//void MyRaygenShader()
+//{
+//    float4 col = {0.0, 0.0, 0.0, 1.0};
+//    f_mainImage_float4(col, DispatchRaysIndex().xy, DispatchRaysDimensions().xy, g_sceneCB.elapsedTime);
+
+//    // Write the raytraced color to the output texture.
+//    g_renderTarget[DispatchRaysIndex().xy] = col;
+//}
+
 //***************************************************************************
 //******************------ Closest hit shaders -------***********************
 //***************************************************************************
@@ -345,25 +356,10 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
     // DEBUG
+    if (HitKind() == 1)
     {
-        int hitKind = HitKind();
-        if (hitKind == 1)
-        {
-            rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
-            return;
-        }
-        
-        if (hitKind == 2)
-        {
-            rayPayload.color = float4(0.f, 1.f, 0.f, 0.f);
-            return;
-        }
-        
-        if (hitKind == 3)
-        {
-            rayPayload.color = float4(0.f, 0.f, 1.f, 0.f);
-            return;
-        }
+        rayPayload.color = float4(0.f, 0.f, 1.f, 0.f);
+        return;
     }
 
     // PERFORMANCE TIP: it is recommended to minimize values carry over across TraceRay() calls. 
@@ -405,6 +401,12 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
 [shader("closesthit")]
 void MandelbulbClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
+    if (HitKind() == 1)
+    {
+        rayPayload.color = float4(0.f, 1.f, 0.f, 0.f);
+        return;
+    }
+
     // color
     float3 col = float3(0.01, 0.01, 0.01);
 	col = lerp( col, float3(0.10,0.20,0.30), clamp(attr.color.y,0.0,1.0) );
@@ -448,7 +450,48 @@ void MandelbulbClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAtt
     // gamma
 	col = sqrt( col );
             
-    rayPayload.color = float4(col, 1.f);
+    float4 color = float4(col, 1.f);
+    
+    // Reflected component.
+    float4 reflectedColor = float4(0, 0, 0, 0);
+    if (l_materialCB.reflectanceCoef > 0.001)
+    {
+        // Trace a reflection ray.
+        Ray reflectionRay = {pos, ref};
+        float4 reflectionColor = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth);
+
+        float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), attr.normal, l_materialCB.albedo.xyz);
+        reflectedColor = l_materialCB.reflectanceCoef * float4(fresnelR, 1) * reflectionColor;
+    }
+
+    // Calculate final color.
+    color = color + reflectedColor;
+    color += rayPayload.color;
+    
+    // Apply visibility falloff.
+    rayPayload.dist+=RayTCurrent();
+    //float t = rayPayload.dist;
+        
+    //color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+   
+    rayPayload.color = color;
+}
+
+[shader("closesthit")]
+void JuliaClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
+{
+    // DEBUG
+    if (HitKind() == 1)
+    {
+        rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
+        return;
+    }
+
+    float3 pos = HitWorldPosition();
+
+    //rayPayload.color = float4(colorSurface(pos, attr.normal, attr.color.xy), 1.f);
+    //rd = cosineDirection(attr.normal);
+    //ro = pos + attr.normal * kPrecis;
 }
 
 void traceRaySegment(inout RayPayload payload)
@@ -619,34 +662,14 @@ void MyIntersectionShader_SignedDistancePrimitive()
     float thit;
     ProceduralPrimitiveAttributes attr;
     
-    bool primitiveTest;
-    if(primitiveType == SignedDistancePrimitive::Mandelbulb)
+    // DEBUG
+    if(g_sceneCB.debugFlag)
     {
-        // DEBUG
-        if(g_sceneCB.debugFlag)
-        {
-            ReportHit(0, 1, attr);
-            return;
-        }
-        primitiveTest = MandelbulbDistance(localRay, g_sceneCB.elapsedTime, l_aabbCB.instanceIndex, thit, attr, l_materialCB.stepScale);
+        ReportHit(0, 1, attr);
+        return;
     }
-    else if(primitiveType == SignedDistancePrimitive::IntersectedRoundCube)
-    {
-        // DEBUG
-        if(g_sceneCB.debugFlag)
-        {
-            ReportHit(0, 2, attr);
-            return;
-        }
-        primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
-    }
-    else
-    {
-        {
-            ReportHit(0, 3, attr);
-            return;
-        }
-    }
+    
+    bool primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
     
     if (primitiveTest)
     {
@@ -666,6 +689,13 @@ void MandelbulbIntersection()
     float thit;
     ProceduralPrimitiveAttributes attr;
     
+    // DEBUG
+    if(g_sceneCB.debugFlag)
+    {
+        ReportHit(0, 1, attr);
+        return;
+    }
+    
     bool primitiveTest = MandelbulbDistance(localRay, g_sceneCB.elapsedTime, l_aabbCB.instanceIndex, thit, attr, l_materialCB.stepScale);
     
     if (primitiveTest)
@@ -675,6 +705,11 @@ void MandelbulbIntersection()
         
         ReportHit(thit, /*hitKind*/ 0, attr);
     }
+}
+
+[shader("intersection")]
+void JuliaIntersection()
+{
 }
 
 #endif // RAYTRACING_HLSL

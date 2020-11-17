@@ -164,6 +164,7 @@ void ProceduralRtxEngineSample::InitializeScene()
 			using namespace SignedDistancePrimitive;
 			SetAttributes(Mandelbulb, yellow, 0.2, 0.6);
 			SetAttributes(IntersectedRoundCube, green, 0.2, 0.6);
+			SetAttributes(JuliaSets, red, 0.2, 0.6);
 		//	SetAttributes(offset + MiniSpheres, green);
 			//ChromiumReflectance, 1);
 		//	SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
@@ -303,18 +304,14 @@ void ProceduralRtxEngineSample::CreateHitGroups()
 	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"", L""));
 
 	// Procedural Hit Groups.
-	// Analytic.
-	//m_scene->addHitGroup("Analytic", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_AnalyticPrimitive"));
-	//m_scene->addHitGroup("Analytic_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_AnalyticPrimitive"));
-	// Volumetric.
-	//m_scene->addHitGroup("Volumetric", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_VolumetricPrimitive"));
-	//m_scene->addHitGroup("Volumetric_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_VolumetricPrimitive"));
-	//// Signed Distance.
 	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
 	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_SignedDistancePrimitive"));
 
 	m_scene->addHitGroup("Mandelbulb", make_shared<HitGroup>(L"HitGroup_Mandelbulb", L"", L"MandelbulbClosestHit", L"MandelbulbIntersection"));
 	m_scene->addHitGroup("Mandelbulb_Shadow", make_shared<HitGroup>(L"HitGroup_Mandelbulb_Shadow", L"", L"", L"MandelbulbIntersection"));
+	
+	m_scene->addHitGroup("Julia", make_shared<HitGroup>(L"HitGroup_Julia", L"", L"JuliaClosestHit", L"JuliaIntersection"));
+	m_scene->addHitGroup("Julia_Shadow", make_shared<HitGroup>(L"HitGroup_Julia_Shadow", L"", L"", L"JuliaIntersection"));
 }
 
 void ProceduralRtxEngineSample::CreateAccelerationStructures()
@@ -404,16 +401,33 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 					rootArgs.aabbCB.primitiveType = primitiveIndex;
 					rootArgs.aabbCB.instanceIndex = instanceIndex;
 
-					if (primitiveIndex == SignedDistancePrimitive::IntersectedRoundCube)
+					string radianceHitGroup;
+					string shadowHitGroup;
+
+					switch (primitiveIndex)
 					{
-						m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "SignedDist", "Procedural", rootArgs });
-						m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "SignedDist_Shadow", "Procedural", rootArgs });
+						case SignedDistancePrimitive::Mandelbulb:
+						{
+							radianceHitGroup = "Mandelbulb";
+							shadowHitGroup = "Mandelbulb_Shadow";
+							break;
+						}
+						case SignedDistancePrimitive::IntersectedRoundCube:
+						{
+							radianceHitGroup = "SignedDist";
+							shadowHitGroup = "SignedDist_Shadow";
+							break;
+						}
+						case SignedDistancePrimitive::JuliaSets:
+						{
+							radianceHitGroup = "Julia";
+							shadowHitGroup = "Julia_Shadow";
+							break;
+						}
 					}
-					else
-					{
-						m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", "Mandelbulb", "Procedural", rootArgs });
-						m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", "Mandelbulb_Shadow", "Procedural", rootArgs });
-					}
+
+					m_shaderTable->addCommonEntry(ShaderTableEntry{ "Radiance", radianceHitGroup, "Procedural", rootArgs });
+					m_shaderTable->addCommonEntry(ShaderTableEntry{ "Shadow", shadowHitGroup, "Procedural", rootArgs });
 					
 					++instanceIndex;
 				}
@@ -446,16 +460,17 @@ void ProceduralRtxEngineSample::CreateRaytracingOutputResource()
 
 void ProceduralRtxEngineSample::BuildInstancedProcedural()
 {
-	int N = 10;
+	int N = 3;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances mandelbulbInstances;
 	Geometry::Instances pacManInstances;
+	Geometry::Instances juliaInstances;
 	
 	XMMATRIX scale = XMMatrixScaling(10.f, 10.f, 10.f);
 
 	//it iterates in a nxn grid
-	for (int i = 0; i < N; i+=2)
+	for (int i = 0; i < N; i+=3)
 	{
 		for (int j = 0; j < N; ++j)
 		{
@@ -463,7 +478,7 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 			{
 				{
 					//XMFLOAT3 float3(i + 3, j + 3, k);
-					XMFLOAT3 float3(i + 1, j, k);
+					XMFLOAT3 float3(i + 2, j, k);
 					//XMMATRIX rotation = XMMatrixRotationZ(6.28318530718f * (float(j) / N));
 					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
@@ -471,12 +486,24 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 				}
 				
 				{
-					XMFLOAT3 float3(i, j, k);
+					XMFLOAT3 float3(i + 1, j, k);
 					//XMFLOAT3 float3(i, j, k);
 					//XMMATRIX rotation = XMMatrixRotationY(6.28318530718f * (float(j) / N));
 					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
 					pacManInstances.push_back(scale * /* rotation **/ translation);
+				}
+
+				{
+					XMFLOAT3 float3(i, j, k);
+					//XMFLOAT3 float3(i, j, k);
+					//XMMATRIX rotation = XMMatrixRotationY(6.28318530718f * (float(j) / N));
+					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
+
+					XMMATRIX juliaScale = XMMatrixScaling(3.f, 3.f, 3.f);
+
+
+					juliaInstances.push_back(juliaScale * /* rotation **/ translation);
 				}
 			}
 		}
@@ -487,6 +514,9 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 
 	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
 	m_scene->addGeometry("Pacman", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::IntersectedRoundCube], *m_deviceResources, pacManInstances));
+
+	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -6.f, -6.f, -6.f, 6.f, 6.f, 6.f });
+	m_scene->addGeometry("Julia", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::JuliaSets], *m_deviceResources, juliaInstances));
 }
 
 void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
