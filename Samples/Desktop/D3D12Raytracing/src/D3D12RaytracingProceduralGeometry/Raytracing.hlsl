@@ -476,7 +476,12 @@ void JuliaClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttribut
         rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
         return;
     }
-
+    // DEBUG
+    //{
+    //    rayPayload.color = float4(normalize(attr.normal+float3(0,0.5,0)), 1.f);
+    //    return;
+    //}
+    
     if(rayPayload.recursionDepth == 1)
     {
         rayPayload.color = float4( 1.f, 1.f, 1.f, 1.f );
@@ -484,7 +489,6 @@ void JuliaClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttribut
     
     float3 pos = HitWorldPosition();
     float3 dir = WorldRayDirection();
-    //float t = RayTCurrent();
     
     rayPayload.color *= float4(f_colorSurface(pos, attr.normal, attr.color.xy), 1.f);
     
