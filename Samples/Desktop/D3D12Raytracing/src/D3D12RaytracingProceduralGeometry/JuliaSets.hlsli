@@ -99,7 +99,7 @@ float3 f_calcNormal(in float3 _pos)
 }
 float2 f_raycast(in float3 _ro, in float3 _rd)
 {
-    float _tmax2392 = { 7.0 };
+    float _tmax2392 = { 70000000.0 };
     float _tmin2393 = { 0.00025000001 };
     float _tpS2395 = ((0.0099999998 - _ro.y) / _rd.y);
     if ((_tpS2395 > 0.0))
@@ -215,6 +215,21 @@ void f_mainImage_float4(inout float4 _fragColor, in float2 _fragCoord, in float2
     float _resT2431 = { 0 };
     float3 _col2432 = f_render(_fragCoord, _ro2425, _rd2429, _pos2430, _resT2431);
     (_fragColor = vec4_ctor(_col2432, _resT2431));
+}
+
+bool JuliaDistance(in float3 _ro, in float3 _rd, inout float3 normal, inout float2 _resT)
+{
+    (_resT = 100000002004087734272.0);
+    
+    float2 tn = f_raycast(_ro, _rd);
+    bool cond = (tn.x >= 0.0);
+    if (cond)
+    {
+        float3 _pos2419 = (_ro + (tn.x * _rd));
+        normal = f_calcNormal(_pos2419);
+        (_resT = tn);
+    }
+    return cond;
 }
 
 // COMPILER INPUT HLSL END

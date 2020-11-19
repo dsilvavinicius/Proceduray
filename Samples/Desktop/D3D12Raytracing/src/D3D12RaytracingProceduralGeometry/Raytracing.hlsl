@@ -106,7 +106,7 @@ float4 CalculatePhongLighting(in float4 albedo, in float3 normal, in bool isInSh
 //***************************************************************************
 
 // Trace a radiance ray into the scene and returns a shaded color.
-float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
+float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth, float4 color = float4(0.f, 0.f, 0.f, 0.f))
 {
     if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
     {
@@ -121,7 +121,7 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
     // Note: make sure to enable face culling so as to avoid surface face fighting.
     rayDesc.TMin = 0;
     rayDesc.TMax = 10000;
-    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1, 0.f, 0, false};
+    RayPayload rayPayload = { color, currentRayRecursionDepth + 1, 0.f, 0, false};
     TraceRay(g_scene,
         RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
         TraceRayParameters::InstanceMask,
@@ -257,16 +257,6 @@ void MyRaygenShader()
     // Write the raytraced color to the output texture.
     g_renderTarget[DispatchRaysIndex().xy] = color;
 }
-
-//[shader("raygeneration")]
-//void MyRaygenShader()
-//{
-//    float4 col = {0.0, 0.0, 0.0, 1.0};
-//    f_mainImage_float4(col, DispatchRaysIndex().xy, DispatchRaysDimensions().xy, g_sceneCB.elapsedTime);
-
-//    // Write the raytraced color to the output texture.
-//    g_renderTarget[DispatchRaysIndex().xy] = col;
-//}
 
 //***************************************************************************
 //******************------ Closest hit shaders -------***********************
@@ -487,11 +477,33 @@ void JuliaClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttribut
         return;
     }
 
+    if(rayPayload.recursionDepth == 1)
+    {
+        rayPayload.color = float4( 1.f, 1.f, 1.f, 1.f );
+    }
+    
     float3 pos = HitWorldPosition();
-
-    //rayPayload.color = float4(colorSurface(pos, attr.normal, attr.color.xy), 1.f);
-    //rd = cosineDirection(attr.normal);
-    //ro = pos + attr.normal * kPrecis;
+    float3 dir = WorldRayDirection();
+    //float t = RayTCurrent();
+    
+    rayPayload.color *= float4(f_colorSurface(pos, attr.normal, attr.color.xy), 1.f);
+    
+    // DEBUG
+    {
+        return;
+    }
+    
+    Ray reflection = {pos, reflect(dir, attr.normal)};
+    float4 reflectionColor = TraceRadianceRay(reflection, rayPayload.recursionDepth, rayPayload.color);
+    
+    if(rayPayload.recursionDepth == MAX_RAY_RECURSION_DEPTH - 1)
+    {
+        rayPayload.color *= 1.65 * step(0.0, pos.y);
+    }
+    else
+    {
+        rayPayload.color *= reflectionColor;
+    }
 }
 
 void traceRaySegment(inout RayPayload payload)
@@ -710,6 +722,29 @@ void MandelbulbIntersection()
 [shader("intersection")]
 void JuliaIntersection()
 {
+    Ray localRay = GetRayInAABBPrimitiveLocalSpace();
+
+    float2 thit;
+    ProceduralPrimitiveAttributes attr;
+    
+    // DEBUG
+    if(g_sceneCB.debugFlag)
+    {
+        ReportHit(0, 1, attr);
+        return;
+    }
+    
+    float3 pos;
+    bool primitiveTest = JuliaDistance(localRay.origin, localRay.direction, attr.normal, thit);
+    
+    if (primitiveTest)
+    {
+        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        attr.normal = normalize(mul(attr.normal, (float3x3) WorldToObject3x4()));
+        attr.color = float4(thit, 0.f, 0.f); // Using the color parameter to send intersection min and max t.
+        
+        ReportHit(thit.x, /*hitKind*/ 0, attr);
+    }
 }
 
 #endif // RAYTRACING_HLSL

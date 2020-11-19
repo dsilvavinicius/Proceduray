@@ -497,13 +497,13 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 				{
 					XMFLOAT3 float3(i, j, k);
 					//XMFLOAT3 float3(i, j, k);
-					//XMMATRIX rotation = XMMatrixRotationY(6.28318530718f * (float(j) / N));
+					XMMATRIX rotation = XMMatrixRotationX(3.1421);
 					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
 					XMMATRIX juliaScale = XMMatrixScaling(3.f, 3.f, 3.f);
 
 
-					juliaInstances.push_back(juliaScale * /* rotation **/ translation);
+					juliaInstances.push_back(juliaScale * rotation * translation);
 				}
 			}
 		}
