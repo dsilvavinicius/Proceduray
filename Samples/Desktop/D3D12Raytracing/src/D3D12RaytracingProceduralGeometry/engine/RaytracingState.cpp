@@ -132,7 +132,7 @@ namespace RtxEngine
 			// Shader association
 			auto rootSignatureAssociation = raytracingPipeline->CreateSubobject<CD3DX12_SUBOBJECT_TO_EXPORTS_ASSOCIATION_SUBOBJECT>();
 			rootSignatureAssociation->SetSubobjectToAssociate(*rootSignatureSO);
-			rootSignatureAssociation->AddExports(hitGroupIds.data(), hitGroupIds.size());
+			rootSignatureAssociation->AddExports(hitGroupIds.data(), (UINT)hitGroupIds.size());
 		}
 	}
 

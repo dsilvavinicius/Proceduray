@@ -33,14 +33,14 @@ namespace RtxEngine
 
 	void RootSignature::addEntry(RootComponent component, BufferEntry type, const shared_ptr<GpuUploadBuffer>& buffer, UINT reg, UINT space)
 	{
-		m_uploadBuffers[m_params.size()] = buffer;
+		m_uploadBuffers[UINT(m_params.size())] = buffer;
 		addEntry(type, reg, space);
 	}
 
 
 	void RootSignature::addEntry(RootComponent component, BufferEntry type, const ComPtr<ID3D12Resource>& resource, UINT reg, UINT space)
 	{
-		m_genericResources[m_params.size()] = resource;
+		m_genericResources[UINT(m_params.size())] = resource;
 		addEntry(type, reg, space);
 	}
 
@@ -59,7 +59,7 @@ namespace RtxEngine
 
 	UINT RootSignature::addDescriptorTable(const vector<DescriptorRange>& ranges)
 	{
-		UINT descriptorEntryIdx = m_params.size();
+		UINT descriptorEntryIdx = UINT(m_params.size());
 		CD3DX12_ROOT_PARAMETER param;
 		m_ranges.push_back(vector<CD3DX12_DESCRIPTOR_RANGE>());
 		auto& untyped_ranges = *m_ranges.rbegin();
@@ -68,7 +68,7 @@ namespace RtxEngine
 			untyped_ranges.push_back(range.range);
 		}
 		m_baseHandlesToHeap[descriptorEntryIdx] = ranges[0].baseHandleToHeap;
-		param.InitAsDescriptorTable(untyped_ranges.size(), untyped_ranges.data());
+		param.InitAsDescriptorTable(UINT(untyped_ranges.size()), untyped_ranges.data());
 
 		m_params.push_back(param);
 
@@ -91,7 +91,7 @@ namespace RtxEngine
 
 	void RootSignature::build()
 	{
-		CD3DX12_ROOT_SIGNATURE_DESC desc(m_params.size(), m_params.data());
+		CD3DX12_ROOT_SIGNATURE_DESC desc(UINT(m_params.size()), m_params.data());
 		if (m_isLocal)
 		{
 			desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;

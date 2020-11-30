@@ -470,44 +470,53 @@ void MandelbulbClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAtt
 [shader("closesthit")]
 void JuliaClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
-    // DEBUG
-    if (HitKind() == 1)
-    {
-        rayPayload.color = float4(1.f, 0.f, 0.f, 0.f);
-        return;
-    }
-    // DEBUG
-    //{
-    //    rayPayload.color = float4(normalize(attr.normal+float3(0,0.5,0)), 1.f);
-    //    return;
-    //}
+    // Shadow component.
+    // Trace a shadow ray.
+    float3 hitPosition = HitWorldPosition();
+    Ray shadowRay = { hitPosition, normalize(g_sceneCB.lightPosition.xyz - hitPosition) };
+    bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
     
-    if(rayPayload.recursionDepth == 1)
-    {
-        rayPayload.color = float4( 1.f, 1.f, 1.f, 1.f );
-    }
-    
-    float3 pos = HitWorldPosition();
+    float3 pos = ObjectRayOrigin() + RayTCurrent() * ObjectRayDirection();
     float3 dir = WorldRayDirection();
     
-    rayPayload.color *= float4(f_colorSurface(pos, attr.normal, attr.color.xy), 1.f);
+    float4 albedo = float4(3.5*f_colorSurface(pos, attr.color.xy), 1.f);
     
-    // DEBUG
+    if (rayPayload.recursionDepth == MAX_RAY_RECURSION_DEPTH - 1)
     {
-        return;
+       albedo += 1.65 * step(0.0, abs(pos.y));
     }
     
-    Ray reflection = {pos, reflect(dir, attr.normal)};
-    float4 reflectionColor = TraceRadianceRay(reflection, rayPayload.recursionDepth, rayPayload.color);
+    // Reflected component.
+    float4 reflectedColor = float4(0, 0, 0, 0);
     
-    if(rayPayload.recursionDepth == MAX_RAY_RECURSION_DEPTH - 1)
+    float reflecCoef = 0.1;
+    
+    if (reflecCoef > 0.001)
     {
-        rayPayload.color *= 1.65 * step(0.0, pos.y);
+        // Trace a reflection ray.
+        Ray reflectionRay = { hitPosition, reflect(WorldRayDirection(), attr.normal) };
+        float4 reflectionColor = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth);
+        
+        float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), attr.normal, albedo.xyz);
+        reflectedColor = reflecCoef * float4(fresnelR, 1) * reflectionColor;
     }
-    else
-    {
-        rayPayload.color *= reflectionColor;
-    }
+
+    float diffuseCoef = 0.6;
+    float specularCoef = 0.08;
+    float specularPower = 0.2;
+    // Calculate final color.
+    float4 phongColor = CalculatePhongLighting(albedo, attr.normal, shadowRayHit, diffuseCoef, specularCoef, specularPower);
+    float4 color = phongColor + reflectedColor;
+
+    color += rayPayload.color;
+    
+    //// Apply visibility falloff.
+    //rayPayload.dist+=RayTCurrent();
+    //float t = rayPayload.dist;
+        
+    ////color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+   
+    rayPayload.color = color;
 }
 
 void traceRaySegment(inout RayPayload payload)
@@ -640,7 +649,7 @@ void MyIntersectionShader_AnalyticPrimitive()
     AnalyticPrimitive::Enum primitiveType = (AnalyticPrimitive::Enum) l_aabbCB.primitiveType;
 
     float thit;
-    ProceduralPrimitiveAttributes attr;
+    ProceduralPrimitiveAttributes attr = { {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f} };
     if (RayAnalyticGeometryIntersectionTest(localRay, primitiveType, thit, attr))
     {
         PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
@@ -658,7 +667,7 @@ void MyIntersectionShader_VolumetricPrimitive()
     VolumetricPrimitive::Enum primitiveType = (VolumetricPrimitive::Enum) l_aabbCB.primitiveType;
     
     float thit;
-    ProceduralPrimitiveAttributes attr;
+    ProceduralPrimitiveAttributes attr = { {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f} };
     if (RayVolumetricGeometryIntersectionTest(localRay, primitiveType, thit, attr, g_sceneCB.elapsedTime))
     {
         PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
@@ -676,7 +685,7 @@ void MyIntersectionShader_SignedDistancePrimitive()
     SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;
 
     float thit;
-    ProceduralPrimitiveAttributes attr;
+    ProceduralPrimitiveAttributes attr = { {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f} };
     
     // DEBUG
     if(g_sceneCB.debugFlag)
@@ -703,7 +712,7 @@ void MandelbulbIntersection()
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
 
     float thit;
-    ProceduralPrimitiveAttributes attr;
+    ProceduralPrimitiveAttributes attr = { {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f} };
     
     // DEBUG
     if(g_sceneCB.debugFlag)
@@ -729,7 +738,7 @@ void JuliaIntersection()
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
 
     float2 thit;
-    ProceduralPrimitiveAttributes attr;
+    ProceduralPrimitiveAttributes attr = { {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f} };
     
     // DEBUG
     if(g_sceneCB.debugFlag)
@@ -740,6 +749,7 @@ void JuliaIntersection()
     
     float3 pos;
     bool primitiveTest = JuliaDistance(localRay.origin, localRay.direction, attr.normal, thit);
+    //attr.normal = -attr.normal;
     
     if (primitiveTest)
     {

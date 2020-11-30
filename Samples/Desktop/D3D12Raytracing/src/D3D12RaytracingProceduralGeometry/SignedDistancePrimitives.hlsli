@@ -428,10 +428,10 @@ bool MandelbulbDistance(in Ray ray, in float time, int instanceId, out float thi
     dis.y = min( dis.y, 1000.0 );
 
     // raymarch fractal distance field
-	float4 trap;
+	float4 trap = {0.f, 0.f, 0.f, 0.f};
 
 	float t = dis.x;
-    float3 pos;
+    float3 pos = {0.f, 0.f, 0.f};
     
     // Number of iterations is used to animate the Mandelbulbs.
     int iAnimMin = 1;

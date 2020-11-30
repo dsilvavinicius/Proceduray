@@ -53,7 +53,7 @@ namespace RtxEngine
 			resourceBarriers.push_back(resourceBarrier);
 		}
 
-		commandList->ResourceBarrier(bottomLevelAS.size(), resourceBarriers.data());
+		commandList->ResourceBarrier((UINT)bottomLevelAS.size(), resourceBarriers.data());
 
 		// Build top-level AS.
 		AccelerationStructureBuffers topLevelAS = buildTopLevelAS(bottomLevelAS, blasInputVector);
@@ -182,7 +182,7 @@ namespace RtxEngine
 		UINT numDescs = 0;
 		for (auto input : blasInput)
 		{
-			numDescs += input.instances->size();
+			numDescs += (UINT)input.instances->size();
 		}
 
 		// Get required sizes for an acceleration structure.

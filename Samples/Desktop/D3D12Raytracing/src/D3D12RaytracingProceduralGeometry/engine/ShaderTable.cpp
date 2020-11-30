@@ -110,7 +110,7 @@ namespace RtxEngine
 
 		// Miss shader table.
 		{
-			UINT numShaderRecords = missShaderIDs.size();
+			UINT numShaderRecords = UINT(missShaderIDs.size());
 			UINT shaderRecordSize = shaderIDSize; // No root arguments
 
 			::ShaderTable missShaderTable(device, numShaderRecords, shaderRecordSize, L"MissShaderTable");
@@ -125,7 +125,7 @@ namespace RtxEngine
 
 		// Hit group shader table.
 		{
-			UINT numShaderRecords = hitGroupShaderIDs.size();
+			UINT numShaderRecords = UINT(hitGroupShaderIDs.size());
 			UINT shaderRecordSize = shaderIDSize + ShaderCompatUtils::getMaxRootArgumentSize();
 			::ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
 
@@ -136,7 +136,7 @@ namespace RtxEngine
 				ThrowIfFalse(rootSignature->isRootArgumentsTypeEqual(entry.rootArguments));
 				pair<void*, size_t> rootArguments = ShaderCompatUtils::getRootArguments(entry.rootArguments);
 
-				ShaderRecord record(hitGroupShaderIDs[i], shaderIDSize, rootArguments.first, rootArguments.second);
+				ShaderRecord record(hitGroupShaderIDs[i], shaderIDSize, rootArguments.first, UINT(rootArguments.second));
 				try
 				{
 					wstringstream ss;

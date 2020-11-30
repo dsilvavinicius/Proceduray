@@ -1,7 +1,6 @@
 #ifndef JULIASETS_H
 #define JULIASETS_H
 
-#pragma warning( disable: 3556 3571 )
 float2 vec2_ctor(float x0, float x1)
 {
     return float2(x0, x1);
@@ -113,7 +112,7 @@ float2 f_raycast(in float3 _ro, in float3 _rd)
             (_tmax2392 = min(_tmax2392, _tpS2395));
         }
     }
-{
+    {
         float _tpF2396 = ((-0.80000001 - _ro.y) / _rd.y);
         if ((_tpF2396 > 0.0))
         {
@@ -164,57 +163,25 @@ float2 f_raycast(in float3 _ro, in float3 _rd)
     (_res2398.x = s984);
     return _res2398;
 }
-float3 f_colorSurface(in float3 _pos, in float3 _nor, in float2 _tn)
+float3 f_colorSurface(in float3 _pos, in float2 _tn)
 {
     float3 _col2407 = (0.5 + (0.5 * cos((((log2(_tn.y) * 0.89999998) + 3.5) + float3(0.0, 0.60000002, 1.0)))));
+    
     if ((_pos.y > 0.0))
     {
         (_col2407 = lerp(_col2407, float3(1.0, 1.0, 1.0), 0.2));
     }
-    float _inside2408 = smoothstep(14.0, 15.0, _tn.y);
+    float _inside2408 = smoothstep(14.,15., _tn.y);
+    
+   //sss return float3(_inside2408,0.,0.);
+    
     (_col2407 *= (float3(0.44999999, 0.41999999, 0.40000001) + (float3(0.55000001, 0.57999998, 0.60000002) * _inside2408)));
     (_col2407 = lerp(((_col2407 * _col2407) * (3.0 - (2.0 * _col2407))), _col2407, _inside2408));
     (_col2407 = lerp(lerp(_col2407, vec3_ctor(dot(_col2407, float3(0.33329999, 0.33329999, 0.33329999))), -0.40000001), _col2407, _inside2408));
-    return clamp((_col2407 * 0.64999998), 0.0, 1.0);
-}
-float3 f_render(in float2 _fragCoord, in float3 _ro, in float3 _rd, inout float3 _resPos, inout float _resT)
-{
-    float3 _colorMask2415 = { 1.0, 1.0, 1.0 };
-    (_resT = 100000002004087734272.0);
-{
-        for (int _bounce2416 = { 0 }; (_bounce2416 < 3); (_bounce2416++))
-        {
-            float2 _tn2417 = f_raycast(_ro, _rd);
-            float _t2418 = _tn2417.x;
-            if ((_t2418 >= 0.0))
-            {
-                float3 _pos2419 = (_ro + (_t2418 * _rd));
-                float3 _nor2420 = f_calcNormal(_pos2419);
-                if ((_bounce2416 == 0))
-                {
-                    (_resT = _t2418);
-                    (_resPos = _pos2419);
-                }
-                (_colorMask2415 *= f_colorSurface(_pos2419, _nor2420, _tn2417));
-                (_rd = reflect(_rd, _nor2420));
-                (_ro = (_pos2419 + (_nor2420 * 0.00025000001)));
-            }
-        }
-    }
-    return ((_colorMask2415 * 1.65) * step(0.0, _rd.y));
-}
-void f_mainImage_float4(inout float4 _fragColor, in float2 _fragCoord, in float2 _iResolution, in float _iTime)
-{
-    float _an2424 = (0.5 + (_iTime * 0.059999999));
-    float3 _ro2425 = (2.0 * vec3_ctor(sin(_an2424), (0.80000001 + sin(_an2424)), cos(_an2424)));
-    float3 _ta2426 = { 0.0, -0.30000001, 0.0 };
-    float3x3 _cam2427 = f_setCamera(_ro2425, _ta2426, 3.14);
-    float2 _p2428 = (((2.0 * _fragCoord) - _iResolution.xy) / _iResolution.y);
-    float3 _rd2429 = normalize(mul(transpose(_cam2427), vec3_ctor(_p2428.xy, 3.0)));
-    float3 _pos2430 = { 0, 0, 0 };
-    float _resT2431 = { 0 };
-    float3 _col2432 = f_render(_fragCoord, _ro2425, _rd2429, _pos2430, _resT2431);
-    (_fragColor = vec4_ctor(_col2432, _resT2431));
+    
+    float3 surfaceColor = clamp((_col2407 * 0.64999998), 0.0, 1.0);
+    
+    return surfaceColor;
 }
 
 bool JuliaDistance(in float3 _ro, in float3 _rd, inout float3 normal, inout float2 _resT)
@@ -231,9 +198,5 @@ bool JuliaDistance(in float3 _ro, in float3 _rd, inout float3 normal, inout floa
     }
     return cond;
 }
-
-// COMPILER INPUT HLSL END
-
-// FRAGMENT SHADER END
 
 #endif

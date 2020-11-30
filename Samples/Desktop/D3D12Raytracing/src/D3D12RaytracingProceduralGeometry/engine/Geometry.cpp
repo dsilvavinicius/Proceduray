@@ -22,8 +22,8 @@ namespace RtxEngine
 		AllocateUploadBuffer(device, vertices.data(), vertices.size() * sizeof(Vertex), &m_vertexBuffer.resource);
 
 		// Vertex buffer is passed to the shader along with index buffer as a descriptor range.
-		UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, indices.size() / 2, 0, deviceResources, descriptorHeap);
-		UINT descriptorIndexVB = CreateBufferSRV(&m_vertexBuffer, vertices.size(), sizeof(Vertex), deviceResources, descriptorHeap);
+		UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, UINT(indices.size()) / 2, 0, deviceResources, descriptorHeap);
+		UINT descriptorIndexVB = CreateBufferSRV(&m_vertexBuffer, UINT(vertices.size()), sizeof(Vertex), deviceResources, descriptorHeap);
 		ThrowIfFalse(descriptorIndexVB == descriptorIndexIB + 1, L"Vertex Buffer descriptor index must follow that of Index Buffer descriptor index");
 	}
 

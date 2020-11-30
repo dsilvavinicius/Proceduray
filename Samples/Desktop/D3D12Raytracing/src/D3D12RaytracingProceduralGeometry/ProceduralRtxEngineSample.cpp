@@ -66,7 +66,7 @@ void ProceduralRtxEngineSample::UpdateCameraMatrices(float deltaT)
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
 	//(*m_sceneCB)->cameraPosition = m_eye;
-	float fovRadiansY = 3.14159265359/4.;
+	float fovRadiansY = 3.14159265359f/4.f;
 
 	//stringstream ss;
 	//ss << "Aspect: " << m_aspectRatio << endl << endl;
@@ -162,9 +162,9 @@ void ProceduralRtxEngineSample::InitializeScene()
 		//// Signed distance primitives.
 		//{
 			using namespace SignedDistancePrimitive;
-			SetAttributes(Mandelbulb, yellow, 0.2, 0.6);
-			SetAttributes(IntersectedRoundCube, green, 0.2, 0.6);
-			SetAttributes(JuliaSets, red, 0.2, 0.6);
+			SetAttributes(Mandelbulb, yellow, 0.2f, 0.6f);
+			SetAttributes(IntersectedRoundCube, green, 0.2f, 0.6f);
+			SetAttributes(JuliaSets, red, 0.2f, 0.6f);
 		//	SetAttributes(offset + MiniSpheres, green);
 			//ChromiumReflectance, 1);
 		//	SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
@@ -470,11 +470,11 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 	XMMATRIX scale = XMMatrixScaling(10.f, 10.f, 10.f);
 
 	//it iterates in a nxn grid
-	for (int i = 0; i < N; i+=3)
+	for (float i = 0; i < N; i+=3)
 	{
-		for (int j = 0; j < N; ++j)
+		for (float j = 0; j < N; ++j)
 		{
-			for (int k = 0; k < N; ++k)
+			for (float k = 0; k < N; ++k)
 			{
 				{
 					//XMFLOAT3 float3(i + 3, j + 3, k);
@@ -497,7 +497,7 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 				{
 					XMFLOAT3 float3(i, j, k);
 					//XMFLOAT3 float3(i, j, k);
-					XMMATRIX rotation = XMMatrixRotationX(3.1421);
+					XMMATRIX rotation = XMMatrixRotationX(3.1421f);
 					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
 					XMMATRIX juliaScale = XMMatrixScaling(3.f, 3.f, 3.f);
@@ -524,7 +524,7 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 	XMFLOAT3 q = XMFLOAT3(-0.5f, 0.f, 0.f);
 	XMFLOAT3 p = XMFLOAT3(0.5f, 0.f, 0.f);
 
-	float d = 0.2;
+	float d = 0.2f;
 
 	//for each point, we creat a parallelepiped in the x-direction, thus 8 vertices
 	XMFLOAT3 q01 = XMFLOAT3(q.x, q.y - d, q.z + d);
@@ -573,14 +573,14 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 	XMMATRIX mScale = XMMatrixScaling(200, 20, 200);
 
 	//it iterates in a nxn grid
-	for (int i = 0; i < N; i++)
+	for (float i = 0; i < N; i++)
 	{
-		for (int j = 0; j < N; j++)
+		for (float j = 0; j < N; j++)
 		{
-			for (int k = 0; k < N; k++)
+			for (float k = 0; k < N; k++)
 			{
 				XMFLOAT3 globalTranslation(0.f, 0.f, 0.f);
-				XMFLOAT3 float3(i-6, j+6.5, k);
+				XMFLOAT3 float3(i-6, j+6.5f, k);
 
 				XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&globalTranslation) + (30. * XMLoadFloat3(&float3)));
 
@@ -647,14 +647,14 @@ void ProceduralRtxEngineSample::BuildGeometry()
 
 void ProceduralRtxEngineSample::OnMouseMove(UINT x, UINT y)
 {
-	m_input.newMousePos(XMFLOAT2(x, y));
+	m_input.newMousePos(XMFLOAT2(float(x), float(y)));
 }
 
 void ProceduralRtxEngineSample::OnLeftButtonDown(UINT x, UINT y)
 {
 	m_input.setMouseButton(InputManager::LEFT, true);
-	m_input.newMousePos(XMFLOAT2(x, y));
-	m_input.newMousePos(XMFLOAT2(x, y));
+	m_input.newMousePos(XMFLOAT2(float(x), float(y)));
+	m_input.newMousePos(XMFLOAT2(float(x), float(y)));
 }
 
 void ProceduralRtxEngineSample::OnLeftButtonUp(UINT x, UINT y)
