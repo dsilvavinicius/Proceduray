@@ -850,8 +850,7 @@ void ProceduralRtxEngineSample::CalculateFrameStats()
 
 		frameCnt = 0;
 		prevTime = totalTime;
-		//float raytracingTime = static_cast<float>(m_rayTracingState->getGpuTimer().GetElapsedMS());
-		float raytracingTime = 0.f;
+		float raytracingTime = static_cast<float>(m_rayTracingState->getGpuTimer().GetElapsedMS());
 		float MRaysPerSecond = NumMRaysPerSecond(m_width, m_height, raytracingTime);
 
 		wstringstream windowText;

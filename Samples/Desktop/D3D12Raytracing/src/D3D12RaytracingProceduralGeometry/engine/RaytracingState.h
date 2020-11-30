@@ -15,7 +15,7 @@ namespace RtxEngine
 
 		DxrStatePtr& getBuilded() { return m_dxrState; }
 
-		//const DX::GPUTimer& getGpuTimer() { return m_gpuTimer; }
+		const DX::GPUTimer& getGpuTimer() { return m_gpuTimer; }
 
 		void doRayTracing(const BuildedShaderTablePtr& shaderTable, UINT width, UINT height);
 
@@ -33,7 +33,7 @@ namespace RtxEngine
 		DescriptorHeapPtr m_descriptorHeap;
 
 		// Generated.
-		//DX::GPUTimer m_gpuTimer;
+		DX::GPUTimer m_gpuTimer;
 
 		// Output.
 		DxrStatePtr m_dxrState;
