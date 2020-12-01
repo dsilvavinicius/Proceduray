@@ -748,8 +748,7 @@ void JuliaIntersection()
     }
     
     float3 pos;
-    bool primitiveTest = JuliaDistance(localRay.origin, localRay.direction, attr.normal, thit);
-    //attr.normal = -attr.normal;
+    bool primitiveTest = JuliaDistance(localRay.origin, localRay.direction, attr.normal, thit, g_sceneCB.elapsedTime);
     
     if (primitiveTest)
     {
