@@ -66,20 +66,20 @@ float3x3 f_setCamera(in float3 _ro, in float3 _ta, in float _cr)
     float3 s983 = _cw2373;
     return mat3_ctor(s981[0], s981[1], s981[2], s982[0], s982[1], s982[2], s983[0], s983[1], s983[2]);
 }
-float2 f_map(in float3 _p, in float4 c)
+float2 f_map(in float3 _p, in float4 c, in int iMax)
 {
     float4 _z2379 = vec4_ctor(_p, 0.0);
     float _dz22380 = { 1.0 };
     float _m22381 = { 0.0 };
     float _n2382 = { 0.0 };
-    float _o2383 = { 10000000000.0 };
+    //float _o2383 = { 10000000000.0 }; //used to render the traps
 {
-        for (int _i2384 = { 0 }; (_i2384 < 200); (_i2384++))
+        for (int _i2384 = { 0 }; (_i2384 < iMax); (_i2384++))
         {
             (_dz22380 *= (9.0 * f_qLength2_float4(f_qSquare_float4(_z2379))));
             (_z2379 = (f_qCube_float4(_z2379) + c));
             (_m22381 = f_qLength2_float4(_z2379));
-            (_o2383 = min(_o2383, (length((_z2379.xz - float2(0.44999999, 0.55000001))) - 0.1)));
+            //(_o2383 = min(_o2383, (length((_z2379.xz - float2(0.44999999, 0.55000001))) - 0.1))); //used to render the traps
             if ((_m22381 > 256.0))
             {
                 break;
@@ -88,15 +88,15 @@ float2 f_map(in float3 _p, in float4 c)
         }
     }
     float _d2385 = ((0.25 * log(_m22381)) * sqrt((_m22381 / _dz22380)));
-    (_d2385 = min(_o2383, _d2385));
+    //(_d2385 = min(_o2383, _d2385));//used to render the traps
     //(_d2385 = max(_d2385, _p.y));
     return vec2_ctor(_d2385, _n2382);
 }
-float3 f_calcNormal(in float3 _pos, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728))
+float3 f_calcNormal(in float3 _pos, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in int iMax = 200)
 {
-    return normalize(((((float3(0.00014432501, -0.00014432501, -0.00014432501) * f_map((_pos + float3(0.00014432501, -0.00014432501, -0.00014432501)), c).x) + (float3(-0.00014432501, -0.00014432501, 0.00014432501) * f_map((_pos + float3(-0.00014432501, -0.00014432501, 0.00014432501)), c).x)) + (float3(-0.00014432501, 0.00014432501, -0.00014432501) * f_map((_pos + float3(-0.00014432501, 0.00014432501, -0.00014432501)), c).x)) + (float3(0.00014432501, 0.00014432501, 0.00014432501) * f_map((_pos + float3(0.00014432501, 0.00014432501, 0.00014432501)), c).x)));
+    return normalize(((((float3(0.00014432501, -0.00014432501, -0.00014432501) * f_map((_pos + float3(0.00014432501, -0.00014432501, -0.00014432501)), c, iMax).x) + (float3(-0.00014432501, -0.00014432501, 0.00014432501) * f_map((_pos + float3(-0.00014432501, -0.00014432501, 0.00014432501)), c, iMax).x)) + (float3(-0.00014432501, 0.00014432501, -0.00014432501) * f_map((_pos + float3(-0.00014432501, 0.00014432501, -0.00014432501)), c, iMax).x)) + (float3(0.00014432501, 0.00014432501, 0.00014432501) * f_map((_pos + float3(0.00014432501, 0.00014432501, 0.00014432501)), c, iMax).x)));
 }
-float2 f_raycast(in float3 _ro, in float3 _rd, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in float deltaT = 0.3)
+float2 f_raycast(in float3 _ro, in float3 _rd, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in float deltaT = 0.0, in int iMax = 200)
 {
     float _tmax2392 = { 7000.f };
     float _tmin2393 = { 0.00025000001f };
@@ -150,7 +150,7 @@ float2 f_raycast(in float3 _ro, in float3 _rd, in float4 c = float4(-0.090909094
         }
     }
     
-    float2 _bv2397 = f_iSphere(_ro, _rd, 1.3);
+    float2 _bv2397 = f_iSphere(_ro, _rd, 1.2);
     if ((_bv2397.y < 0.0))
     {
         return float2(-2.0, 0.0);
@@ -164,14 +164,15 @@ float2 f_raycast(in float3 _ro, in float3 _rd, in float4 c = float4(-0.090909094
 {
         for (int _i2402 = { 0 }; (_i2402 < 1024); (_i2402++))
         {
-            (_res2398 = f_map((_ro + (_rd * _t2399)), c));
+            (_res2398 = f_map((_ro + (_rd * _t2399)), c, iMax));
             if ((_res2398.x < 0.00025000001))
             {
                 break;
             }
             (_lt2400 = _t2399);
             (_lh2401 = _res2398.x);
-            (_t2399 += (min(_res2398.x, 0.0099999998) * 1.0));
+            //(_t2399 += (min(_res2398.x, 0.0099999998) * 1.0));//used to render the traps
+            (_t2399 += min(_res2398.x, 0.2));
             if ((_t2399 > _tmax2392))
             {
                 break;
@@ -219,12 +220,16 @@ bool JuliaDistance(in float3 _ro, in float3 _rd, inout float3 normal, inout floa
 {
     (_resT = 100000002004087734272.0);
     
+    _ro *= 0.4;
+    
+    _ro.y += -1.f;//for the scene with multiples objects
+
     // cut animation
     int iAnimMin = 0;
     int iAnimMax = 600;
     
     float minCut = -0.3f;
-    float maxCut = 1.6f;
+    float maxCut = 0.6f;
     
     
     int iMax = (10.5*time) % (iAnimMax*2);
@@ -235,18 +240,23 @@ bool JuliaDistance(in float3 _ro, in float3 _rd, inout float3 normal, inout floa
     iMax += iAnimMin;
     
     float deltaT = minCut + maxCut*float(iMax)/float(iAnimMax);
+    //float deltaT = 0.3f;//minCut + maxCut*float(iMax)/float(iAnimMax);
     
     // julia animation
-    float4 c = 0.45*cos( float4(0.5,3.9,1.4,1.1) + 0.01*(time+100.)*float4(1.2,1.7,1.3,2.5) ) - float4(0.3,0.0,0.0,0.0);
+    //float4 c = 0.45*cos( float4(0.5,3.9,1.4,1.1) + 0.01*(time+100.)*float4(1.2,1.7,1.3,2.5) ) - float4(0.3,0.0,0.0,0.0);
+    float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728);
     
-    //float2 tn = f_raycast(_ro, _rd, c, deltaT);
-    float2 tn = f_raycast(_ro, _rd, c);
+    //float2 tn = f_raycast(_ro, _rd, c, deltaT, iMax+2);
+    //float2 tn = f_raycast(_ro, _rd, c, deltaT, 200);
+    //float2 tn = f_raycast(_ro, _rd, c);
+    float2 tn = f_raycast(_ro, _rd);
     
     bool cond = (tn.x >= 0.0);
     if (cond)
     {
         float3 _pos2419 = (_ro + (tn.x * _rd));
-        normal = f_calcNormal(_pos2419, c);
+        //normal = f_calcNormal(_pos2419, c, iMax+2);
+        normal = f_calcNormal(_pos2419);
         (_resT = tn);
     }
     return cond;

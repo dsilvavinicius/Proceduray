@@ -60,7 +60,7 @@ bool RayVolumetricGeometryIntersectionTest(in Ray ray, in VolumetricPrimitive::E
 // The test, instead, calls into this function to retrieve a distance for a primitive.
 // AABB local space dimensions: <-1,1>.
 // Ref: http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
-float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistancePrimitive::Enum signedDistancePrimitive)
+float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistancePrimitive::Enum signedDistancePrimitive, in float time)
 {
     // DEBUG
     //{
@@ -84,7 +84,21 @@ float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistan
         //}
         //PacMans
         {
-            return pacMan(position);
+
+            // mouth animation
+            int iAnimMin = 0;
+            int iAnimMax = 300;
+
+            int iMax = (200.5 * time) % (iAnimMax * 2);
+            if (iMax > iAnimMax)
+            {
+                iMax = 2 * iAnimMax - iMax;
+            }
+            iMax += iAnimMin;
+
+            float t = float(iMax) / float(iAnimMax);
+
+            return pacMan(position, t);
         }
     
     //case SignedDistancePrimitive::SquareTorus: 

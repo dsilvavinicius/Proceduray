@@ -63,14 +63,10 @@ void ProceduralRtxEngineSample::OnInit()
 // Update camera matrices passed into the shader.
 void ProceduralRtxEngineSample::UpdateCameraMatrices(float deltaT)
 {
-	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+	/*auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
 	//(*m_sceneCB)->cameraPosition = m_eye;
 	float fovRadiansY = 3.14159265359f/4.f;
-
-	//stringstream ss;
-	//ss << "Aspect: " << m_aspectRatio << endl << endl;
-	//OutputDebugStringA(ss.str().c_str());
 
 	m_cam->SetPerspectiveMatrix(fovRadiansY, 1.f / m_aspectRatio, 0.01f, 125.0f);
 	m_camController.Update(deltaT, m_input);
@@ -78,11 +74,63 @@ void ProceduralRtxEngineSample::UpdateCameraMatrices(float deltaT)
 
 	(*m_sceneCB)->cameraPosition = m_cam->GetPosition();
 	//XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
-	
+
 	//XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
 	//XMMATRIX viewProj = view * proj;
 	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
-	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam->GetViewProjMatrix());
+	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam->GetViewProjMatrix());*/
+
+
+	float an = 0.5 + float(deltaT) * 0.1;
+
+	// Initialize the view and projection inverse matrices.
+	//DirectX::XMVECTOR m_eye = { 4.0 * sin(an), 4.0 * (-0.3 + sin(2.f * an)), 4.0 * cos(an), 1.0f };
+
+	DirectX::XMVECTOR m_eye = { 135.0 * sin(2*an)+15, 
+							   -95 * (sin(an) + 0.6),
+								155.0 * cos(2 * an)+15, 1.0f };//for mandelbulb
+	
+	//float t = 13 * abs(cos(an));
+	//DirectX::XMVECTOR m_eye = { 6.0 + t.0 * , -110.8, 6.0 + t, 1.0f };//for mandelbulb
+	
+	//DirectX::XMVECTOR m_eye = { 5.0 * sin(an), -4.0 * 0.8, 5.0 * cos(an), 1.0f };
+	//DirectX::XMVECTOR m_eye = { 5.0 * sin(an), -5.0 * 0.8, 5.0 * cos(an), 1.0f };
+	
+	//DirectX::XMVECTOR m_eye = { 2.0 * sin(an), -5.0 * 0.8 + 2.*cos(an), 2.0 * cos(an), 1.0f };
+	//DirectX::XMVECTOR m_at = { 0.1 * sin(an), 1.0, 0.1 * cos(an), 1.0f };
+	
+	DirectX::XMVECTOR m_at = { 15.f, -0.3f, 25.f, 1.0f };
+	XMVECTOR right = { 0.0f, 1.0f, 0.0f, 0.0f };
+
+	XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
+	DirectX::XMVECTOR m_up = XMVector3Normalize(XMVector3Cross(direction, right));
+
+	// Rotate camera around Y axis.
+	XMMATRIX rotate = XMMatrixRotationZ(XMConvertToRadians(270.0f));
+	//m_eye = XMVector3Transform(m_eye, rotate);
+	//m_up = XMVector3Transform(m_up, rotate);
+
+	// Init cam.
+	//m_cam->SetEyeAtUp(Math::Vector3(m_eye), Math::Vector3(m_at), Math::Vector3(m_up));
+	float fovAngleY = 45.0f;
+	//m_cam.SetPerspectiveMatrix(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
+
+	//auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+
+	//float fovRadiansY = 3.14159265359f / 4.f;
+
+	//m_cam->SetPerspectiveMatrix(fovRadiansY, 1.f / m_aspectRatio, 0.01f, 125.0f);
+	//m_camController.Update(deltaT, m_input);
+	//m_cam->Update();
+
+	(*m_sceneCB)->cameraPosition = m_eye;
+	XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
+
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
+	XMMATRIX viewProj =  view * rotate * proj ;
+	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
+	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam->GetViewProjMatrix());
+
 }
 
 // Update AABB primite attributes buffers passed into the shader.
@@ -141,7 +189,7 @@ void ProceduralRtxEngineSample::InitializeScene()
 		// Albedos
 		XMFLOAT4 green = XMFLOAT4(0.1f, 1.0f, 0.5f, 1.0f);
 		XMFLOAT4 red = XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
-		XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.5f, 1.0f);
+		XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
 
 		//UINT offset = 0;
 		// Analytic primitives.
@@ -163,7 +211,7 @@ void ProceduralRtxEngineSample::InitializeScene()
 		//{
 			using namespace SignedDistancePrimitive;
 			SetAttributes(Mandelbulb, yellow, 0.2f, 0.6f);
-			SetAttributes(IntersectedRoundCube, green, 0.2f, 0.6f);
+			SetAttributes(IntersectedRoundCube, yellow, 0.3f, 0.3f);
 			SetAttributes(JuliaSets, red, 0.2f, 0.6f);
 		//	SetAttributes(offset + MiniSpheres, green);
 			//ChromiumReflectance, 1);
@@ -460,14 +508,14 @@ void ProceduralRtxEngineSample::CreateRaytracingOutputResource()
 
 void ProceduralRtxEngineSample::BuildInstancedProcedural()
 {
-	int N = 3;
+	int N = 1;
 
 	// Bottom-level AS with a single plane.
 	Geometry::Instances mandelbulbInstances;
 	Geometry::Instances pacManInstances;
 	Geometry::Instances juliaInstances;
 	
-	XMMATRIX scale = XMMatrixScaling(10.f, 10.f, 10.f);
+	//XMMATRIX scale = XMMatrixScaling(15.f, 15.f, 15.f);
 
 	//it iterates in a nxn grid
 	for (float i = 0; i < N; i+=3)
@@ -477,31 +525,39 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 			for (float k = 0; k < N; ++k)
 			{
 				{
-					//XMFLOAT3 float3(i + 3, j + 3, k);
-					XMFLOAT3 float3(i + 2, j, k);
-					//XMMATRIX rotation = XMMatrixRotationZ(6.28318530718f * (float(j) / N));
+					//XMFLOAT3 float3(i + 2, j, k);
+					XMFLOAT3 float3(i, j-1., k+2.3);
 					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
+					
+					XMMATRIX mandelbulbScale = XMMatrixScaling(40.f, 40.f, 40.f);
 
-					mandelbulbInstances.push_back(scale * /*rotation **/ translation);
+					mandelbulbInstances.push_back(mandelbulbScale * /*rotation **/ translation);
 				}
 				
 				{
-					XMFLOAT3 float3(i + 1, j, k);
-					//XMFLOAT3 float3(i, j, k);
-					//XMMATRIX rotation = XMMatrixRotationY(6.28318530718f * (float(j) / N));
-					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
+					//XMFLOAT3 float3(i + 1, j, k);
+					/*XMFLOAT3 float3_1(i, j, k);
+					XMMATRIX translation1 = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3_1));*/
 
-					pacManInstances.push_back(scale * /* rotation **/ translation);
+					XMFLOAT3 float3_2(i+0.7, j-0.7, k);
+					XMMATRIX translation2 = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3_2));
+
+					XMFLOAT3 float3_3(i-0.7, j-0.7, k);
+					XMMATRIX translation3 = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3_3));
+
+					XMMATRIX pacmanScale = XMMatrixScaling(50.f, 50.f, 50.f);
+
+					//pacManInstances.push_back(pacmanScale * /* rotation **/ translation1);
+					pacManInstances.push_back(pacmanScale * /* rotation **/ translation2);
+					pacManInstances.push_back(pacmanScale * /* rotation **/ translation3);
 				}
 
 				{
-					XMFLOAT3 float3(i, j, k);
-					//XMFLOAT3 float3(i, j, k);
+					XMFLOAT3 float3(i, j +2.6, k+1.5);
 					XMMATRIX rotation = XMMatrixRotationX(3.1421f);
 					XMMATRIX translation = XMMatrixTranslationFromVector(50.f * XMLoadFloat3(&float3));
 
-					XMMATRIX juliaScale = XMMatrixScaling(3.f, 3.f, 3.f);
-
+					XMMATRIX juliaScale = XMMatrixScaling(100.f, 30.f, 100.f);
 
 					juliaInstances.push_back(juliaScale * rotation * translation);
 				}
@@ -509,14 +565,17 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 		}
 	}
 
-	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -1.5f, -1.5f, -1.5f, 1.5f, 1.5f, 1.5f });
-	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::Mandelbulb], *m_deviceResources, mandelbulbInstances));
+
+	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -3.5f, -3.5f, -3.5f, 3.5f, 3.5f, 3.5f });
+	m_scene->addGeometry("Julia", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::JuliaSets], *m_deviceResources, juliaInstances));
 
 	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
 	m_scene->addGeometry("Pacman", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::IntersectedRoundCube], *m_deviceResources, pacManInstances));
 
-	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -6.f, -6.f, -6.f, 6.f, 6.f, 6.f });
-	m_scene->addGeometry("Julia", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::JuliaSets], *m_deviceResources, juliaInstances));
+	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -1.5f, -1.5f, -1.5f, 1.5f, 1.5f, 1.5f });
+	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::Mandelbulb], *m_deviceResources, mandelbulbInstances));
+
+
 }
 
 void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
@@ -538,13 +597,13 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 	XMFLOAT3 p11 = XMFLOAT3(p.x, p.y + d, p.z + d);
 
 	vector<Vertex> vertices{
-		{ q01, XMFLOAT3(0.0f, 0.0f, 1.0f)  },
+		{ q01, XMFLOAT3(0.0f, 0.0f, -1.0f)  },
 		{ q00, XMFLOAT3(0.0f, 1.0f, 0.0f)  },
 		{ q10, XMFLOAT3(1.0f, 0.0f, 0.0f)  },
 		{ q11, XMFLOAT3(0.0f, -1.0f, 0.0f) },
 
 		{ p01, XMFLOAT3(-1.0f, 0.0f, 0.0f) },
-		{ p00, XMFLOAT3(0.0f, 0.0f, -1.0f) },
+		{ p00, XMFLOAT3(0.0f, 0.0f, 1.0f) },
 		{ p10, XMFLOAT3(0.0f, 1.0f, 0.0f)  },
 		{ p11, XMFLOAT3(0.0f, 1.0f, 0.0f)  }
 	};
@@ -570,7 +629,7 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 	Geometry::Instances instances;
 		
 	// Scale in XZ dimensions.
-	XMMATRIX mScale = XMMatrixScaling(200, 20, 200);
+	XMMATRIX mScale = XMMatrixScaling(120, 15, 120);
 
 	//it iterates in a nxn grid
 	for (float i = 0; i < N; i++)
@@ -579,8 +638,8 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 		{
 			for (float k = 0; k < N; k++)
 			{
-				XMFLOAT3 globalTranslation(0.f, 0.f, 0.f);
-				XMFLOAT3 float3(i-6, j+6.5f, k);
+				XMFLOAT3 globalTranslation(0.f, -15.f, 0.f);
+				XMFLOAT3 float3(i, j+0.5f, k);
 
 				XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&globalTranslation) + (30. * XMLoadFloat3(&float3)));
 
@@ -703,8 +762,6 @@ void ProceduralRtxEngineSample::OnUpdate()
 	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 	auto prevFrameIndex = m_deviceResources->GetPreviousFrameIndex();
 
-	UpdateCameraMatrices(elapsedTime);
-
 	// Rotate the second light around Y axis.
 	if (m_animateLight)
 	{
@@ -720,6 +777,9 @@ void ProceduralRtxEngineSample::OnUpdate()
 	{
 		m_animateGeometryTime += elapsedTime;
 	}
+
+	UpdateCameraMatrices(m_animateGeometryTime);
+
 	UpdateAABBPrimitiveAttributes(m_animateGeometryTime);
 	(*m_sceneCB)->elapsedTime = m_animateGeometryTime;
 	

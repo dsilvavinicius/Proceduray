@@ -94,9 +94,9 @@ namespace VolumetricPrimitive {
 
 namespace SignedDistancePrimitive {
     enum Enum {
-        Mandelbulb = 0,
+        JuliaSets=0,
         IntersectedRoundCube,
-        JuliaSets,
+        Mandelbulb,
         Count = 3
     };
 }

@@ -47,7 +47,7 @@
 #include "RaytracingShaderHelper.hlsli"
 
 //------------------------------------------------------------------
-float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistancePrimitive::Enum sdPrimitive);
+float GetDistanceFromSignedDistancePrimitive(in float3 position, in SignedDistancePrimitive::Enum sdPrimitive, in float time);
 
 //------------------------------------------------------------------
 
@@ -310,11 +310,10 @@ float torusVisgraf(float3 p)
 }
 
 //by tiago
-float pacMan(float3 p)
+float pacMan(float3 p, float t = 0.5 /*t must be between 0 and 1*/)
 {
     float r1 = float(0.5f); //head radius
-    float2 r2 = float2(0.25f, 0.5f); //mouth radius
-    
+    float2 r2 = float2(0.45f*t+0.05f*(1.f-t), 0.5f); //mouth radius
     
     float3 rot_p = float3(p.z, p.y, -p.x); //mouth orientation
     rot_p = float3(rot_p.y, -rot_p.x + 0.5, rot_p.z); //mouth orientation
@@ -341,14 +340,14 @@ float2 isphere( in float4 sph, in float3 ro, in float3 rd )
 }
 
 
-float3 sdCalculateNormal(in float3 pos, in SignedDistancePrimitive::Enum sdPrimitive)
+float3 sdCalculateNormal(in float3 pos, in SignedDistancePrimitive::Enum sdPrimitive, in float time)
 {
     float2 e = float2(1.0, -1.0) * 0.5773 * 0.0001;
     return normalize(
-        e.xyy * GetDistanceFromSignedDistancePrimitive(pos + e.xyy, sdPrimitive) +
-        e.yyx * GetDistanceFromSignedDistancePrimitive(pos + e.yyx, sdPrimitive) +
-        e.yxy * GetDistanceFromSignedDistancePrimitive(pos + e.yxy, sdPrimitive) +
-        e.xxx * GetDistanceFromSignedDistancePrimitive(pos + e.xxx, sdPrimitive));
+        e.xyy * GetDistanceFromSignedDistancePrimitive(pos + e.xyy, sdPrimitive, time) +
+        e.yyx * GetDistanceFromSignedDistancePrimitive(pos + e.yyx, sdPrimitive, time) +
+        e.yxy * GetDistanceFromSignedDistancePrimitive(pos + e.yxy, sdPrimitive, time) +
+        e.xxx * GetDistanceFromSignedDistancePrimitive(pos + e.xxx, sdPrimitive, time));
 }
 
 float map( in float3 p, out float4 resColor )
@@ -443,6 +442,7 @@ bool MandelbulbDistance(in Ray ray, in float time, int instanceId, out float thi
     }
    
     iMax += iAnimMin;
+    //iMax = 128;
     
 	for( int i=0; i<iMax; i++  )
     { 
@@ -467,7 +467,7 @@ bool MandelbulbDistance(in Ray ray, in float time, int instanceId, out float thi
 
 // Test ray against a signed distance primitive.
 // Ref: https://www.scratchapixel.com/lessons/advanced-rendering/rendering-distance-fields/basic-sphere-tracer
-bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum sdPrimitive, out float thit, out ProceduralPrimitiveAttributes attr, in float stepScale = 1.0f)
+bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum sdPrimitive, out float thit, out ProceduralPrimitiveAttributes attr, in float stepScale = 1.0f, in float time=1.f)
 {
     const float threshold = 0.0001;
     float t = RayTMin();
@@ -478,16 +478,26 @@ bool RaySignedDistancePrimitiveTest(in Ray ray, in SignedDistancePrimitive::Enum
     while (i++ < MaxSteps && t <= RayTCurrent())
     {
         float3 position = ray.origin + t * ray.direction;
-        float distance = GetDistanceFromSignedDistancePrimitive(position, sdPrimitive);
+        float distance = GetDistanceFromSignedDistancePrimitive(position, sdPrimitive, time);
 
         // Has the ray intersected the primitive? 
         if (distance <= threshold * t)
         {
-            float3 hitSurfaceNormal = sdCalculateNormal(position, sdPrimitive);
+            float3 hitSurfaceNormal = sdCalculateNormal(position, sdPrimitive, time);
             if (IsAValidHit(ray, t, hitSurfaceNormal))
             {
                 thit = t;
                 attr.normal = hitSurfaceNormal;
+
+                if (abs(abs(dot(hitSurfaceNormal, normalize(position))) - 1) > 0.001)
+                {
+                    attr.color = float4(0.0f, 0.0f, 0.0f, 1.0f);
+                }
+                else 
+                {
+                    attr.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
+                }
+
                 return true;
             }
         }

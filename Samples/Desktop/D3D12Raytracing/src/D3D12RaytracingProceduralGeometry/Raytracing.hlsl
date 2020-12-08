@@ -24,8 +24,8 @@
 
 #include "Graph3D.hlsli"
 
-static float gStep = 0.5;
-static float gMaxLenght = 200.;
+static float gStep = 4.;
+static float gMaxLenght = 600.;
 
 //***************************************************************************
 //*****------ Shader resources bound via root signatures -------*************
@@ -282,7 +282,8 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     const uint3 indices = Load3x16BitIndices(baseIndex, g_indices);
     
     // Retrieve corresponding vertex normals for the triangle vertices.
-    float3 triangleNormal = /*normalize(grad(HitWorldPosition()));*/g_vertices[indices[0]].normal;
+    float3 triangleNormal = /*normalize(grad(HitWorldPosition()));*/-g_vertices[indices[0]].normal;
+
 
     // PERFORMANCE TIP: it is recommended to avoid values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
@@ -294,9 +295,10 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
 
     //float checkers = AnalyticalCheckersTexture(HitWorldPosition(), triangleNormal, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
-    float checkers = 0;//indices[0]%2;
+    //float checkers = 0;//indices[0]%2;
     // Reflected component.
     float4 reflectedColor = float4(0, 0, 0, 0);
+
     if (l_materialCB.reflectanceCoef > 0.001 )
     {
         // Trace a reflection ray.
@@ -309,9 +311,12 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 
     // Calculate final color.
     float4 phongColor = CalculatePhongLighting(l_materialCB.albedo, triangleNormal, shadowRayHit, l_materialCB.diffuseCoef, l_materialCB.specularCoef, l_materialCB.specularPower);
-    float4 color = (checkers + abs(checkers-1.)* 0.8) * (phongColor + reflectedColor);
+    //float4 color = (checkers + abs(checkers-1.)* 0.8) * (phongColor + reflectedColor);
+
+   // float4 phongColor = float4(l_materialCB.albedo*dot(triangleNormal,WorldRayDirection()));
+    float4 color = phongColor + reflectedColor;
     
-    #ifdef SECTIONALCURVATURE
+ #ifdef SECTIONALCURVATURE
     //computing sectional curvature
     float3 p1 = g_vertices[indices[0]].position;
     float3 p2 = g_vertices[indices[1]].position;
@@ -329,7 +334,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
     {
         color.z += curvature*10000.;
     }
-    #endif
+ #endif
    
     color += rayPayload.color;
     
@@ -375,7 +380,7 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
 
     // Calculate final color.
     float4 phongColor = CalculatePhongLighting(l_materialCB.albedo, attr.normal, shadowRayHit, l_materialCB.diffuseCoef, l_materialCB.specularCoef, l_materialCB.specularPower);
-    float4 color = phongColor + reflectedColor;
+    float4 color = attr.color * (phongColor + reflectedColor);
 
     color += rayPayload.color;
     
@@ -470,11 +475,18 @@ void MandelbulbClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAtt
 [shader("closesthit")]
 void JuliaClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
+    // DEBUG
+    if (g_sceneCB.debugFlag)
+    {
+        rayPayload.color = float4(1.f, 0.f, 0.0f, 0.f);
+        return;
+    }
+
     // Shadow component.
     // Trace a shadow ray.
     float3 hitPosition = HitWorldPosition();
     Ray shadowRay = { hitPosition, normalize(g_sceneCB.lightPosition.xyz - hitPosition) };
-    bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
+    bool shadowRayHit = false;//TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
     
     float3 pos = ObjectRayOrigin() + RayTCurrent() * ObjectRayDirection();
     float3 dir = WorldRayDirection();
@@ -694,9 +706,9 @@ void MyIntersectionShader_SignedDistancePrimitive()
         return;
     }
     
-    bool primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale);
+    bool primitiveTest = RaySignedDistancePrimitiveTest(localRay, primitiveType, thit, attr, l_materialCB.stepScale, g_sceneCB.elapsedTime);
     
-    if (primitiveTest)
+    if (primitiveTest && thit < RayTCurrent())
     {
         PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
         //attr.normal = normalize(mul(attr.normal, (float3x3) aabbAttribute.bottomLevelASToLocalSpace));
@@ -723,7 +735,7 @@ void MandelbulbIntersection()
     
     bool primitiveTest = MandelbulbDistance(localRay, g_sceneCB.elapsedTime, l_aabbCB.instanceIndex, thit, attr, l_materialCB.stepScale);
     
-    if (primitiveTest)
+    if (primitiveTest && thit < RayTCurrent())
     {
         PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
         attr.normal = normalize(mul(attr.normal, (float3x3) WorldToObject3x4()));
@@ -749,8 +761,8 @@ void JuliaIntersection()
     
     float3 pos;
     bool primitiveTest = JuliaDistance(localRay.origin, localRay.direction, attr.normal, thit, g_sceneCB.elapsedTime);
-    
-    if (primitiveTest)
+   
+    if (primitiveTest && thit.x < RayTCurrent())
     {
         PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
         attr.normal = normalize(mul(attr.normal, (float3x3) WorldToObject3x4()));
