@@ -98,7 +98,7 @@ private:
 	void BuildPlaneGeometry(const XMFLOAT3& width);
 	void CreateRaytracingOutputResource();
 
-	void CreateAccelerationStructures();
+	void CreateAccelerationStructure();
 	void CreateRootSignatures();
 	void CreateShaderTablesEntries();
 	

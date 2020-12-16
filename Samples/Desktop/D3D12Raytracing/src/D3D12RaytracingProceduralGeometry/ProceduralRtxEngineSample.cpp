@@ -325,7 +325,7 @@ void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 	// Create an output 2D texture to store the raytracing result to.
 	CreateRaytracingOutputResource();
 
-	CreateAccelerationStructures();
+	CreateAccelerationStructure();
 
 	// Create root signatures for the shaders.
 	CreateRootSignatures();
@@ -362,7 +362,7 @@ void ProceduralRtxEngineSample::CreateHitGroups()
 	m_scene->addHitGroup("Julia_Shadow", make_shared<HitGroup>(L"HitGroup_Julia_Shadow", L"", L"", L"Intersection_Julia"));
 }
 
-void ProceduralRtxEngineSample::CreateAccelerationStructures()
+void ProceduralRtxEngineSample::CreateAccelerationStructure()
 {
 	m_accelerationStruct = make_shared<AccelerationStructure>(m_scene, m_dxrDevice, m_dxrCommandList, m_deviceResources);
 }
