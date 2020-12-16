@@ -245,7 +245,7 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
 //***************************************************************************
 
 [shader("raygeneration")]
-void MyRaygenShader()
+void Raygen()
 {
     // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
     Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, g_sceneCB.cameraPosition.xyz, g_sceneCB.projectionToWorld);
@@ -263,7 +263,7 @@ void MyRaygenShader()
 //***************************************************************************
 
 [shader("closesthit")]
-void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
+void ClosestHit_Triangle(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
     // DEBUG
     if(g_sceneCB.debugFlag)
@@ -348,7 +348,7 @@ void MyClosestHitShader_Triangle(inout RayPayload rayPayload, in BuiltInTriangle
 }
 
 [shader("closesthit")]
-void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
+void ClosestHit_Pacman(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
     // DEBUG
     if (HitKind() == 1)
@@ -394,7 +394,7 @@ void MyClosestHitShader_AABB(inout RayPayload rayPayload, in ProceduralPrimitive
 }
 
 [shader("closesthit")]
-void MandelbulbClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
+void ClosestHit_Mandelbulb(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
     if (HitKind() == 1)
     {
@@ -473,7 +473,7 @@ void MandelbulbClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAtt
 }
 
 [shader("closesthit")]
-void JuliaClosestHit(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
+void ClosestHit_Julia(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
 {
     // DEBUG
     if (g_sceneCB.debugFlag)
@@ -556,7 +556,7 @@ void traceRaySegment(inout RayPayload payload)
 //***************************************************************************
 
 [shader("miss")]
-void MyMissShader(inout RayPayload rayPayload)
+void Miss(inout RayPayload rayPayload)
 {
 #ifdef RAYTRACING    
     float4 backgroundColor = float4(BackgroundColor);
@@ -630,7 +630,7 @@ void MyMissShader(inout RayPayload rayPayload)
 }
 
 [shader("miss")]
-void MyMissShader_ShadowRay(inout ShadowRayPayload rayPayload)
+void Miss_Shadow(inout ShadowRayPayload rayPayload)
 {
    rayPayload.dist += gStep;
    rayPayload.hit = false;
@@ -691,7 +691,7 @@ void MyIntersectionShader_VolumetricPrimitive()
 }
 
 [shader("intersection")]
-void MyIntersectionShader_SignedDistancePrimitive()
+void Intersection_Pacman()
 {
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
     SignedDistancePrimitive::Enum primitiveType = (SignedDistancePrimitive::Enum) l_aabbCB.primitiveType;
@@ -719,7 +719,7 @@ void MyIntersectionShader_SignedDistancePrimitive()
 }
 
 [shader("intersection")]
-void MandelbulbIntersection()
+void Intersection_Mandelbulb()
 {
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
 
@@ -745,7 +745,7 @@ void MandelbulbIntersection()
 }
 
 [shader("intersection")]
-void JuliaIntersection()
+void Intersection_Julia()
 {
     Ray localRay = GetRayInAABBPrimitiveLocalSpace();
 

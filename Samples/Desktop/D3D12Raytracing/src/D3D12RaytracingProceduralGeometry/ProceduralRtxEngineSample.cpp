@@ -276,7 +276,7 @@ void ProceduralRtxEngineSample::CreateConstantBuffers()
 }
 
 // Create AABB primitive attributes buffers.
-void ProceduralRtxEngineSample::CreateAABBPrimitiveAttributesBuffers()
+void ProceduralRtxEngineSample::CreateInstanceBuffer()
 {
 	auto device = m_deviceResources->GetD3DDevice();
 	auto frameCount = m_deviceResources->GetBackBufferCount();
@@ -320,7 +320,7 @@ void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 	CreateConstantBuffers();
 
 	// Create AABB primitive attribute buffers.
-	CreateAABBPrimitiveAttributesBuffers();
+	CreateInstanceBuffer();
 
 	// Create an output 2D texture to store the raytracing result to.
 	CreateRaytracingOutputResource();
@@ -341,25 +341,25 @@ void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 
 void ProceduralRtxEngineSample::CreateRays()
 {
-	m_scene->addRay("Radiance", make_shared<Ray>(L"MyMissShader", Payload(RayPayload())));
-	m_scene->addRay("Shadow", make_shared<Ray>(L"MyMissShader_ShadowRay", Payload(ShadowRayPayload())));
+	m_scene->addRay("Radiance", make_shared<Ray>(L"Miss", Payload(RayPayload())));
+	m_scene->addRay("Shadow", make_shared<Ray>(L"Miss_Shadow", Payload(ShadowRayPayload())));
 }
 
 void ProceduralRtxEngineSample::CreateHitGroups()
 {
 	// Triangle Hit Groups.
-	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"MyHitGroup_Triangle", L"", L"MyClosestHitShader_Triangle", L""));
-	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"MyHitGroup_Triangle_ShadowRay", L"", L"", L""));
+	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"HitGroup_Triangle", L"", L"ClosestHit_Triangle", L""));
+	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"HitGroup_Triangle_Shadow", L"", L"", L""));
 
 	// Procedural Hit Groups.
-	m_scene->addHitGroup("SignedDist", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive", L"", L"MyClosestHitShader_AABB", L"MyIntersectionShader_SignedDistancePrimitive"));
-	m_scene->addHitGroup("SignedDist_Shadow", make_shared<HitGroup>(L"MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay", L"", L"", L"MyIntersectionShader_SignedDistancePrimitive"));
+	m_scene->addHitGroup("Pacman", make_shared<HitGroup>(L"HitGroup_Pacman", L"", L"ClosestHit_Pacman", L"Intersection_Pacman"));
+	m_scene->addHitGroup("Pacman_Shadow", make_shared<HitGroup>(L"HitGroup_Pacman_Shadow", L"", L"", L"Intersection_Pacman"));
 
-	m_scene->addHitGroup("Mandelbulb", make_shared<HitGroup>(L"HitGroup_Mandelbulb", L"", L"MandelbulbClosestHit", L"MandelbulbIntersection"));
-	m_scene->addHitGroup("Mandelbulb_Shadow", make_shared<HitGroup>(L"HitGroup_Mandelbulb_Shadow", L"", L"", L"MandelbulbIntersection"));
+	m_scene->addHitGroup("Mandelbulb", make_shared<HitGroup>(L"HitGroup_Mandelbulb", L"", L"ClosestHit_Mandelbulb", L"Intersection_Mandelbulb"));
+	m_scene->addHitGroup("Mandelbulb_Shadow", make_shared<HitGroup>(L"HitGroup_Mandelbulb_Shadow", L"", L"", L"Intersection_Mandelbulb"));
 	
-	m_scene->addHitGroup("Julia", make_shared<HitGroup>(L"HitGroup_Julia", L"", L"JuliaClosestHit", L"JuliaIntersection"));
-	m_scene->addHitGroup("Julia_Shadow", make_shared<HitGroup>(L"HitGroup_Julia_Shadow", L"", L"", L"JuliaIntersection"));
+	m_scene->addHitGroup("Julia", make_shared<HitGroup>(L"HitGroup_Julia", L"", L"ClosestHit_Julia", L"Intersection_Julia"));
+	m_scene->addHitGroup("Julia_Shadow", make_shared<HitGroup>(L"HitGroup_Julia_Shadow", L"", L"", L"Intersection_Julia"));
 }
 
 void ProceduralRtxEngineSample::CreateAccelerationStructures()
@@ -419,7 +419,7 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 	m_shaderTable = make_shared<RtxEngine::ShaderTable>(m_scene, m_deviceResources);
 	
 	// Ray gen.
-	m_shaderTable->addRayGen(L"MyRaygenShader");
+	m_shaderTable->addRayGen(L"Raygen");
 
 	// Miss.
 	m_shaderTable->addMiss("Radiance");
@@ -462,8 +462,8 @@ void ProceduralRtxEngineSample::CreateShaderTablesEntries()
 						}
 						case SignedDistancePrimitive::IntersectedRoundCube:
 						{
-							radianceHitGroup = "SignedDist";
-							shadowHitGroup = "SignedDist_Shadow";
+							radianceHitGroup = "Pacman";
+							shadowHitGroup = "Pacman_Shadow";
 							break;
 						}
 						case SignedDistancePrimitive::JuliaSets:

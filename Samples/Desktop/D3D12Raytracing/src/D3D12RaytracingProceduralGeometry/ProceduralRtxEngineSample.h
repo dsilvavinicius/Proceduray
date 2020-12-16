@@ -89,7 +89,7 @@ private:
 	void CreateRaytracingInterfaces();
 
 	void CreateConstantBuffers();
-	void CreateAABBPrimitiveAttributesBuffers();
+	void CreateInstanceBuffer();
 	void CreateRays();
 	void CreateHitGroups();
 	void BuildGeometry();
