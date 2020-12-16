@@ -63,7 +63,6 @@ private:
 	// Global Root Signature components.
 	shared_ptr<ConstantBuffer<SceneConstantBuffer>> m_sceneCB;
 	shared_ptr<StructuredBuffer<PrimitiveInstancePerFrameBuffer>> m_aabbPrimitiveAttributeBuffer;
-	std::vector<D3D12_RAYTRACING_AABB> m_aabbs;
 	// Ray tracing output.
 	ComPtr<ID3D12Resource> m_raytracingOutput;
 	DescriptorHeap::DescriptorHandles m_raytracingOutputHandles;

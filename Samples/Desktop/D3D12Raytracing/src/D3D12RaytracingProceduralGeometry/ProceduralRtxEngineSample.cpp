@@ -566,16 +566,14 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 	}
 
 
-	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -3.5f, -3.5f, -3.5f, 3.5f, 3.5f, 3.5f });
-	m_scene->addGeometry("Julia", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::JuliaSets], *m_deviceResources, juliaInstances));
+	D3D12_RAYTRACING_AABB juliaAABB{ -3.5f, -3.5f, -3.5f, 3.5f, 3.5f, 3.5f };
+	m_scene->addGeometry("Julia", make_shared<Geometry>(juliaAABB, *m_deviceResources, juliaInstances));
 
-	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f });
-	m_scene->addGeometry("Pacman", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::IntersectedRoundCube], *m_deviceResources, pacManInstances));
+	D3D12_RAYTRACING_AABB pacmanAABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
+	m_scene->addGeometry("Pacman", make_shared<Geometry>(pacmanAABB, *m_deviceResources, pacManInstances));
 
-	m_aabbs.push_back(D3D12_RAYTRACING_AABB{ -1.5f, -1.5f, -1.5f, 1.5f, 1.5f, 1.5f });
-	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(m_aabbs[SignedDistancePrimitive::Mandelbulb], *m_deviceResources, mandelbulbInstances));
-
-
+	D3D12_RAYTRACING_AABB mandelbulbAABB{ -1.5f, -1.5f, -1.5f, 1.5f, 1.5f, 1.5f };
+	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(mandelbulbAABB, *m_deviceResources, mandelbulbInstances));
 }
 
 void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
