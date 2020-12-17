@@ -43,7 +43,7 @@ struct SceneConstantBuffer
 };
 
 // Dynamic attributes per primitive instance.
-struct PrimitiveInstancePerFrameBuffer
+struct InstanceBuffer
 {
 	XMMATRIX localSpaceToBottomLevelAS;   // Matrix from local primitive space to bottom-level object space.
 	XMMATRIX bottomLevelASToLocalSpace;   // Matrix from bottom-level object space to local primitive space.

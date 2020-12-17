@@ -16,7 +16,7 @@ namespace RtxEngine
 	
 	// Root components
 	struct DontApply {};
-	using RootComponent = variant<PrimitiveConstantBuffer, PrimitiveInstanceConstantBuffer, SceneConstantBuffer, PrimitiveInstancePerFrameBuffer, DontApply>;
+	using RootComponent = variant<PrimitiveConstantBuffer, PrimitiveInstanceConstantBuffer, SceneConstantBuffer, InstanceBuffer, DontApply>;
 	using RootComponentMap = unordered_map<string, RootComponent>;
 	
 	// Root arguments
@@ -46,7 +46,7 @@ namespace RtxEngine
 				m_rootComponents["PrimitiveConstantBuffer"] = PrimitiveConstantBuffer();
 				m_rootComponents["PrimitiveInstanceConstantBuffer"] = PrimitiveInstanceConstantBuffer();
 				m_rootComponents["SceneConstantBuffer"] = SceneConstantBuffer();
-				m_rootComponents["PrimitiveInstancePerFrameBuffer"] = PrimitiveInstancePerFrameBuffer();
+				m_rootComponents["PrimitiveInstancePerFrameBuffer"] = InstanceBuffer();
 				m_rootComponents["DontApply"] = DontApply();
 
 				// Root Arguments
@@ -92,9 +92,9 @@ namespace RtxEngine
 			{
 				return SizeOfInUint32(SceneConstantBuffer);
 			}
-			else if (holds_alternative<PrimitiveInstancePerFrameBuffer>(rootComponent))
+			else if (holds_alternative<InstanceBuffer>(rootComponent))
 			{
-				return SizeOfInUint32(PrimitiveInstancePerFrameBuffer);
+				return SizeOfInUint32(InstanceBuffer);
 			}
 			else
 			{

@@ -43,7 +43,7 @@ ByteAddressBuffer g_indices : register(t1, space0);
 StructuredBuffer<Vertex> g_vertices : register(t2, space0);
 
 // Procedural geometry resources
-StructuredBuffer<PrimitiveInstancePerFrameBuffer> g_AABBPrimitiveAttributes : register(t3, space0);
+StructuredBuffer<InstanceBuffer> g_instanceBuffer : register(t3, space0);
 ConstantBuffer<PrimitiveConstantBuffer> l_materialCB : register(b1);
 ConstantBuffer<PrimitiveInstanceConstantBuffer> l_aabbCB: register(b2);
 
@@ -643,7 +643,7 @@ void Miss_Shadow(inout ShadowRayPayload rayPayload)
 // Get ray in AABB's local space.
 Ray GetRayInAABBPrimitiveLocalSpace()
 {
-    PrimitiveInstancePerFrameBuffer attr = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+    InstanceBuffer attr = g_instanceBuffer[l_aabbCB.instanceIndex];
 
     // Retrieve a ray origin position and direction in bottom level AS space 
     // and transform them into the AABB primitive's local space.
@@ -664,7 +664,7 @@ void MyIntersectionShader_AnalyticPrimitive()
     ProceduralPrimitiveAttributes attr = { {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f} };
     if (RayAnalyticGeometryIntersectionTest(localRay, primitiveType, thit, attr))
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        InstanceBuffer aabbAttribute = g_instanceBuffer[l_aabbCB.instanceIndex];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
         attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
 
@@ -682,7 +682,7 @@ void MyIntersectionShader_VolumetricPrimitive()
     ProceduralPrimitiveAttributes attr = { {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f} };
     if (RayVolumetricGeometryIntersectionTest(localRay, primitiveType, thit, attr, g_sceneCB.elapsedTime))
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        InstanceBuffer aabbAttribute = g_instanceBuffer[l_aabbCB.instanceIndex];
         attr.normal = mul(attr.normal, (float3x3) aabbAttribute.localSpaceToBottomLevelAS);
         attr.normal = normalize(mul((float3x3) ObjectToWorld3x4(), attr.normal));
 
@@ -710,7 +710,7 @@ void Intersection_Pacman()
     
     if (primitiveTest && thit < RayTCurrent())
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        InstanceBuffer aabbAttribute = g_instanceBuffer[l_aabbCB.instanceIndex];
         //attr.normal = normalize(mul(attr.normal, (float3x3) aabbAttribute.bottomLevelASToLocalSpace));
         attr.normal = normalize(mul(attr.normal, (float3x3) WorldToObject3x4()));
         
@@ -737,7 +737,7 @@ void Intersection_Mandelbulb()
     
     if (primitiveTest && thit < RayTCurrent())
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        InstanceBuffer aabbAttribute = g_instanceBuffer[l_aabbCB.instanceIndex];
         attr.normal = normalize(mul(attr.normal, (float3x3) WorldToObject3x4()));
         
         ReportHit(thit, /*hitKind*/ 0, attr);
@@ -764,7 +764,7 @@ void Intersection_Julia()
    
     if (primitiveTest && thit.x < RayTCurrent())
     {
-        PrimitiveInstancePerFrameBuffer aabbAttribute = g_AABBPrimitiveAttributes[l_aabbCB.instanceIndex];
+        InstanceBuffer aabbAttribute = g_instanceBuffer[l_aabbCB.instanceIndex];
         attr.normal = normalize(mul(attr.normal, (float3x3) WorldToObject3x4()));
         attr.color = float4(thit, 0.f, 0.f); // Using the color parameter to send intersection min and max t.
         

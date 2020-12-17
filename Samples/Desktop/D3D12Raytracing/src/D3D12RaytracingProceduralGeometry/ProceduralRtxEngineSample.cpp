@@ -26,7 +26,7 @@ ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, st
 	m_scene(make_shared<StaticScene>())
 {
 	m_sceneCB = make_shared<ConstantBuffer<SceneConstantBuffer>>();
-	m_instanceBuffer = make_shared<StructuredBuffer<PrimitiveInstancePerFrameBuffer>>();
+	m_instanceBuffer = make_shared<StructuredBuffer<InstanceBuffer>>();
 	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
 	UpdateForSizeChange(width, height);
 }
@@ -381,7 +381,7 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	m_raytracingOutputHandles.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
 	globalSignature->addEntry(RootComponent(DontApply()), RootSignature::SRV, m_accelerationStruct->getBuilded(), 0);
 	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB, 0);
-	globalSignature->addEntry(RootComponent(PrimitiveInstancePerFrameBuffer()), RootSignature::SRV, m_instanceBuffer, 3);
+	globalSignature->addEntry(RootComponent(InstanceBuffer()), RootSignature::SRV, m_instanceBuffer, 3);
 	globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{vertexRange});
 
 	m_scene->addGlobalSignature(globalSignature);
