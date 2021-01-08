@@ -141,6 +141,15 @@
     <ClInclude Include="engine\CamController.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
+    <ClInclude Include="engine\SceneBuilder.h">
+      <Filter>Header Files\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="MandelJuliaPacSceneBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\Entity.h">
+      <Filter>Header Files\engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -191,6 +200,9 @@
     <ClCompile Include="engine\ShaderCompatUtils.cpp">
       <Filter>Source Files\engine</Filter>
     </ClCompile>
+    <ClCompile Include="MandelJuliaPacSceneBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />
@@ -199,6 +211,15 @@
       <Filter>Assets\Shaders</Filter>
     </None>
     <None Include="JuliaSets.hlsli">
+      <Filter>Assets\Shaders\ProceduralPrimitives</Filter>
+    </None>
+    <None Include="Mandelbulb.hlsli">
+      <Filter>Assets\Shaders\ProceduralPrimitives</Filter>
+    </None>
+    <None Include="Pacman.hlsli">
+      <Filter>Assets\Shaders\ProceduralPrimitives</Filter>
+    </None>
+    <None Include="Triangles.hlsli">
       <Filter>Assets\Shaders\ProceduralPrimitives</Filter>
     </None>
   </ItemGroup>

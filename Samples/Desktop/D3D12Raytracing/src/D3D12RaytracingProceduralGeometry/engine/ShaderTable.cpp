@@ -70,8 +70,8 @@ namespace RtxEngine
 			{
 				auto hitGroupName = (*m_commonEntries)[i].hitGroupId;
 				auto hitGroup = m_scene->getHitGroupMap().at(hitGroupName);
-				hitGroupShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(hitGroup->name.c_str());
-				shaderIdToStringMap[hitGroupShaderIDs[i]] = hitGroup->name;
+				hitGroupShaderIDs[i] = stateObjectProperties->GetShaderIdentifier(hitGroup->wName.c_str());
+				shaderIdToStringMap[hitGroupShaderIDs[i]] = hitGroup->wName;
 			}
 		};
 

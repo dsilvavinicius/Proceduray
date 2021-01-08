@@ -99,7 +99,7 @@ namespace RtxEngine
 				hitGroupSO->SetClosestHitShaderImport(hitGroup->closestHit.c_str());
 			}
 
-			hitGroupSO->SetHitGroupExport(hitGroup->name.c_str());
+			hitGroupSO->SetHitGroupExport(hitGroup->wName.c_str());
 		}
 	}
 
@@ -112,7 +112,7 @@ namespace RtxEngine
 		for(const auto& entry : *m_shaderTableEntries)
 		{
 			const auto hitGroup = m_scene->getHitGroupMap().at(entry.hitGroupId);
-			auto hitGroupId = hitGroup->name.c_str();
+			auto hitGroupId = hitGroup->wName.c_str();
 			if (duplicateChecker.find(hitGroupId) == duplicateChecker.end())
 			{
 				duplicateChecker.insert(hitGroupId);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Entity.h"
 #include "ShaderCompatUtils.h"
 #include <memory>
 #include <unordered_map>
@@ -9,13 +10,13 @@ namespace RtxEngine
 {
 	using namespace std;
 
-	struct Ray
+	class Ray : public Entity
 	{
 	public:
 		/**
 		* @param missShader: miss shader entry point.
 		*/
-		Ray(const wstring& missShader, Payload) : missShader(missShader) {}
+		Ray(const string& name, const wstring& missShader, Payload) : Entity(name), missShader(missShader) {}
 	
 		wstring missShader;
 	};

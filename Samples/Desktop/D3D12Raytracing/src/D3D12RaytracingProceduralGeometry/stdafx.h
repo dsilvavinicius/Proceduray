@@ -28,6 +28,7 @@
 #include <iostream>
 
 #include <list>
+#include <codecvt>
 #include <string>
 #include <wrl.h>
 #include <shellapi.h>

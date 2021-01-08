@@ -14,11 +14,11 @@ namespace RtxEngine
 	{
 	public:
 		// Add scene components.
-		void addRay(const string& name, const RayPtr& ray) { m_rays[name] = ray; }
-		void addGeometry(const string& name, const GeometryPtr& geometry);
+		void addRay(const RayPtr& ray) { m_rays[ray->getName()] = ray; }
+		void addGeometry(const GeometryPtr& geometry);
 		void addGlobalSignature(const RootSignaturePtr& rootSignature) { m_globalSignature = rootSignature; }
-		void addLocalSignature(const string& name, const RootSignaturePtr& rootSignature) { m_localSignatures[name] = rootSignature; }
-		void addHitGroup(const string& name, const HitGroupPtr& hitGroup);
+		void addLocalSignature(const RootSignaturePtr& rootSignature) { m_localSignatures[rootSignature->getName()] = rootSignature; }
+		void addHitGroup(const HitGroupPtr& hitGroup);
 
 		const RayMap& getRays() const { return m_rays; }
 		const GeometryVector& getGeometry() const { return m_geometry; }

@@ -3,15 +3,15 @@
 
 namespace RtxEngine
 {
-	void StaticScene::addGeometry(const string& name, const GeometryPtr& geometry)
+	void StaticScene::addGeometry(const GeometryPtr& geometry)
 	{
 		m_geometry.push_back(geometry);
-		m_geometryMap[name] = geometry;
+		m_geometryMap[geometry->getName()] = geometry;
 	}
 
-	void StaticScene::addHitGroup(const string& name, const HitGroupPtr& hitGroup)
+	void StaticScene::addHitGroup(const HitGroupPtr& hitGroup)
 	{
 		m_hitGroups.push_back(hitGroup);
-		m_hitGroupMap[name] = hitGroup;
+		m_hitGroupMap[hitGroup->getName()] = hitGroup;
 	}
 }
