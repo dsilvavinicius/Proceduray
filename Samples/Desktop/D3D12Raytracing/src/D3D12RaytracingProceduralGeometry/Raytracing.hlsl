@@ -491,7 +491,7 @@ void ClosestHit_Julia(inout RayPayload rayPayload, in ProceduralPrimitiveAttribu
     float3 pos = ObjectRayOrigin() + RayTCurrent() * ObjectRayDirection();
     float3 dir = WorldRayDirection();
     
-    float4 albedo = float4(3.5*f_colorSurface(pos, attr.color.xy), 1.f);
+    float4 albedo = float4(3.5 * colorSurface(pos, attr.color.xy), 1.f);
     
     if (rayPayload.recursionDepth == MAX_RAY_RECURSION_DEPTH - 1)
     {

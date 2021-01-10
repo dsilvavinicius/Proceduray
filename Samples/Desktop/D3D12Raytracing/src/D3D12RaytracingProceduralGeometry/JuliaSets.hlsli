@@ -30,92 +30,92 @@ float4 vec4_ctor(float3 x0, float x1)
     return float4(x0, x1);
 }
 
-float4 f_qSquare_float4(in float4 _q)
+float4 qSquare_float4(in float4 q)
 {
-    return vec4_ctor(((((_q.x * _q.x) - (_q.y * _q.y)) - (_q.z * _q.z)) - (_q.w * _q.w)), ((2.0 * _q.x) * _q.yzw));
+    return vec4_ctor(((((q.x * q.x) - (q.y * q.y)) - (q.z * q.z)) - (q.w * q.w)), ((2.0 * q.x) * q.yzw));
 }
-float4 f_qCube_float4(in float4 _q)
+float4 qCube_float4(in float4 q)
 {
-    float4 _q22359 = (_q * _q);
-    return vec4_ctor((_q.x * (((_q22359.x - (3.0 * _q22359.y)) - (3.0 * _q22359.z)) - (3.0 * _q22359.w))), (_q.yzw * ((((3.0 * _q22359.x) - _q22359.y) - _q22359.z) - _q22359.w)));
+    float4 q2 = (q * q);
+    return vec4_ctor((q.x * (((q2.x - (3.0 * q2.y)) - (3.0 * q2.z)) - (3.0 * q2.w))), (q.yzw * ((((3.0 * q2.x) - q2.y) - q2.z) - q2.w)));
 }
-float f_qLength2_float4(in float4 _q)
+float qLength2_float4(in float4 q)
 {
-    return dot(_q, _q);
+    return dot(q, q);
 }
-float2 f_iSphere(in float3 _ro, in float3 _rd, in float _rad)
+float2 iSphere(in float3 ro, in float3 rd, in float rad)
 {
-    float _b2366 = dot(_ro, _rd);
-    float _c2367 = (dot(_ro, _ro) - (_rad * _rad));
-    float _h2368 = ((_b2366 * _b2366) - _c2367);
-    if ((_h2368 < 0.0))
+    float b = dot(ro, rd);
+    float c = dot(ro, ro) - (rad * rad);
+    float h = (b * b) - c;
+    if (h < 0.0)
     {
         return float2(-1.0, -1.0);
     }
-    (_h2368 = sqrt(_h2368));
-    return vec2_ctor(((-_b2366) - _h2368), ((-_b2366) + _h2368));
+    h = sqrt(h);
+    return vec2_ctor(((-b) - h), ((-b) + h));
 }
-float3x3 f_setCamera(in float3 _ro, in float3 _ta, in float _cr)
+float3x3 setCamera(in float3 ro, in float3 ta, in float cr)
 {
-    float3 _cw2373 = normalize((_ta - _ro));
-    float3 _cp2374 = vec3_ctor(sin(_cr), cos(_cr), 0.0);
-    float3 _cu2375 = normalize(cross(_cw2373, _cp2374));
-    float3 _cv2376 = normalize(cross(_cu2375, _cw2373));
-    float3 s981 = _cu2375;
-    float3 s982 = _cv2376;
-    float3 s983 = _cw2373;
-    return mat3_ctor(s981[0], s981[1], s981[2], s982[0], s982[1], s982[2], s983[0], s983[1], s983[2]);
+    float3 cw = normalize((ta - ro));
+    float3 cp = vec3_ctor(sin(cr), cos(cr), 0.0);
+    float3 cu = normalize(cross(cw, cp));
+    float3 cv = normalize(cross(cu, cw));
+    float3 s1 = cu;
+    float3 s2 = cv;
+    float3 s3 = cw;
+    return mat3_ctor(s1[0], s1[1], s1[2], s2[0], s2[1], s2[2], s3[0], s3[1], s3[2]);
 }
-float2 f_map(in float3 _p, in float4 c, in int iMax)
+float2 map(in float3 p, in float4 c, in int iMax)
 {
-    float4 _z2379 = vec4_ctor(_p, 0.0);
-    float _dz22380 = { 1.0 };
-    float _m22381 = { 0.0 };
-    float _n2382 = { 0.0 };
+    float4 z = vec4_ctor(p, 0.0);
+    float dz2 = 1.0;
+    float m2 = 0.0;
+    float n = 0.0;
     //float _o2383 = { 10000000000.0 }; //used to render the traps
-{
-        for (int _i2384 = { 0 }; (_i2384 < iMax); (_i2384++))
+    
+    for (int i = 0; i < iMax; i++)
+    {
+        dz2 *= 9.0 * qLength2_float4(qSquare_float4(z));
+        z = qCube_float4(z) + c;
+        m2 = qLength2_float4(z);
+        //(_o2383 = min(_o2383, (length((_z2379.xz - float2(0.44999999, 0.55000001))) - 0.1))); //used to render the traps
+        if (m2 > 256.0)
         {
-            (_dz22380 *= (9.0 * f_qLength2_float4(f_qSquare_float4(_z2379))));
-            (_z2379 = (f_qCube_float4(_z2379) + c));
-            (_m22381 = f_qLength2_float4(_z2379));
-            //(_o2383 = min(_o2383, (length((_z2379.xz - float2(0.44999999, 0.55000001))) - 0.1))); //used to render the traps
-            if ((_m22381 > 256.0))
-            {
-                break;
-            }
-            (_n2382 += 1.0);
+            break;
         }
+        n += 1.0;
     }
-    float _d2385 = ((0.25 * log(_m22381)) * sqrt((_m22381 / _dz22380)));
+    
+    float d = (0.25 * log(m2)) * sqrt((m2 / dz2));
     //(_d2385 = min(_o2383, _d2385));//used to render the traps
     //(_d2385 = max(_d2385, _p.y));
-    return vec2_ctor(_d2385, _n2382);
+    return vec2_ctor(d, n);
 }
-float3 f_calcNormal(in float3 _pos, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in int iMax = 200)
+float3 calcNormal(in float3 pos, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in int iMax = 200)
 {
-    return normalize(((((float3(0.00014432501, -0.00014432501, -0.00014432501) * f_map((_pos + float3(0.00014432501, -0.00014432501, -0.00014432501)), c, iMax).x) + (float3(-0.00014432501, -0.00014432501, 0.00014432501) * f_map((_pos + float3(-0.00014432501, -0.00014432501, 0.00014432501)), c, iMax).x)) + (float3(-0.00014432501, 0.00014432501, -0.00014432501) * f_map((_pos + float3(-0.00014432501, 0.00014432501, -0.00014432501)), c, iMax).x)) + (float3(0.00014432501, 0.00014432501, 0.00014432501) * f_map((_pos + float3(0.00014432501, 0.00014432501, 0.00014432501)), c, iMax).x)));
+    return normalize(((((float3(0.00014432501, -0.00014432501, -0.00014432501) * map((pos + float3(0.00014432501, -0.00014432501, -0.00014432501)), c, iMax).x) + (float3(-0.00014432501, -0.00014432501, 0.00014432501) * map((pos + float3(-0.00014432501, -0.00014432501, 0.00014432501)), c, iMax).x)) + (float3(-0.00014432501, 0.00014432501, -0.00014432501) * map((pos + float3(-0.00014432501, 0.00014432501, -0.00014432501)), c, iMax).x)) + (float3(0.00014432501, 0.00014432501, 0.00014432501) * map((pos + float3(0.00014432501, 0.00014432501, 0.00014432501)), c, iMax).x)));
 }
-float2 f_raycast(in float3 _ro, in float3 _rd, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in float deltaT = 0.0, in int iMax = 200)
+float2 raycast(in float3 ro, in float3 rd, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in float deltaT = 0.0, in int iMax = 200)
 {
-    float _tmax2392 = { 7000.f };
-    float _tmin2393 = { 0.00025000001f };
+    float tmax = { 7000.f };
+    float tmin = { 0.00025000001f };
  
     float upperPlane = deltaT;
     
-    float _tpS2395 = (( upperPlane - _ro.y) / _rd.y);
+    float tpS = ( upperPlane - ro.y) / rd.y;
     
-    bool isCamAboveUpper = (_ro.y > upperPlane);
+    bool isCamAboveUpper = (ro.y > upperPlane);
     
-    if ((_tpS2395 > 0.0))
+    if (tpS > 0.0)
     {
         if (isCamAboveUpper)
         {
-            (_tmin2393 = max(_tmin2393, _tpS2395));
+            tmin = max(tmin, tpS);
         }
         else
         {
-            (_tmax2392 = min(_tmax2392, _tpS2395));
+            tmax = min(tmax, tpS);
         }
     }
     else
@@ -127,19 +127,19 @@ float2 f_raycast(in float3 _ro, in float3 _rd, in float4 c = float4(-0.090909094
     }
     
     float lowerPlane = -1.10000001;
-    float _tpF2396 = ((lowerPlane - _ro.y) / _rd.y);
+    float tpF = (lowerPlane - ro.y) / rd.y;
     
-    bool isCamBellowLower = (_ro.y < lowerPlane);
+    bool isCamBellowLower = (ro.y < lowerPlane);
     
-    if ((_tpF2396 > 0.0))
+    if (tpF > 0.0)
     {
         if (isCamBellowLower)
         {
-            (_tmin2393 = max(_tmin2393, _tpF2396));
+            tmin = max(tmin, tpF);
         }
         else
         {
-            (_tmax2392 = min(_tmax2392, _tpF2396));
+            tmax = min(tmax, tpF);
         }
     }
     else
@@ -150,79 +150,79 @@ float2 f_raycast(in float3 _ro, in float3 _rd, in float4 c = float4(-0.090909094
         }
     }
     
-    float2 _bv2397 = f_iSphere(_ro, _rd, 1.2);
-    if ((_bv2397.y < 0.0))
+    float2 bv = iSphere(ro, rd, 1.2);
+    if (bv.y < 0.0)
     {
         return float2(-2.0, 0.0);
     }
-    (_tmin2393 = max(_tmin2393, _bv2397.x));
-    (_tmax2392 = min(_tmax2392, _bv2397.y));
-    float2 _res2398 = { -1.0, -1.0 };
-    float _t2399 = _tmin2393;
-    float _lt2400 = { 0.0 };
-    float _lh2401 = { 0.0 };
-{
-        for (int _i2402 = { 0 }; (_i2402 < 1024); (_i2402++))
+    tmin = max(tmin, bv.x);
+    tmax = min(tmax, bv.y);
+    float2 res = { -1.0, -1.0 };
+    float t = tmin;
+    float lt = { 0.0 };
+    float lh = { 0.0 };
+    {
+        for (int i = 0; i < 1024; i++)
         {
-            (_res2398 = f_map((_ro + (_rd * _t2399)), c, iMax));
-            if ((_res2398.x < 0.00025000001))
+            res = map(ro + (rd * t), c, iMax);
+            if (res.x < 0.00025000001)
             {
                 break;
             }
-            (_lt2400 = _t2399);
-            (_lh2401 = _res2398.x);
+            lt = t;
+            lh = res.x;
             //(_t2399 += (min(_res2398.x, 0.0099999998) * 1.0));//used to render the traps
-            (_t2399 += min(_res2398.x, 0.2));
-            if ((_t2399 > _tmax2392))
+            t += min(res.x, 0.2);
+            if (t > tmax)
             {
                 break;
             }
         }
     }
-    if (((_lt2400 > 9.9999997e-05) && (_res2398.x < 0.0)))
+    if ((lt > 9.9999997e-05) && (res.x < 0.0))
     {
-        (_t2399 = (_lt2400 - ((_lh2401 * (_t2399 - _lt2400)) / (_res2398.x - _lh2401))));
+        t = lt - ((lh * (t - lt)) / (res.x - lh));
     }
-    float s984 = { 0 };
-    if ((_t2399 < _tmax2392))
+    float s = 0 ;
+    if (t < tmax)
     {
-        (s984 = _t2399);
+        s = t;
     }
     else
     {
-        (s984 = -1.0);
+        s = -1.0;
     }
-    (_res2398.x = s984);
-    return _res2398;
+    res.x = s;
+    return res;
 }
-float3 f_colorSurface(in float3 _pos, in float2 _tn)
+float3 colorSurface(in float3 pos, in float2 tn)
 {
-    float3 _col2407 = (0.5 + (0.5 * cos((((log2(_tn.y) * 0.89999998) + 3.5) + float3(0.0, 0.60000002, 1.0)))));
+    float3 col = (0.5 + (0.5 * cos((((log2(tn.y) * 0.89999998) + 3.5) + float3(0.0, 0.60000002, 1.0)))));
     
-    if ((_pos.y > 0.0))
+    if (pos.y > 0.0)
     {
-        (_col2407 = lerp(_col2407, float3(1.0, 1.0, 1.0), 0.2));
+        col = lerp(col, float3(1.0, 1.0, 1.0), 0.2);
     }
-    float _inside2408 = smoothstep(14.,15., _tn.y);
+    float inside = smoothstep(14., 15., tn.y);
     
    //sss return float3(_inside2408,0.,0.);
     
-    (_col2407 *= (float3(0.44999999, 0.41999999, 0.40000001) + (float3(0.55000001, 0.57999998, 0.60000002) * _inside2408)));
-    (_col2407 = lerp(((_col2407 * _col2407) * (3.0 - (2.0 * _col2407))), _col2407, _inside2408));
-    (_col2407 = lerp(lerp(_col2407, vec3_ctor(dot(_col2407, float3(0.33329999, 0.33329999, 0.33329999))), -0.40000001), _col2407, _inside2408));
+    col *= float3(0.44999999, 0.41999999, 0.40000001) + (float3(0.55000001, 0.57999998, 0.60000002) * inside);
+    col = lerp(((col * col) * (3.0 - (2.0 * col))), col, inside);
+    col = lerp(lerp(col, vec3_ctor(dot(col, float3(0.33329999, 0.33329999, 0.33329999))), -0.40000001), col, inside);
     
-    float3 surfaceColor = clamp((_col2407 * 0.64999998), 0.0, 1.0);
+    float3 surfaceColor = clamp((col * 0.64999998), 0.0, 1.0);
     
     return surfaceColor;
 }
 
-bool JuliaDistance(in float3 _ro, in float3 _rd, inout float3 normal, inout float2 _resT, in float time=0.3f)
+bool JuliaDistance(in float3 ro, in float3 rd, inout float3 normal, inout float2 resT, in float time=0.3f)
 {
-    (_resT = 100000002004087734272.0);
+    resT = 100000002004087734272.0;
     
-    _ro *= 0.4;
+    ro *= 0.4;
     
-    _ro.y += -1.f;//for the scene with multiples objects
+    ro.y += -1.f;//for the scene with multiples objects
 
     // cut animation
     int iAnimMin = 0;
@@ -246,18 +246,18 @@ bool JuliaDistance(in float3 _ro, in float3 _rd, inout float3 normal, inout floa
     //float4 c = 0.45*cos( float4(0.5,3.9,1.4,1.1) + 0.01*(time+100.)*float4(1.2,1.7,1.3,2.5) ) - float4(0.3,0.0,0.0,0.0);
     float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728);
     
-    //float2 tn = f_raycast(_ro, _rd, c, deltaT, iMax+2);
-    //float2 tn = f_raycast(_ro, _rd, c, deltaT, 200);
-    //float2 tn = f_raycast(_ro, _rd, c);
-    float2 tn = f_raycast(_ro, _rd);
+    //float2 tn = f_raycast(ro, rd, c, deltaT, iMax+2);
+    //float2 tn = f_raycast(ro, rd, c, deltaT, 200);
+    //float2 tn = f_raycast(ro, rd, c);
+    float2 tn = raycast(ro, rd);
     
     bool cond = (tn.x >= 0.0);
     if (cond)
     {
-        float3 _pos2419 = (_ro + (tn.x * _rd));
+        float3 pos = (ro + (tn.x * rd));
         //normal = f_calcNormal(_pos2419, c, iMax+2);
-        normal = f_calcNormal(_pos2419);
-        (_resT = tn);
+        normal = calcNormal(pos);
+        resT = tn;
     }
     return cond;
 }
