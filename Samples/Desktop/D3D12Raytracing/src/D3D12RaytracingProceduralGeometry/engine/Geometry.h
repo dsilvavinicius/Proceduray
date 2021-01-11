@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Entity.h"
 #include "ShaderCompat.h"
 #include "DXSampleHelper.h"
 #include "DescriptorHeap.h"
@@ -12,7 +13,7 @@ namespace RtxEngine
 {
 	using namespace std;
 
-	class Geometry
+	class Geometry : public Entity
 	{
 	public:
 		enum Type
@@ -26,11 +27,11 @@ namespace RtxEngine
 		using InstancesPtr = shared_ptr<Instances>;
 
 		/** Create procedural geometry.*/
-		Geometry(D3D12_RAYTRACING_AABB& aabb, DeviceResources& deviceResources, const Instances& instances);
+		Geometry(const string& name, D3D12_RAYTRACING_AABB& aabb, DeviceResources& deviceResources, const Instances& instances);
 		
 		/** Create mesh geometry. If a descriptor heap is passed, then the index and vertex buffer descriptors are pushed to it.*/
-		Geometry(vector<Vertex>& vertices, vector<Index>& indices, DeviceResources& deviceResources, DescriptorHeap& descriptorHeap,
-			const Instances& instances);
+		Geometry(const string& name, vector<Vertex>& vertices, vector<Index>& indices, DeviceResources& deviceResources,
+			DescriptorHeap& descriptorHeap, const Instances& instances);
 		
 		~Geometry();
 

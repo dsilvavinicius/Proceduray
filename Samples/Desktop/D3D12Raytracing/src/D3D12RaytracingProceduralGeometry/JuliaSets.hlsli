@@ -262,4 +262,91 @@ bool JuliaDistance(in float3 ro, in float3 rd, inout float3 normal, inout float2
     return cond;
 }
 
+[shader("intersection")]
+void Intersection_Julia()
+{
+    Ray localRay = GetRayInAABBPrimitiveLocalSpace();
+
+    float2 thit;
+    ProceduralPrimitiveAttributes attr = { {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 1.f} };
+    
+    // DEBUG
+    if(g_sceneCB.debugFlag)
+    {
+        ReportHit(0, 1, attr);
+        return;
+    }
+    
+    float3 pos;
+    bool primitiveTest = JuliaDistance(localRay.origin, localRay.direction, attr.normal, thit, g_sceneCB.elapsedTime);
+   
+    if (primitiveTest && thit.x < RayTCurrent())
+    {
+        InstanceBuffer aabbAttribute = g_instanceBuffer[l_aabbCB.instanceIndex];
+        attr.normal = normalize(mul(attr.normal, (float3x3) WorldToObject3x4()));
+        attr.color = float4(thit, 0.f, 0.f); // Using the color parameter to send intersection min and max t.
+        
+        ReportHit(thit.x, /*hitKind*/ 0, attr);
+    }
+}
+
+[shader("closesthit")]
+void ClosestHit_Julia(inout RayPayload rayPayload, in ProceduralPrimitiveAttributes attr)
+{
+    // DEBUG
+    if (g_sceneCB.debugFlag)
+    {
+        rayPayload.color = float4(1.f, 0.f, 0.0f, 0.f);
+        return;
+    }
+
+    // Shadow component.
+    // Trace a shadow ray.
+    float3 hitPosition = HitWorldPosition();
+    Ray shadowRay = { hitPosition, normalize(g_sceneCB.lightPosition.xyz - hitPosition) };
+    bool shadowRayHit = false;//TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
+    
+    float3 pos = ObjectRayOrigin() + RayTCurrent() * ObjectRayDirection();
+    float3 dir = WorldRayDirection();
+    
+    float4 albedo = float4(3.5*colorSurface(pos, attr.color.xy), 1.f);
+    
+    if (rayPayload.recursionDepth == MAX_RAY_RECURSION_DEPTH - 1)
+    {
+       albedo += 1.65 * step(0.0, abs(pos.y));
+    }
+    
+    // Reflected component.
+    float4 reflectedColor = float4(0, 0, 0, 0);
+    
+    float reflecCoef = 0.1;
+    
+    if (reflecCoef > 0.001)
+    {
+        // Trace a reflection ray.
+        Ray reflectionRay = { hitPosition, reflect(WorldRayDirection(), attr.normal) };
+        float4 reflectionColor = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth);
+        
+        float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), attr.normal, albedo.xyz);
+        reflectedColor = reflecCoef * float4(fresnelR, 1) * reflectionColor;
+    }
+
+    float diffuseCoef = 0.6;
+    float specularCoef = 0.08;
+    float specularPower = 0.2;
+    // Calculate final color.
+    float4 phongColor = CalculatePhongLighting(albedo, attr.normal, shadowRayHit, diffuseCoef, specularCoef, specularPower);
+    float4 color = phongColor + reflectedColor;
+
+    color += rayPayload.color;
+    
+    //// Apply visibility falloff.
+    //rayPayload.dist+=RayTCurrent();
+    //float t = rayPayload.dist;
+        
+    ////color = lerp(color, BackgroundColor + rayPayload.color, 1.0 - exp(-0.0000002*t*t*t));
+   
+    rayPayload.color = color;
+}
+
 #endif

@@ -172,6 +172,7 @@
     <ClInclude Include="engine\DescriptorHeap.h" />
     <ClInclude Include="engine\DeviceHelper.h" />
     <ClInclude Include="engine\Geometry.h" />
+    <ClInclude Include="engine\Entity.h" />
     <ClInclude Include="engine\HitGroup.h" />
     <ClInclude Include="engine\Payloads.h" />
     <ClInclude Include="engine\RayTracingState.h" />
@@ -179,12 +180,14 @@
     <ClInclude Include="engine\RootComponents.h" />
     <ClInclude Include="engine\RootSignature.h" />
     <ClInclude Include="engine\Ray.h" />
+    <ClInclude Include="engine\SceneBuilder.h" />
     <ClInclude Include="engine\SceneDefines.h" />
     <ClInclude Include="engine\ShaderCompat.h" />
     <ClInclude Include="engine\ShaderCompatUtils.h" />
     <ClInclude Include="engine\ShaderTable.h" />
     <ClInclude Include="engine\ShaderTableShared.h" />
     <ClInclude Include="engine\StaticScene.h" />
+    <ClInclude Include="MandelJuliaPacSceneBuilder.h" />
     <ClInclude Include="ProceduralPrimitivesLibrary.hlsli" />
     <ClInclude Include="ProceduralRtxEngineSample.h" />
     <ClInclude Include="RaytracingHlslCompat.h" />
@@ -239,6 +242,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MandelJuliaPacSceneBuilder.cpp" />
     <ClCompile Include="ProceduralRtxEngineSample.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -266,8 +270,11 @@
   <ItemGroup>
     <None Include="Graph3D.hlsli" />
     <None Include="JuliaSets.hlsli" />
+    <None Include="Mandelbulb.hlsli" />
     <None Include="packages.config" />
+    <None Include="Pacman.hlsli" />
     <None Include="readme.md" />
+    <None Include="Triangles.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\MiniEngine\Core\Core_VS16.vcxproj">

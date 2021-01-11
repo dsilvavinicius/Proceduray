@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Entity.h"
 #include "ShaderCompatUtils.h"
 #include "DescriptorHeap.h"
 #include <wrl/client.h>
@@ -15,7 +16,7 @@ namespace RtxEngine
 	/** Root Signature. Add components using the add* methods and build() it. The resulting device root signature will have entries in the same order they are added.
 	* The RootSignature must be compatible with the RootArg structure.
 	*/
-	class RootSignature
+	class RootSignature : public Entity
 	{
 	public:
 		enum BufferEntry
@@ -32,7 +33,8 @@ namespace RtxEngine
 			D3D12_GPU_DESCRIPTOR_HANDLE baseHandleToHeap;
 		};
 
-		RootSignature(const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap, bool isLocal);
+		RootSignature(const string& name, const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap,
+			bool isLocal);
 
 		~RootSignature();
 

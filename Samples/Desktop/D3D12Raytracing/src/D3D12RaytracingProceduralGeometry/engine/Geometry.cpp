@@ -4,17 +4,19 @@
 
 namespace RtxEngine
 {
-	Geometry::Geometry(D3D12_RAYTRACING_AABB& aabb, DeviceResources& deviceResources, const vector<XMMATRIX>& instances)
-	    : m_instances(make_shared<Instances>(instances)),
+	Geometry::Geometry(const string& name, D3D12_RAYTRACING_AABB& aabb, DeviceResources& deviceResources, const vector<XMMATRIX>& instances)
+	    : Entity(name),
+        m_instances(make_shared<Instances>(instances)),
 	    m_type(Procedural)
 	{
 		auto device = deviceResources.GetD3DDevice();
 		AllocateUploadBuffer(device, &aabb, sizeof(D3D12_RAYTRACING_AABB), &m_vertexBuffer.resource);
 	}
 
-	Geometry::Geometry(vector<Vertex>& vertices, vector<Index>& indices, DeviceResources& deviceResources, DescriptorHeap& descriptorHeap,
+	Geometry::Geometry(const string& name, vector<Vertex>& vertices, vector<Index>& indices, DeviceResources& deviceResources, DescriptorHeap& descriptorHeap,
         const vector<XMMATRIX>& instances)
-		: m_instances(make_shared<Instances>(instances)),
+		: Entity(name),
+        m_instances(make_shared<Instances>(instances)),
 		m_type(Triangles)
 	{
 		auto device = deviceResources.GetD3DDevice();

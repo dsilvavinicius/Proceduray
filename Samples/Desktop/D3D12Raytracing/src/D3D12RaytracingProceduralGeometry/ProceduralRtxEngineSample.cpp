@@ -63,13 +63,13 @@ void ProceduralRtxEngineSample::OnInit()
 // Update camera matrices passed into the shader.
 void ProceduralRtxEngineSample::UpdateCameraMatrices(float deltaT)
 {
-	/*auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
 	//(*m_sceneCB)->cameraPosition = m_eye;
 	float fovRadiansY = 3.14159265359f/4.f;
 
 	m_cam->SetPerspectiveMatrix(fovRadiansY, 1.f / m_aspectRatio, 0.01f, 125.0f);
-	m_camController.Update(deltaT, m_input);
+	m_camController.Update(deltaT*0.01, m_input);
 	//m_cam->Update();
 
 	(*m_sceneCB)->cameraPosition = m_cam->GetPosition();
@@ -78,58 +78,58 @@ void ProceduralRtxEngineSample::UpdateCameraMatrices(float deltaT)
 	//XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
 	//XMMATRIX viewProj = view * proj;
 	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
-	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam->GetViewProjMatrix());*/
+	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam->GetViewProjMatrix());
 
 
-	float an = 0.5 + float(deltaT) * 0.1;
+	//float an = 0.5 + float(deltaT) * 0.1;
 
-	// Initialize the view and projection inverse matrices.
-	//DirectX::XMVECTOR m_eye = { 4.0 * sin(an), 4.0 * (-0.3 + sin(2.f * an)), 4.0 * cos(an), 1.0f };
+	//// Initialize the view and projection inverse matrices.
+	////DirectX::XMVECTOR m_eye = { 4.0 * sin(an), 4.0 * (-0.3 + sin(2.f * an)), 4.0 * cos(an), 1.0f };
 
-	DirectX::XMVECTOR m_eye = { 135.0 * sin(2*an)+15, 
-							   -95 * (sin(an) + 0.6),
-								155.0 * cos(2 * an)+15, 1.0f };//for mandelbulb
-	
-	//float t = 13 * abs(cos(an));
-	//DirectX::XMVECTOR m_eye = { 6.0 + t.0 * , -110.8, 6.0 + t, 1.0f };//for mandelbulb
-	
-	//DirectX::XMVECTOR m_eye = { 5.0 * sin(an), -4.0 * 0.8, 5.0 * cos(an), 1.0f };
-	//DirectX::XMVECTOR m_eye = { 5.0 * sin(an), -5.0 * 0.8, 5.0 * cos(an), 1.0f };
-	
-	//DirectX::XMVECTOR m_eye = { 2.0 * sin(an), -5.0 * 0.8 + 2.*cos(an), 2.0 * cos(an), 1.0f };
-	//DirectX::XMVECTOR m_at = { 0.1 * sin(an), 1.0, 0.1 * cos(an), 1.0f };
-	
-	DirectX::XMVECTOR m_at = { 15.f, -0.3f, 25.f, 1.0f };
-	XMVECTOR right = { 0.0f, 1.0f, 0.0f, 0.0f };
+	//DirectX::XMVECTOR m_eye = { 135.0 * sin(2*an)+15, 
+	//						   -95 * (sin(an) + 0.6),
+	//							155.0 * cos(2 * an)+15, 1.0f };//for mandelbulb
+	//
+	////float t = 13 * abs(cos(an));
+	////DirectX::XMVECTOR m_eye = { 6.0 + t.0 * , -110.8, 6.0 + t, 1.0f };//for mandelbulb
+	//
+	////DirectX::XMVECTOR m_eye = { 5.0 * sin(an), -4.0 * 0.8, 5.0 * cos(an), 1.0f };
+	////DirectX::XMVECTOR m_eye = { 5.0 * sin(an), -5.0 * 0.8, 5.0 * cos(an), 1.0f };
+	//
+	////DirectX::XMVECTOR m_eye = { 2.0 * sin(an), -5.0 * 0.8 + 2.*cos(an), 2.0 * cos(an), 1.0f };
+	////DirectX::XMVECTOR m_at = { 0.1 * sin(an), 1.0, 0.1 * cos(an), 1.0f };
+	//
+	//DirectX::XMVECTOR m_at = { 15.f, -0.3f, 25.f, 1.0f };
+	//XMVECTOR right = { 0.0f, 1.0f, 0.0f, 0.0f };
 
-	XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
-	DirectX::XMVECTOR m_up = XMVector3Normalize(XMVector3Cross(direction, right));
+	//XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
+	//DirectX::XMVECTOR m_up = XMVector3Normalize(XMVector3Cross(direction, right));
 
-	// Rotate camera around Y axis.
-	XMMATRIX rotate = XMMatrixRotationZ(XMConvertToRadians(270.0f));
-	//m_eye = XMVector3Transform(m_eye, rotate);
-	//m_up = XMVector3Transform(m_up, rotate);
+	//// Rotate camera around Y axis.
+	//XMMATRIX rotate = XMMatrixRotationZ(XMConvertToRadians(270.0f));
+	////m_eye = XMVector3Transform(m_eye, rotate);
+	////m_up = XMVector3Transform(m_up, rotate);
 
-	// Init cam.
-	//m_cam->SetEyeAtUp(Math::Vector3(m_eye), Math::Vector3(m_at), Math::Vector3(m_up));
-	float fovAngleY = 45.0f;
-	//m_cam.SetPerspectiveMatrix(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
+	//// Init cam.
+	////m_cam->SetEyeAtUp(Math::Vector3(m_eye), Math::Vector3(m_at), Math::Vector3(m_up));
+	//float fovAngleY = 45.0f;
+	////m_cam.SetPerspectiveMatrix(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
 
-	//auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+	////auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
-	//float fovRadiansY = 3.14159265359f / 4.f;
+	////float fovRadiansY = 3.14159265359f / 4.f;
 
-	//m_cam->SetPerspectiveMatrix(fovRadiansY, 1.f / m_aspectRatio, 0.01f, 125.0f);
-	//m_camController.Update(deltaT, m_input);
-	//m_cam->Update();
+	////m_cam->SetPerspectiveMatrix(fovRadiansY, 1.f / m_aspectRatio, 0.01f, 125.0f);
+	////m_camController.Update(deltaT, m_input);
+	////m_cam->Update();
 
-	(*m_sceneCB)->cameraPosition = m_eye;
-	XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
+	//(*m_sceneCB)->cameraPosition = m_eye;
+	//XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
 
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
-	XMMATRIX viewProj =  view * rotate * proj ;
-	(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
-	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam->GetViewProjMatrix());
+	//XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
+	//XMMATRIX viewProj =  view * rotate * proj ;
+	//(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
+	////(*m_sceneCB)->projectionToWorld = XMMatrixInverse(nullptr, m_cam->GetViewProjMatrix());
 
 }
 
@@ -341,25 +341,25 @@ void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 
 void ProceduralRtxEngineSample::CreateRays()
 {
-	m_scene->addRay("Radiance", make_shared<Ray>(L"Miss", Payload(RayPayload())));
-	m_scene->addRay("Shadow", make_shared<Ray>(L"Miss_Shadow", Payload(ShadowRayPayload())));
+	m_scene->addRay(make_shared<Ray>("Radiance", L"Miss", Payload(RayPayload())));
+	m_scene->addRay(make_shared<Ray>("Shadow", L"Miss_Shadow", Payload(ShadowRayPayload())));
 }
 
 void ProceduralRtxEngineSample::CreateHitGroups()
 {
 	// Triangle Hit Groups.
-	m_scene->addHitGroup("Triangle", make_shared<HitGroup>(L"HitGroup_Triangle", L"", L"ClosestHit_Triangle", L""));
-	m_scene->addHitGroup("Triangle_Shadow", make_shared<HitGroup>(L"HitGroup_Triangle_Shadow", L"", L"", L""));
+	m_scene->addHitGroup(make_shared<HitGroup>("Triangle", L"HitGroup_Triangle", L"", L"ClosestHit_Triangle", L""));
+	m_scene->addHitGroup(make_shared<HitGroup>("Triangle_Shadow", L"HitGroup_Triangle_Shadow", L"", L"", L""));
 
 	// Procedural Hit Groups.
-	m_scene->addHitGroup("Pacman", make_shared<HitGroup>(L"HitGroup_Pacman", L"", L"ClosestHit_Pacman", L"Intersection_Pacman"));
-	m_scene->addHitGroup("Pacman_Shadow", make_shared<HitGroup>(L"HitGroup_Pacman_Shadow", L"", L"", L"Intersection_Pacman"));
+	m_scene->addHitGroup(make_shared<HitGroup>("Pacman", L"HitGroup_Pacman", L"", L"ClosestHit_Pacman", L"Intersection_Pacman"));
+	m_scene->addHitGroup(make_shared<HitGroup>("Pacman_Shadow", L"HitGroup_Pacman_Shadow", L"", L"", L"Intersection_Pacman"));
 
-	m_scene->addHitGroup("Mandelbulb", make_shared<HitGroup>(L"HitGroup_Mandelbulb", L"", L"ClosestHit_Mandelbulb", L"Intersection_Mandelbulb"));
-	m_scene->addHitGroup("Mandelbulb_Shadow", make_shared<HitGroup>(L"HitGroup_Mandelbulb_Shadow", L"", L"", L"Intersection_Mandelbulb"));
+	m_scene->addHitGroup(make_shared<HitGroup>("Mandelbulb", L"HitGroup_Mandelbulb", L"", L"ClosestHit_Mandelbulb", L"Intersection_Mandelbulb"));
+	m_scene->addHitGroup(make_shared<HitGroup>("Mandelbulb_Shadow", L"HitGroup_Mandelbulb_Shadow", L"", L"", L"Intersection_Mandelbulb"));
 	
-	m_scene->addHitGroup("Julia", make_shared<HitGroup>(L"HitGroup_Julia", L"", L"ClosestHit_Julia", L"Intersection_Julia"));
-	m_scene->addHitGroup("Julia_Shadow", make_shared<HitGroup>(L"HitGroup_Julia_Shadow", L"", L"", L"Intersection_Julia"));
+	m_scene->addHitGroup(make_shared<HitGroup>("Julia", L"HitGroup_Julia", L"", L"ClosestHit_Julia", L"Intersection_Julia"));
+	m_scene->addHitGroup(make_shared<HitGroup>("Julia_Shadow", L"HitGroup_Julia_Shadow", L"", L"", L"Intersection_Julia"));
 }
 
 void ProceduralRtxEngineSample::CreateAccelerationStructure()
@@ -370,7 +370,7 @@ void ProceduralRtxEngineSample::CreateAccelerationStructure()
 void ProceduralRtxEngineSample::CreateRootSignatures()
 {
 	// Global root signature.
-	auto globalSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap, false);
+	auto globalSignature = make_shared<RootSignature>("GlobalSignature", m_deviceResources, m_descriptorHeap, false);
 	
 	// Global signature ranges.
 	auto outputRange = globalSignature->createRange(m_raytracingOutputHandles.gpu, RootSignature::UAV, 0, 1);
@@ -387,21 +387,21 @@ void ProceduralRtxEngineSample::CreateRootSignatures()
 	m_scene->addGlobalSignature(globalSignature);
 
 	// Triangle geometry local root signature.
-	auto triangleSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap, true);
+	auto triangleSignature = make_shared<RootSignature>("Triangle", m_deviceResources, m_descriptorHeap, true);
 	triangleSignature->addConstant(RootComponent(PrimitiveConstantBuffer()), 1);
 	
 	// Root Arguments type.
 	triangleSignature->setRootArgumentsType(RootArguments(TriangleRootArguments()));
-	m_scene->addLocalSignature("Triangle", triangleSignature);
+	m_scene->addLocalSignature(triangleSignature);
 
 	// Procedural geometry local root signature.
-	auto proceduralSignature = make_shared<RootSignature>(m_deviceResources, m_descriptorHeap, true);
+	auto proceduralSignature = make_shared<RootSignature>("Procedural", m_deviceResources, m_descriptorHeap, true);
 	proceduralSignature->addConstant(RootComponent(PrimitiveConstantBuffer()), 1);
 	proceduralSignature->addConstant(RootComponent(PrimitiveInstanceConstantBuffer()), 2);
 	
 	// Root Arguments.
 	proceduralSignature->setRootArgumentsType(RootArguments(ProceduralRootArguments()));
-	m_scene->addLocalSignature("Procedural", proceduralSignature);
+	m_scene->addLocalSignature(proceduralSignature);
 }
 
 // Create raytracing device and command list.
@@ -567,13 +567,13 @@ void ProceduralRtxEngineSample::BuildInstancedProcedural()
 
 
 	D3D12_RAYTRACING_AABB juliaAABB{ -3.5f, -3.5f, -3.5f, 3.5f, 3.5f, 3.5f };
-	m_scene->addGeometry("Julia", make_shared<Geometry>(juliaAABB, *m_deviceResources, juliaInstances));
+	m_scene->addGeometry(make_shared<Geometry>("Julia", juliaAABB, *m_deviceResources, juliaInstances));
 
 	D3D12_RAYTRACING_AABB pacmanAABB{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
-	m_scene->addGeometry("Pacman", make_shared<Geometry>(pacmanAABB, *m_deviceResources, pacManInstances));
+	m_scene->addGeometry(make_shared<Geometry>("Pacman", pacmanAABB, *m_deviceResources, pacManInstances));
 
 	D3D12_RAYTRACING_AABB mandelbulbAABB{ -1.5f, -1.5f, -1.5f, 1.5f, 1.5f, 1.5f };
-	m_scene->addGeometry("Mandelbulb", make_shared<Geometry>(mandelbulbAABB, *m_deviceResources, mandelbulbInstances));
+	m_scene->addGeometry(make_shared<Geometry>("Mandelbulb", mandelbulbAABB, *m_deviceResources, mandelbulbInstances));
 }
 
 void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
@@ -646,7 +646,7 @@ void ProceduralRtxEngineSample::BuildInstancedParallelepipeds()
 		}
 	}
 
-	m_scene->addGeometry("GlobalGeometry", make_shared<Geometry>(vertices, indices, *m_deviceResources, *m_descriptorHeap, instances));
+	m_scene->addGeometry(make_shared<Geometry>("GlobalGeometry", vertices, indices, *m_deviceResources, *m_descriptorHeap, instances));
 }
 
 void ProceduralRtxEngineSample::BuildPlaneGeometry(const XMFLOAT3& width)
@@ -691,7 +691,7 @@ void ProceduralRtxEngineSample::BuildPlaneGeometry(const XMFLOAT3& width)
 	XMMATRIX mScale = XMMatrixScaling(width.x, width.y, width.z);
 	auto triangleBlasTransform = mScale * wTranslation;
 
-	m_scene->addGeometry("GlobalGeometry", make_shared<Geometry>(vertices, indices, *m_deviceResources, *m_descriptorHeap,
+	m_scene->addGeometry(make_shared<Geometry>("GlobalGeometry", vertices, indices, *m_deviceResources, *m_descriptorHeap,
 		Geometry::Instances(1, triangleBlasTransform)));
 }
 

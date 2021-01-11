@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Entity.h"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -8,12 +9,12 @@ namespace RtxEngine
 {
 	using namespace std;
 
-	struct HitGroup
+	class HitGroup : public Entity
 	{
 	public:
-		HitGroup(const wstring& name, const wstring& anyHit, const wstring& closestHit = L"", const wstring& intersection = L"");
-
-		wstring name;
+		HitGroup(const string& name, const wstring& internalName, const wstring& anyHit, const wstring& closestHit = L"",
+			const wstring& intersection = L"");
+		wstring wName;
 		wstring anyHit;
 		wstring closestHit;
 		wstring intersection;

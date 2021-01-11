@@ -3,8 +3,10 @@
 
 namespace RtxEngine
 {
-	RootSignature::RootSignature(const DeviceResourcesPtr& deviceResources, const DescriptorHeapPtr& descriptorHeap, bool isLocal)
-		: m_deviceResources(deviceResources),
+	RootSignature::RootSignature(const string& name, const DeviceResourcesPtr& deviceResources,
+		const DescriptorHeapPtr& descriptorHeap, bool isLocal)
+		: Entity(name),
+		m_deviceResources(deviceResources),
 		m_descriptorHeap(descriptorHeap),
 		m_isLocal(isLocal),
 		m_builded(nullptr)
