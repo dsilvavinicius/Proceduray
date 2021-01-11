@@ -1,43 +1,22 @@
 #ifndef JULIASETS_H
 #define JULIASETS_H
 
-float2 vec2_ctor(float x0, float x1)
-{
-    return float2(x0, x1);
-}
-float3 vec3_ctor(float x0)
+#define kPrecis 0.00025f
+#define kc float4(-2.f, 6.f, 15.f, -6.f) / 22.0f
+
+float3 float3_ctor(float x0)
 {
     return float3(x0, x0, x0);
-}
-float3 vec3_ctor(float x0, float x1, float x2)
-{
-    return float3(x0, x1, x2);
-}
-float3 vec3_ctor(float2 x0, float x1)
-{
-    return float3(x0, x1);
-}
-float3x3 mat3_ctor(float x0, float x1, float x2, float x3, float x4, float x5, float x6, float x7, float x8)
-{
-    return float3x3(x0, x1, x2, x3, x4, x5, x6, x7, x8);
-}
-float4 vec4_ctor(float x0, float3 x1)
-{
-    return float4(x0, x1);
-}
-float4 vec4_ctor(float3 x0, float x1)
-{
-    return float4(x0, x1);
 }
 
 float4 qSquare_float4(in float4 q)
 {
-    return vec4_ctor(((((q.x * q.x) - (q.y * q.y)) - (q.z * q.z)) - (q.w * q.w)), ((2.0 * q.x) * q.yzw));
+    return float4(((((q.x * q.x) - (q.y * q.y)) - (q.z * q.z)) - (q.w * q.w)), ((2.0 * q.x) * q.yzw));
 }
 float4 qCube_float4(in float4 q)
 {
     float4 q2 = (q * q);
-    return vec4_ctor((q.x * (((q2.x - (3.0 * q2.y)) - (3.0 * q2.z)) - (3.0 * q2.w))), (q.yzw * ((((3.0 * q2.x) - q2.y) - q2.z) - q2.w)));
+    return float4((q.x * (((q2.x - (3.0 * q2.y)) - (3.0 * q2.z)) - (3.0 * q2.w))), (q.yzw * ((((3.0 * q2.x) - q2.y) - q2.z) - q2.w)));
 }
 float qLength2_float4(in float4 q)
 {
@@ -53,22 +32,22 @@ float2 iSphere(in float3 ro, in float3 rd, in float rad)
         return float2(-1.0, -1.0);
     }
     h = sqrt(h);
-    return vec2_ctor(((-b) - h), ((-b) + h));
+    return float2(-b - h, -b + h);
 }
 float3x3 setCamera(in float3 ro, in float3 ta, in float cr)
 {
     float3 cw = normalize((ta - ro));
-    float3 cp = vec3_ctor(sin(cr), cos(cr), 0.0);
+    float3 cp = float3(sin(cr), cos(cr), 0.0);
     float3 cu = normalize(cross(cw, cp));
     float3 cv = normalize(cross(cu, cw));
     float3 s1 = cu;
     float3 s2 = cv;
     float3 s3 = cw;
-    return mat3_ctor(s1[0], s1[1], s1[2], s2[0], s2[1], s2[2], s3[0], s3[1], s3[2]);
+    return float3x3(s1[0], s1[1], s1[2], s2[0], s2[1], s2[2], s3[0], s3[1], s3[2]);
 }
 float2 map(in float3 p, in float4 c, in int iMax)
 {
-    float4 z = vec4_ctor(p, 0.0);
+    float4 z = float4(p, 0.0);
     float dz2 = 1.0;
     float m2 = 0.0;
     float n = 0.0;
@@ -90,16 +69,23 @@ float2 map(in float3 p, in float4 c, in int iMax)
     float d = (0.25 * log(m2)) * sqrt((m2 / dz2));
     //(_d2385 = min(_o2383, _d2385));//used to render the traps
     //(_d2385 = max(_d2385, _p.y));
-    return vec2_ctor(d, n);
+    return float2(d, n);
 }
-float3 calcNormal(in float3 pos, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in int iMax = 200)
+float3 calcNormal(in float3 pos, in float4 c = kc, in int iMax = 200)
 {
-    return normalize(((((float3(0.00014432501, -0.00014432501, -0.00014432501) * map((pos + float3(0.00014432501, -0.00014432501, -0.00014432501)), c, iMax).x) + (float3(-0.00014432501, -0.00014432501, 0.00014432501) * map((pos + float3(-0.00014432501, -0.00014432501, 0.00014432501)), c, iMax).x)) + (float3(-0.00014432501, 0.00014432501, -0.00014432501) * map((pos + float3(-0.00014432501, 0.00014432501, -0.00014432501)), c, iMax).x)) + (float3(0.00014432501, 0.00014432501, 0.00014432501) * map((pos + float3(0.00014432501, 0.00014432501, 0.00014432501)), c, iMax).x)));
+    const float2 e = float2(1.0f, -1.0f) * 0.5773f * kPrecis;
+    
+    return normalize(
+        e.xyy * map(pos + e.xyy, c, iMax).x +
+        e.yyx * map(pos + e.yyx, c, iMax).x +
+        e.yxy * map(pos + e.yxy, c, iMax).x +
+        e.xxx * map(pos + e.xxx, c, iMax).x
+    );
 }
-float2 raycast(in float3 ro, in float3 rd, in float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728), in float deltaT = 0.0, in int iMax = 200)
+float2 raycast(in float3 ro, in float3 rd, in float4 c = kc, in float deltaT = 0.0, in int iMax = 200)
 {
-    float tmax = { 7000.f };
-    float tmin = { 0.00025000001f };
+    float tmax = 7000.f;
+    float tmin = kPrecis;
  
     float upperPlane = deltaT;
     
@@ -126,7 +112,7 @@ float2 raycast(in float3 ro, in float3 rd, in float4 c = float4(-0.090909094, 0.
         }
     }
     
-    float lowerPlane = -1.10000001;
+    float lowerPlane = -1.1;
     float tpF = (lowerPlane - ro.y) / rd.y;
     
     bool isCamBellowLower = (ro.y < lowerPlane);
@@ -165,7 +151,7 @@ float2 raycast(in float3 ro, in float3 rd, in float4 c = float4(-0.090909094, 0.
         for (int i = 0; i < 1024; i++)
         {
             res = map(ro + (rd * t), c, iMax);
-            if (res.x < 0.00025000001)
+            if (res.x < kPrecis)
             {
                 break;
             }
@@ -197,7 +183,7 @@ float2 raycast(in float3 ro, in float3 rd, in float4 c = float4(-0.090909094, 0.
 }
 float3 colorSurface(in float3 pos, in float2 tn)
 {
-    float3 col = (0.5 + (0.5 * cos((((log2(tn.y) * 0.89999998) + 3.5) + float3(0.0, 0.60000002, 1.0)))));
+    float3 col = 0.5 + 0.5 * cos(log2(tn.y) * 0.9 + 3.5 + float3(0.0, 0.6, 1.0));
     
     if (pos.y > 0.0)
     {
@@ -207,18 +193,18 @@ float3 colorSurface(in float3 pos, in float2 tn)
     
    //sss return float3(_inside2408,0.,0.);
     
-    col *= float3(0.44999999, 0.41999999, 0.40000001) + (float3(0.55000001, 0.57999998, 0.60000002) * inside);
-    col = lerp(((col * col) * (3.0 - (2.0 * col))), col, inside);
-    col = lerp(lerp(col, vec3_ctor(dot(col, float3(0.33329999, 0.33329999, 0.33329999))), -0.40000001), col, inside);
+    col *= float3(0.45, 0.42, 0.40) + float3(0.55, 0.58, 0.60) * inside;
+    col = lerp(col * col * (3.0 - 2.0 * col), col, inside);
+    col = lerp(lerp(col, float3_ctor(dot(col, float3(0.3333, 0.333, 0.333))), -0.4), col, inside);
     
-    float3 surfaceColor = clamp((col * 0.64999998), 0.0, 1.0);
+    float3 surfaceColor = clamp(col * 0.65, 0.0, 1.0);
     
     return surfaceColor;
 }
 
 bool JuliaDistance(in float3 ro, in float3 rd, inout float3 normal, inout float2 resT, in float time=0.3f)
 {
-    resT = 100000002004087734272.0;
+    resT = 1e20;
     
     ro *= 0.4;
     
@@ -230,7 +216,6 @@ bool JuliaDistance(in float3 ro, in float3 rd, inout float3 normal, inout float2
     
     float minCut = -0.3f;
     float maxCut = 0.6f;
-    
     
     int iMax = (10.5*time) % (iAnimMax*2);
     if(iMax>iAnimMax) 
@@ -244,7 +229,7 @@ bool JuliaDistance(in float3 ro, in float3 rd, inout float3 normal, inout float2
     
     // julia animation
     //float4 c = 0.45*cos( float4(0.5,3.9,1.4,1.1) + 0.01*(time+100.)*float4(1.2,1.7,1.3,2.5) ) - float4(0.3,0.0,0.0,0.0);
-    float4 c = float4(-0.090909094, 0.27272728, 0.68181819, -0.27272728);
+    float4 c = kc;
     
     //float2 tn = f_raycast(ro, rd, c, deltaT, iMax+2);
     //float2 tn = f_raycast(ro, rd, c, deltaT, 200);
