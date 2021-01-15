@@ -222,6 +222,9 @@
     <None Include="Triangles.hlsli">
       <Filter>Assets\Shaders\ProceduralPrimitives</Filter>
     </None>
+    <None Include="Helpers.hlsli">
+      <Filter>Assets\Shaders\ProceduralPrimitives</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Raytracing.hlsl">

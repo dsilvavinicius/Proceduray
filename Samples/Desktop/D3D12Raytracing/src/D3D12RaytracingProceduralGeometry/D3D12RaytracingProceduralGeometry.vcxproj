@@ -269,6 +269,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Graph3D.hlsli" />
+    <None Include="Helpers.hlsli" />
     <None Include="JuliaSets.hlsli" />
     <None Include="Mandelbulb.hlsli" />
     <None Include="packages.config" />

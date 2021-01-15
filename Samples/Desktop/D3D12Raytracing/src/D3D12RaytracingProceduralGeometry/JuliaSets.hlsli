@@ -45,7 +45,7 @@ float3x3 setCamera(in float3 ro, in float3 ta, in float cr)
     float3 s3 = cw;
     return float3x3(s1[0], s1[1], s1[2], s2[0], s2[1], s2[2], s3[0], s3[1], s3[2]);
 }
-float2 map(in float3 p, in float4 c, in int iMax)
+float2 jdist(in float3 p, in float4 c, in int iMax)
 {
     float4 z = float4(p, 0.0);
     float dz2 = 1.0;
@@ -76,10 +76,10 @@ float3 calcNormal(in float3 pos, in float4 c = kc, in int iMax = 200)
     const float2 e = float2(1.0f, -1.0f) * 0.5773f * kPrecis;
     
     return normalize(
-        e.xyy * map(pos + e.xyy, c, iMax).x +
-        e.yyx * map(pos + e.yyx, c, iMax).x +
-        e.yxy * map(pos + e.yxy, c, iMax).x +
-        e.xxx * map(pos + e.xxx, c, iMax).x
+        e.xyy * jdist(pos + e.xyy, c, iMax).x +
+        e.yyx * jdist(pos + e.yyx, c, iMax).x +
+        e.yxy * jdist(pos + e.yxy, c, iMax).x +
+        e.xxx * jdist(pos + e.xxx, c, iMax).x
     );
 }
 float2 raycast(in float3 ro, in float3 rd, in float4 c = kc, in float deltaT = 0.0, in int iMax = 200)
@@ -150,7 +150,7 @@ float2 raycast(in float3 ro, in float3 rd, in float4 c = kc, in float deltaT = 0
     {
         for (int i = 0; i < 1024; i++)
         {
-            res = map(ro + (rd * t), c, iMax);
+            res = jdist(ro + (rd * t), c, iMax);
             if (res.x < kPrecis)
             {
                 break;
