@@ -174,24 +174,6 @@ void Miss_Shadow(inout ShadowRayPayload rayPayload)
    rayPayload.hit = false;
 }
 
-//***************************************************************************
-//*****************------ Intersection shaders-------************************
-//***************************************************************************
-
-// Get ray in AABB's local space.
-Ray GetRayInAABBPrimitiveLocalSpace()
-{
-    InstanceBuffer attr = g_instanceBuffer[l_aabbCB.instanceIndex];
-
-    // Retrieve a ray origin position and direction in bottom level AS space 
-    // and transform them into the AABB primitive's local space.
-    Ray ray;
-    ray.origin = mul(float4(WorldRayOrigin(), 1), attr.localSpaceToBottomLevelAS).xyz;
-    ray.direction = mul(WorldRayDirection(), (float3x3) attr.localSpaceToBottomLevelAS);
-    ray.direction = normalize(ray.direction);
-    return ray;
-}
-
 #include "Pacman.hlsli"
 
 #include "JuliaSets.hlsli"

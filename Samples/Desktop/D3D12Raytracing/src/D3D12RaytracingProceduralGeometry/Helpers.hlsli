@@ -19,7 +19,6 @@ float4 CalculateSpecularCoefficient(in float3 hitPosition, in float3 incidentLig
     return pow(saturate(dot(reflectedLightRay, normalize (-WorldRayDirection()))), specularPower);
 }
 
-
 // Phong lighting model = ambient + diffuse + specular components.
 float4 CalculatePhongLighting(in float4 albedo, in float3 normal, in bool isInShadow, in float diffuseCoef = 1.0, in float specularCoef = 1.0, in float specularPower = 50)
 {
@@ -191,6 +190,20 @@ bool TraceShadowRayAndReportIfHit(in Ray ray, in UINT currentRayRecursionDepth)
     }
     return shadowPayload.hit;
 #endif    
+}
+
+// Get ray in AABB's local space.
+Ray GetRayInAABBPrimitiveLocalSpace()
+{
+    InstanceBuffer attr = g_instanceBuffer[l_aabbCB.instanceIndex];
+
+    // Retrieve a ray origin position and direction in bottom level AS space 
+    // and transform them into the AABB primitive's local space.
+    Ray ray;
+    ray.origin = mul(float4(WorldRayOrigin(), 1), attr.localSpaceToBottomLevelAS).xyz;
+    ray.direction = mul(WorldRayDirection(), (float3x3) attr.localSpaceToBottomLevelAS);
+    ray.direction = normalize(ray.direction);
+    return ray;
 }
 
 #endif
