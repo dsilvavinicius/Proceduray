@@ -23,16 +23,17 @@ ProceduralRtxEngineSample::ProceduralRtxEngineSample(UINT width, UINT height, st
 	m_animateLight(false),
 	m_cam(make_shared<Camera>()),
 	m_camController(m_cam),
-	m_sceneBuilder()
+	m_sceneBuilder(),
+	m_dxr(make_shared<DxrInternal>())
 {
-	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
+	m_dxr->outputHandler.descriptorIndex = UINT_MAX;
 	UpdateForSizeChange(width, height);
 }
 
 
 void ProceduralRtxEngineSample::OnInit()
 {
-	m_deviceResources = std::make_shared<DeviceResources>(
+	m_dxr->deviceResources = std::make_shared<DeviceResources>(
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		DXGI_FORMAT_UNKNOWN,
 		FrameCount,
@@ -42,17 +43,17 @@ void ProceduralRtxEngineSample::OnInit()
 		DeviceResources::c_RequireTearingSupport,
 		m_adapterIDoverride
 		);
-	m_deviceResources->RegisterDeviceNotify(this);
-	m_deviceResources->SetWindow(Win32Application::GetHwnd(), m_width, m_height);
-	m_deviceResources->InitializeDXGIAdapter();
+	m_dxr->deviceResources->RegisterDeviceNotify(this);
+	m_dxr->deviceResources->SetWindow(Win32Application::GetHwnd(), m_width, m_height);
+	m_dxr->deviceResources->InitializeDXGIAdapter();
 
-	ThrowIfFalse(IsDirectXRaytracingSupported(m_deviceResources->GetAdapter()),
+	ThrowIfFalse(IsDirectXRaytracingSupported(m_dxr->deviceResources->GetAdapter()),
 		L"ERROR: DirectX Raytracing is not supported by your OS, GPU and/or driver.\n\n");
 
-	m_deviceResources->CreateDeviceResources();
-	m_deviceResources->CreateWindowSizeDependentResources();
+	m_dxr->deviceResources->CreateDeviceResources();
+	m_dxr->deviceResources->CreateWindowSizeDependentResources();
 
-	m_sceneBuilder.init(m_deviceResources);
+	m_sceneBuilder.init(m_dxr);
 
 	// Setup camera.
 	{
@@ -84,7 +85,7 @@ void ProceduralRtxEngineSample::OnInit()
 // Update camera matrices passed into the shader.
 void ProceduralRtxEngineSample::UpdateCameraMatrices(float deltaT)
 {
-	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+	auto frameIndex = m_dxr->deviceResources->GetCurrentFrameIndex();
 
 	//(*m_sceneCB)->cameraPosition = m_eye;
 	float fovRadiansY = 3.14159265359f/4.f;
@@ -137,7 +138,7 @@ void ProceduralRtxEngineSample::UpdateCameraMatrices(float deltaT)
 	//float fovAngleY = 45.0f;
 	////m_cam.SetPerspectiveMatrix(XMConvertToRadians(fovAngleY), m_aspectRatio, 0.01f, 125.0f);
 
-	////auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
+	////auto frameIndex = m_dxr->deviceResources->GetCurrentFrameIndex();
 
 	////float fovRadiansY = 3.14159265359f / 4.f;
 
@@ -190,10 +191,10 @@ void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 	CreateRaytracingInterfaces();
 
 	// Create a heap for descriptors.
-	m_descriptorHeap = make_shared<DescriptorHeap>(m_deviceResources, 3);
+	m_dxr->descriptorHeap = make_shared<DescriptorHeap>(m_dxr->deviceResources, 3);
 	
 	// Builds the scene.
-	m_sceneBuilder.build(m_dxrDevice, m_deviceResources, m_dxrCommandList, m_descriptorHeap, m_raytracingOutputHandles);
+	m_sceneBuilder.build();
 
 	// Create an output 2D texture to store the raytracing result to.
 	CreateRaytracingOutputResource();
@@ -201,42 +202,42 @@ void ProceduralRtxEngineSample::CreateDeviceDependentResources()
 	auto shaderTable = m_sceneBuilder.getShaderTable();
 
 	// Create a raytracing pipeline state object which defines the binding of shaders, state and resources to be used during raytracing.
-	m_rayTracingState = make_shared<RayTracingState>(m_sceneBuilder.getScene(), shaderTable->getCommonEntries(), m_dxrDevice,
-		m_dxrCommandList, m_deviceResources, m_descriptorHeap);
+	m_dxr->rayTracingState = make_shared<RayTracingState>(m_sceneBuilder.getScene(), shaderTable->getCommonEntries(), m_dxr->device,
+		m_dxr->commandList, m_dxr->deviceResources, m_dxr->descriptorHeap);
 
 	// Build shader tables, which define shaders and their local root arguments.
-	shaderTable->getBuilded(*m_rayTracingState);
+	shaderTable->getBuilded(*m_dxr->rayTracingState);
 }
 
 // Create raytracing device and command list.
 void ProceduralRtxEngineSample::CreateRaytracingInterfaces()
 {
-	auto device = m_deviceResources->GetD3DDevice();
-	auto commandList = m_deviceResources->GetCommandList();
+	auto device = m_dxr->deviceResources->GetD3DDevice();
+	auto commandList = m_dxr->deviceResources->GetCommandList();
 
-	ThrowIfFailed(device->QueryInterface(IID_PPV_ARGS(&m_dxrDevice)), L"Couldn't get DirectX Raytracing interface for the device.\n");
-	ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&m_dxrCommandList)), L"Couldn't get DirectX Raytracing interface for the command list.\n");
+	ThrowIfFailed(device->QueryInterface(IID_PPV_ARGS(&m_dxr->device)), L"Couldn't get DirectX Raytracing interface for the device.\n");
+	ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&m_dxr->commandList)), L"Couldn't get DirectX Raytracing interface for the command list.\n");
 }
 
 // Create a 2D output texture for raytracing.
 void ProceduralRtxEngineSample::CreateRaytracingOutputResource()
 {
-	auto device = m_deviceResources->GetD3DDevice();
-	auto backbufferFormat = m_deviceResources->GetBackBufferFormat();
+	auto device = m_dxr->deviceResources->GetD3DDevice();
+	auto backbufferFormat = m_dxr->deviceResources->GetBackBufferFormat();
 
 	// Create the output resource. The dimensions and format should match the swap-chain.
 	auto uavDesc = CD3DX12_RESOURCE_DESC::Tex2D(backbufferFormat, m_width, m_height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
 	auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	ThrowIfFailed(device->CreateCommittedResource(
-		&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_raytracingOutput)));
-	NAME_D3D12_OBJECT(m_raytracingOutput);
+		&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_dxr->raytracingOutput)));
+	NAME_D3D12_OBJECT(m_dxr->raytracingOutput);
 
-	m_raytracingOutputHandles = m_descriptorHeap->allocateDescriptor(m_raytracingOutputHandles.descriptorIndex);
+	m_dxr->outputHandler = m_dxr->descriptorHeap->allocateDescriptor(m_dxr->outputHandler.descriptorIndex);
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
 	UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-	device->CreateUnorderedAccessView(m_raytracingOutput.Get(), nullptr, &UAVDesc, m_raytracingOutputHandles.cpu);
+	device->CreateUnorderedAccessView(m_dxr->raytracingOutput.Get(), nullptr, &UAVDesc, m_dxr->outputHandler.cpu);
 }
 
 void ProceduralRtxEngineSample::OnMouseMove(UINT x, UINT y)
@@ -295,8 +296,8 @@ void ProceduralRtxEngineSample::OnUpdate()
 	CalculateFrameStats();
 	float elapsedTime = static_cast<float>(m_timer.GetElapsedSeconds());
 	
-	auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
-	auto prevFrameIndex = m_deviceResources->GetPreviousFrameIndex();
+	auto frameIndex = m_dxr->deviceResources->GetCurrentFrameIndex();
+	auto prevFrameIndex = m_dxr->deviceResources->GetPreviousFrameIndex();
 
 	auto sceneCB = m_sceneBuilder.getSceneCB();
 
@@ -333,19 +334,19 @@ void ProceduralRtxEngineSample::UpdateForSizeChange(UINT width, UINT height)
 // Copy the raytracing output to the backbuffer.
 void ProceduralRtxEngineSample::CopyRaytracingOutputToBackbuffer()
 {
-	auto commandList = m_deviceResources->GetCommandList();
-	auto renderTarget = m_deviceResources->GetRenderTarget();
+	auto commandList = m_dxr->deviceResources->GetCommandList();
+	auto renderTarget = m_dxr->deviceResources->GetRenderTarget();
 
 	D3D12_RESOURCE_BARRIER preCopyBarriers[2];
 	preCopyBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
-	preCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_raytracingOutput.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
+	preCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_dxr->raytracingOutput.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
 	commandList->ResourceBarrier(ARRAYSIZE(preCopyBarriers), preCopyBarriers);
 
-	commandList->CopyResource(renderTarget, m_raytracingOutput.Get());
+	commandList->CopyResource(renderTarget, m_dxr->raytracingOutput.Get());
 
 	D3D12_RESOURCE_BARRIER postCopyBarriers[2];
 	postCopyBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PRESENT);
-	postCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_raytracingOutput.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	postCopyBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_dxr->raytracingOutput.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 	commandList->ResourceBarrier(ARRAYSIZE(postCopyBarriers), postCopyBarriers);
 }
@@ -354,26 +355,26 @@ void ProceduralRtxEngineSample::CopyRaytracingOutputToBackbuffer()
 void ProceduralRtxEngineSample::CreateWindowSizeDependentResources()
 {
 	CreateRaytracingOutputResource();
-	m_sceneBuilder.getScene()->getGlobalSignature().updateHeapHandle(m_raytracingOutputHandles.baseHandleIndex, m_raytracingOutputHandles.gpu);
+	m_sceneBuilder.getScene()->getGlobalSignature().updateHeapHandle(m_dxr->outputHandler.baseHandleIndex, m_dxr->outputHandler.gpu);
 	UpdateCameraMatrices(0.f);
 }
 
 // Release resources that are dependent on the size of the main window.
 void ProceduralRtxEngineSample::ReleaseWindowSizeDependentResources()
 {
-	m_raytracingOutput.Reset();
+	m_dxr->raytracingOutput.Reset();
 }
 
 // Release all resources that depend on the device.
 void ProceduralRtxEngineSample::ReleaseDeviceDependentResources()
 {
-	m_dxrDevice.Reset();
-	m_dxrCommandList.Reset();
+	m_dxr->device.Reset();
+	m_dxr->commandList.Reset();
 
 	m_sceneBuilder.release();
 
-	m_raytracingOutput.Reset();
-	m_raytracingOutputHandles.descriptorIndex = UINT_MAX;
+	m_dxr->raytracingOutput.Reset();
+	m_dxr->outputHandler.descriptorIndex = UINT_MAX;
 }
 
 void ProceduralRtxEngineSample::RecreateD3D()
@@ -381,39 +382,39 @@ void ProceduralRtxEngineSample::RecreateD3D()
 	// Give GPU a chance to finish its execution in progress.
 	try
 	{
-		m_deviceResources->WaitForGpu();
+		m_dxr->deviceResources->WaitForGpu();
 	}
 	catch (HrException&)
 	{
 		// Do nothing, currently attached adapter is unresponsive.
 	}
-	m_deviceResources->HandleDeviceLost();
+	m_dxr->deviceResources->HandleDeviceLost();
 }
 
 // Render the scene.
 void ProceduralRtxEngineSample::OnRender()
 {
-	if (!m_deviceResources->IsWindowVisible())
+	if (!m_dxr->deviceResources->IsWindowVisible())
 	{
 		return;
 	}
 
-	auto device = m_deviceResources->GetD3DDevice();
-	auto commandList = m_deviceResources->GetCommandList();
+	auto device = m_dxr->deviceResources->GetD3DDevice();
+	auto commandList = m_dxr->deviceResources->GetCommandList();
 
-	m_deviceResources->Prepare();
+	m_dxr->deviceResources->Prepare();
 
 	auto shaderTable = m_sceneBuilder.getShaderTable();
-	m_rayTracingState->doRayTracing(shaderTable->getBuilded(*m_rayTracingState), m_width, m_height);
+	m_dxr->rayTracingState->doRayTracing(shaderTable->getBuilded(*m_dxr->rayTracingState), m_width, m_height);
 	CopyRaytracingOutputToBackbuffer();
 
-	m_deviceResources->Present(D3D12_RESOURCE_STATE_PRESENT);
+	m_dxr->deviceResources->Present(D3D12_RESOURCE_STATE_PRESENT);
 }
 
 void ProceduralRtxEngineSample::OnDestroy()
 {
 	// Let GPU finish before releasing D3D resources.
-	m_deviceResources->WaitForGpu();
+	m_dxr->deviceResources->WaitForGpu();
 	OnDeviceLost();
 }
 
@@ -448,7 +449,7 @@ void ProceduralRtxEngineSample::CalculateFrameStats()
 
 		frameCnt = 0;
 		prevTime = totalTime;
-		float raytracingTime = static_cast<float>(m_rayTracingState->getGpuTimer().GetElapsedMS());
+		float raytracingTime = static_cast<float>(m_dxr->rayTracingState->getGpuTimer().GetElapsedMS());
 		float MRaysPerSecond = NumMRaysPerSecond(m_width, m_height, raytracingTime);
 
 		wstringstream windowText;
@@ -456,7 +457,7 @@ void ProceduralRtxEngineSample::CalculateFrameStats()
 			<< L"    fps: " << fps
 			<< L"    DispatchRays(): " << raytracingTime << "ms"
 			<< L"     ~Million Primary Rays/s: " << MRaysPerSecond
-			<< L"    GPU[" << m_deviceResources->GetAdapterID() << L"]: " << m_deviceResources->GetAdapterDescription();
+			<< L"    GPU[" << m_dxr->deviceResources->GetAdapterID() << L"]: " << m_dxr->deviceResources->GetAdapterDescription();
 		SetCustomWindowText(windowText.str().c_str());
 	}
 }
@@ -464,7 +465,7 @@ void ProceduralRtxEngineSample::CalculateFrameStats()
 // Handle OnSizeChanged message event.
 void ProceduralRtxEngineSample::OnSizeChanged(UINT width, UINT height, bool minimized)
 {
-	if (!m_deviceResources->WindowSizeChanged(width, height, minimized))
+	if (!m_dxr->deviceResources->WindowSizeChanged(width, height, minimized))
 	{
 		return;
 	}

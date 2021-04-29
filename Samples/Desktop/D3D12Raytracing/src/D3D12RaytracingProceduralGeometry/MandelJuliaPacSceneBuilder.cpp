@@ -2,16 +2,16 @@
 #include "MandelJuliaPacSceneBuilder.h"
 
 MandelJuliaPacSceneBuilder::MandelJuliaPacSceneBuilder()
-{
-	m_scene = make_shared<StaticScene>();
-	m_sceneCB = make_shared<ConstantBuffer<SceneConstantBuffer>>();
-	m_instanceBuffer = make_shared<StructuredBuffer<InstanceBuffer>>();
-}
+	: m_scene(make_shared<StaticScene>()),
+	m_sceneCB(make_shared<ConstantBuffer<SceneConstantBuffer>>()),
+	m_instanceBuffer(make_shared<StructuredBuffer<InstanceBuffer>>())
+{}
 
 // Initialize scene rendering parameters.
-void MandelJuliaPacSceneBuilder::init(DeviceResourcesPtr deviceResources)
+void MandelJuliaPacSceneBuilder::init(DxrInternalPtr dxr)
 {
-	auto frameIndex = deviceResources->GetCurrentFrameIndex();
+	m_dxr = dxr;
+	auto frameIndex = m_dxr->deviceResources->GetCurrentFrameIndex();
 
 	// Setup materials.
 	{
@@ -93,8 +93,7 @@ void MandelJuliaPacSceneBuilder::init(DeviceResourcesPtr deviceResources)
 	(*m_sceneCB)->debugFlag = false;
 }
 
-void MandelJuliaPacSceneBuilder::build(DxrDevicePtr device, DeviceResourcesPtr deviceResources, DxrCommandListPtr commandList,
-	DescriptorHeapPtr descriptorHeap, DescriptorHeap::DescriptorHandles& descriptorHandles)
+void MandelJuliaPacSceneBuilder::build()
 {
 	// Add rays to the scene.
 	CreateRays();
@@ -102,26 +101,27 @@ void MandelJuliaPacSceneBuilder::build(DxrDevicePtr device, DeviceResourcesPtr d
 	// Add hit groups to the scene.
 	CreateHitGroups();
 
-	// Build geometry to be used in the sample.
-	BuildGeometry(deviceResources, descriptorHeap);
+	// Build geometry to be used in the scene.
+	BuildGeometry();
 
 	// Create constant buffers for the geometry and the scene.
-	CreateConstantBuffers(deviceResources);
+	CreateConstantBuffers();
 
 	// Create AABB primitive attribute buffers.
-	CreateInstanceBuffer(deviceResources);
+	CreateInstanceBuffer();
 
-	CreateAccelerationStructure(device, deviceResources, commandList);
+	CreateAccelerationStructure();
 
 	// Create root signatures for the shaders.
-	CreateRootSignatures(deviceResources, descriptorHeap, descriptorHandles);
+	CreateRootSignatures();
 
-	CreateShaderTablesEntries(deviceResources);
+	CreateShaderTablesEntries();
 }
 
 // Create constant buffers.
-void MandelJuliaPacSceneBuilder::CreateConstantBuffers(DeviceResourcesPtr deviceResources)
+void MandelJuliaPacSceneBuilder::CreateConstantBuffers()
 {
+	auto deviceResources = m_dxr->deviceResources;
 	auto device = deviceResources->GetD3DDevice();
 	auto frameCount = deviceResources->GetBackBufferCount();
 
@@ -129,8 +129,9 @@ void MandelJuliaPacSceneBuilder::CreateConstantBuffers(DeviceResourcesPtr device
 }
 
 // Create AABB primitive attributes buffers.
-void MandelJuliaPacSceneBuilder::CreateInstanceBuffer(DeviceResourcesPtr deviceResources)
+void MandelJuliaPacSceneBuilder::CreateInstanceBuffer()
 {
+	auto deviceResources = m_dxr->deviceResources;
 	auto device = deviceResources->GetD3DDevice();
 	auto frameCount = deviceResources->GetBackBufferCount();
 
@@ -172,24 +173,25 @@ void MandelJuliaPacSceneBuilder::CreateHitGroups()
 	m_scene->addHitGroup(make_shared<HitGroup>("Julia_Shadow", L"HitGroup_Julia_Shadow", L"", L"", L"Intersection_Julia"));
 }
 
-void MandelJuliaPacSceneBuilder::CreateAccelerationStructure(DxrDevicePtr device, DeviceResourcesPtr deviceResources, DxrCommandListPtr commandList)
+void MandelJuliaPacSceneBuilder::CreateAccelerationStructure()
 {
-	m_accelerationStruct = make_shared<AccelerationStructure>(m_scene, device, commandList, deviceResources);
+	m_accelerationStruct = make_shared<AccelerationStructure>(m_scene, m_dxr->device, m_dxr->commandList, m_dxr->deviceResources);
 }
 
-void MandelJuliaPacSceneBuilder::CreateRootSignatures(DeviceResourcesPtr deviceResources, DescriptorHeapPtr descriptorHeap,
-	DescriptorHeap::DescriptorHandles& descriptorHandles)
+void MandelJuliaPacSceneBuilder::CreateRootSignatures()
 {
+	auto deviceResources = m_dxr->deviceResources;
+	
 	// Global root signature.
-	auto globalSignature = make_shared<RootSignature>("GlobalSignature", deviceResources, descriptorHeap, false);
+	auto globalSignature = make_shared<RootSignature>("GlobalSignature", deviceResources, m_dxr->descriptorHeap, false);
 
 	// Global signature ranges.
-	auto outputRange = globalSignature->createRange(descriptorHandles.gpu, RootSignature::UAV, 0, 1);
+	auto outputRange = globalSignature->createRange(m_dxr->outputHandler.gpu, RootSignature::UAV, 0, 1);
 	auto globalGeometry = m_scene->getGeometryMap().at("GlobalGeometry");
 	auto vertexRange = globalSignature->createRange(globalGeometry->getIndexBuffer().gpuDescriptorHandle, RootSignature::SRV, 1, 2);
 
 	// Global signature entries.
-	descriptorHandles.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
+	m_dxr->outputHandler.baseHandleIndex = globalSignature->addDescriptorTable(vector<RootSignature::DescriptorRange>{outputRange});
 	globalSignature->addEntry(RootComponent(DontApply()), RootSignature::SRV, m_accelerationStruct->getBuilded(), 0);
 	globalSignature->addEntry(RootComponent(SceneConstantBuffer()), RootSignature::CBV, m_sceneCB, 0);
 	globalSignature->addEntry(RootComponent(InstanceBuffer()), RootSignature::SRV, m_instanceBuffer, 3);
@@ -198,7 +200,7 @@ void MandelJuliaPacSceneBuilder::CreateRootSignatures(DeviceResourcesPtr deviceR
 	m_scene->addGlobalSignature(globalSignature);
 
 	// Triangle geometry local root signature.
-	auto triangleSignature = make_shared<RootSignature>("Triangle", deviceResources, descriptorHeap, true);
+	auto triangleSignature = make_shared<RootSignature>("Triangle", deviceResources, m_dxr->descriptorHeap, true);
 	triangleSignature->addConstant(RootComponent(PrimitiveConstantBuffer()), 1);
 
 	// Root Arguments type.
@@ -206,7 +208,7 @@ void MandelJuliaPacSceneBuilder::CreateRootSignatures(DeviceResourcesPtr deviceR
 	m_scene->addLocalSignature(triangleSignature);
 
 	// Procedural geometry local root signature.
-	auto proceduralSignature = make_shared<RootSignature>("Procedural", deviceResources, descriptorHeap, true);
+	auto proceduralSignature = make_shared<RootSignature>("Procedural", deviceResources, m_dxr->descriptorHeap, true);
 	proceduralSignature->addConstant(RootComponent(PrimitiveConstantBuffer()), 1);
 	proceduralSignature->addConstant(RootComponent(PrimitiveInstanceConstantBuffer()), 2);
 
@@ -215,9 +217,9 @@ void MandelJuliaPacSceneBuilder::CreateRootSignatures(DeviceResourcesPtr deviceR
 	m_scene->addLocalSignature(proceduralSignature);
 }
 
-void MandelJuliaPacSceneBuilder::CreateShaderTablesEntries(DeviceResourcesPtr deviceResources)
+void MandelJuliaPacSceneBuilder::CreateShaderTablesEntries()
 {
-	m_shaderTable = make_shared<RtxEngine::ShaderTable>(m_scene, deviceResources);
+	m_shaderTable = make_shared<RtxEngine::ShaderTable>(m_scene, m_dxr->deviceResources);
 
 	// Ray gen.
 	m_shaderTable->addRayGen(L"Raygen");
@@ -286,7 +288,7 @@ void MandelJuliaPacSceneBuilder::CreateShaderTablesEntries(DeviceResourcesPtr de
 	}
 }
 
-void MandelJuliaPacSceneBuilder::BuildInstancedProcedural(DeviceResourcesPtr deviceResources)
+void MandelJuliaPacSceneBuilder::BuildInstancedProcedural()
 {
 	int N = 1;
 
@@ -345,7 +347,7 @@ void MandelJuliaPacSceneBuilder::BuildInstancedProcedural(DeviceResourcesPtr dev
 		}
 	}
 
-
+	auto deviceResources = m_dxr->deviceResources;
 	D3D12_RAYTRACING_AABB juliaAABB{ -3.5f, -3.5f, -3.5f, 3.5f, 3.5f, 3.5f };
 	m_scene->addGeometry(make_shared<Geometry>("Julia", juliaAABB, *deviceResources, juliaInstances));
 
@@ -356,7 +358,7 @@ void MandelJuliaPacSceneBuilder::BuildInstancedProcedural(DeviceResourcesPtr dev
 	m_scene->addGeometry(make_shared<Geometry>("Mandelbulb", mandelbulbAABB, *deviceResources, mandelbulbInstances));
 }
 
-void MandelJuliaPacSceneBuilder::BuildInstancedParallelepipeds(DeviceResourcesPtr deviceResources, DescriptorHeapPtr descriptorHeap)
+void MandelJuliaPacSceneBuilder::BuildInstancedParallelepipeds()
 {
 	XMFLOAT3 q = XMFLOAT3(-0.5f, 0.f, 0.f);
 	XMFLOAT3 p = XMFLOAT3(0.5f, 0.f, 0.f);
@@ -426,10 +428,10 @@ void MandelJuliaPacSceneBuilder::BuildInstancedParallelepipeds(DeviceResourcesPt
 		}
 	}
 
-	m_scene->addGeometry(make_shared<Geometry>("GlobalGeometry", vertices, indices, *deviceResources, *descriptorHeap, instances));
+	m_scene->addGeometry(make_shared<Geometry>("GlobalGeometry", vertices, indices, *m_dxr->deviceResources, *m_dxr->descriptorHeap, instances));
 }
 
-void MandelJuliaPacSceneBuilder::BuildPlaneGeometry(const XMFLOAT3& width, DeviceResourcesPtr deviceResources, DescriptorHeapPtr descriptorHeap)
+void MandelJuliaPacSceneBuilder::BuildPlaneGeometry(const XMFLOAT3& width)
 {
 	vector<Index> indices;
 	vector<Vertex> vertices;
@@ -471,15 +473,15 @@ void MandelJuliaPacSceneBuilder::BuildPlaneGeometry(const XMFLOAT3& width, Devic
 	XMMATRIX mScale = XMMatrixScaling(width.x, width.y, width.z);
 	auto triangleBlasTransform = mScale * wTranslation;
 
-	m_scene->addGeometry(make_shared<Geometry>("GlobalGeometry", vertices, indices, *deviceResources, *descriptorHeap,
+	m_scene->addGeometry(make_shared<Geometry>("GlobalGeometry", vertices, indices, *m_dxr->deviceResources, *m_dxr->descriptorHeap,
 		Geometry::Instances(1, triangleBlasTransform)));
 }
 
 // Build geometry used in the sample.
-void MandelJuliaPacSceneBuilder::BuildGeometry(DeviceResourcesPtr deviceResources, DescriptorHeapPtr descriptorHeap)
+void MandelJuliaPacSceneBuilder::BuildGeometry()
 {
-	BuildInstancedParallelepipeds(deviceResources, descriptorHeap);
-	BuildInstancedProcedural(deviceResources);
+	BuildInstancedParallelepipeds();
+	BuildInstancedProcedural();
 }
 
 void MandelJuliaPacSceneBuilder::release()

@@ -2,7 +2,7 @@
 
 #include "engine/SceneDefines.h"
 #include "engine/AccelerationStructure.h"
-#include "engine/RayTracingState.h"
+#include "engine/DxrInternal.h"
 #include "engine/ShaderTable.h"
 
 using namespace RtxEngine;
@@ -11,9 +11,8 @@ class MandelJuliaPacSceneBuilder
 {
 public:
 	MandelJuliaPacSceneBuilder();
-	void init(DeviceResourcesPtr deviceResources);
-	void build(DxrDevicePtr device, DeviceResourcesPtr deviceResources, DxrCommandListPtr commandList, DescriptorHeapPtr descriptorHeap,
-		DescriptorHeap::DescriptorHandles& descriptorHandles);
+	void init(DxrInternalPtr dxr);
+	void build();
 
 	shared_ptr<ConstantBuffer<SceneConstantBuffer>> getSceneCB() { return m_sceneCB; }
 	shared_ptr<StructuredBuffer<InstanceBuffer>> getInstanceBuffer() { return m_instanceBuffer; }
@@ -24,17 +23,19 @@ public:
 	void release();
 
 private:
-	void CreateConstantBuffers(DeviceResourcesPtr deviceResources);
-	void CreateInstanceBuffer(DeviceResourcesPtr deviceResource);
+	void CreateConstantBuffers();
+	void CreateInstanceBuffer();
 	void CreateRays();
 	void CreateHitGroups();
-	void BuildGeometry(DeviceResourcesPtr deviceResources, DescriptorHeapPtr descriptorHeap);
-	void BuildInstancedProcedural(DeviceResourcesPtr deviceResources);
-	void BuildInstancedParallelepipeds(DeviceResourcesPtr deviceResources, DescriptorHeapPtr descriptorHeap);
-	void BuildPlaneGeometry(const XMFLOAT3& width, DeviceResourcesPtr deviceResources, DescriptorHeapPtr descriptorHeap);
-	void CreateRootSignatures(DeviceResourcesPtr deviceResources, DescriptorHeapPtr descriptorHeap, DescriptorHeap::DescriptorHandles& descriptorHandles);
-	void CreateAccelerationStructure(DxrDevicePtr device, DeviceResourcesPtr deviceResources, DxrCommandListPtr commandList);
-	void CreateShaderTablesEntries(DeviceResourcesPtr deviceResources);
+	void BuildGeometry();
+	void BuildInstancedProcedural();
+	void BuildInstancedParallelepipeds();
+	void BuildPlaneGeometry(const XMFLOAT3& width);
+	void CreateRootSignatures();
+	void CreateAccelerationStructure();
+	void CreateShaderTablesEntries();
+
+	DxrInternalPtr m_dxr = nullptr;
 
 	StaticScenePtr m_scene;
 

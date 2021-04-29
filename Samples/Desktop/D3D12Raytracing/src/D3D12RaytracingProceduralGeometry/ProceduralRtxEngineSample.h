@@ -15,7 +15,7 @@
 #include "StepTimer.h"
 #include "PerformanceTimers.h"
 #include "MandelJuliaPacSceneBuilder.h"
-#include "engine/DescriptorHeap.h"
+#include "engine/DxrInternal.h"
 #include "engine/CamController.h"
 #include "Camera.h"
 
@@ -41,23 +41,16 @@ public:
 	virtual void OnRender();
 	virtual void OnSizeChanged(UINT width, UINT height, bool minimized);
 	virtual void OnDestroy();
-	virtual IDXGISwapChain* GetSwapchain() { return m_deviceResources->GetSwapChain(); }
+	virtual IDXGISwapChain* GetSwapchain() { return m_dxr->deviceResources->GetSwapChain(); }
 
 private:
 	static const UINT FrameCount = 3;
 
-	// DirectX Raytracing (DXR) attributes
-	ComPtr<ID3D12Device5> m_dxrDevice;
-	ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
+	// DirectX Raytracing (DXR) low and mid level abstractions.
+	DxrInternalPtr m_dxr;
 
+	// Scene builder.
 	MandelJuliaPacSceneBuilder m_sceneBuilder;
-	
-	DescriptorHeapPtr m_descriptorHeap = nullptr;
-	RayTracingStatePtr m_rayTracingState = nullptr;
-
-	// Ray tracing output.
-	ComPtr<ID3D12Resource> m_raytracingOutput;
-	DescriptorHeap::DescriptorHandles m_raytracingOutputHandles;
 	
 	// Application state
 	StepTimer m_timer;

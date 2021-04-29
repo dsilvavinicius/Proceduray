@@ -171,6 +171,7 @@
     <ClInclude Include="engine\CamController.h" />
     <ClInclude Include="engine\DescriptorHeap.h" />
     <ClInclude Include="engine\DeviceHelper.h" />
+    <ClInclude Include="engine\DxrInternal.h" />
     <ClInclude Include="engine\Geometry.h" />
     <ClInclude Include="engine\Entity.h" />
     <ClInclude Include="engine\HitGroup.h" />
