@@ -14,12 +14,8 @@
 #include "DXSample.h"
 #include "StepTimer.h"
 #include "PerformanceTimers.h"
-#include "engine/SceneDefines.h"
-#include "engine/StaticScene.h"
+#include "MandelJuliaPacSceneBuilder.h"
 #include "engine/DescriptorHeap.h"
-#include "engine/AccelerationStructure.h"
-#include "engine/RayTracingState.h"
-#include "engine/ShaderTable.h"
 #include "engine/CamController.h"
 #include "Camera.h"
 
@@ -54,22 +50,14 @@ private:
 	ComPtr<ID3D12Device5> m_dxrDevice;
 	ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
 
-	StaticScenePtr m_scene;
+	MandelJuliaPacSceneBuilder m_sceneBuilder;
+	
 	DescriptorHeapPtr m_descriptorHeap = nullptr;
-	AccelerationStructurePtr m_accelerationStruct = nullptr;
 	RayTracingStatePtr m_rayTracingState = nullptr;
-	ShaderTablePtr m_shaderTable = nullptr;
 
-	// Global Root Signature components.
-	shared_ptr<ConstantBuffer<SceneConstantBuffer>> m_sceneCB;
-	shared_ptr<StructuredBuffer<InstanceBuffer>> m_instanceBuffer;
 	// Ray tracing output.
 	ComPtr<ID3D12Resource> m_raytracingOutput;
 	DescriptorHeap::DescriptorHandles m_raytracingOutputHandles;
-
-	// Local Root Signature Constants
-	PrimitiveConstantBuffer m_planeMaterialCB;
-	PrimitiveConstantBuffer m_aabbMaterialCB[IntersectionShaderType::TotalPrimitiveCount];
 	
 	// Application state
 	StepTimer m_timer;
@@ -82,25 +70,10 @@ private:
 	CamController m_camController;
 	InputManager m_input;
 
-	void InitializeScene();
 	void CreateDeviceDependentResources();
 	void CreateWindowSizeDependentResources();
 	void CreateRaytracingInterfaces();
-
-	void CreateConstantBuffers();
-	void CreateInstanceBuffer();
-	void CreateRays();
-	void CreateHitGroups();
-	void BuildGeometry();
-	void BuildProceduralGeometryAABBs(const XMMATRIX& proceduralBlasTransform);
-	void BuildInstancedProcedural();
-	void BuildInstancedParallelepipeds();
-	void BuildPlaneGeometry(const XMFLOAT3& width);
 	void CreateRaytracingOutputResource();
-
-	void CreateAccelerationStructure();
-	void CreateRootSignatures();
-	void CreateShaderTablesEntries();
 	
 	void ReleaseDeviceDependentResources();
 	void ReleaseWindowSizeDependentResources();

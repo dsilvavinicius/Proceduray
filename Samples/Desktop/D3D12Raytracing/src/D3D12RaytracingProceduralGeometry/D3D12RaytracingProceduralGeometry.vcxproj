@@ -180,7 +180,6 @@
     <ClInclude Include="engine\RootComponents.h" />
     <ClInclude Include="engine\RootSignature.h" />
     <ClInclude Include="engine\Ray.h" />
-    <ClInclude Include="engine\SceneBuilder.h" />
     <ClInclude Include="engine\SceneDefines.h" />
     <ClInclude Include="engine\ShaderCompat.h" />
     <ClInclude Include="engine\ShaderCompatUtils.h" />

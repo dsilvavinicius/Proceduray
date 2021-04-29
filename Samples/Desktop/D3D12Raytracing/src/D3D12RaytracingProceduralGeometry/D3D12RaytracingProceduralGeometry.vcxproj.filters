@@ -141,9 +141,6 @@
     <ClInclude Include="engine\CamController.h">
       <Filter>Header Files\engine</Filter>
     </ClInclude>
-    <ClInclude Include="engine\SceneBuilder.h">
-      <Filter>Header Files\engine</Filter>
-    </ClInclude>
     <ClInclude Include="MandelJuliaPacSceneBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
