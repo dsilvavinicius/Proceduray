@@ -23,17 +23,17 @@ public:
 	void release();
 
 private:
-	void CreateConstantBuffers();
-	void CreateInstanceBuffer();
-	void CreateRays();
-	void CreateHitGroups();
+	void BuildConstantBuffers();
+	void BuildInstanceBuffer();
+	void BuildRays();
+	void BuildHitGroups();
 	void BuildGeometry();
 	void BuildInstancedProcedural();
 	void BuildInstancedParallelepipeds();
 	void BuildPlaneGeometry(const XMFLOAT3& width);
-	void CreateRootSignatures();
-	void CreateAccelerationStructure();
-	void CreateShaderTablesEntries();
+	void BuildRootSignatures();
+	void BuildAccelerationStructure();
+	void BuildShaderTablesEntries();
 
 	DxrInternalPtr m_dxr = nullptr;
 
@@ -43,8 +43,8 @@ private:
 	ShaderTablePtr m_shaderTable = nullptr;
 
 	// Global Root Signature components.
-	shared_ptr<ConstantBuffer<SceneConstantBuffer>> m_sceneCB;
-	shared_ptr<StructuredBuffer<InstanceBuffer>> m_instanceBuffer;
+	shared_ptr<ConstantBuffer<SceneConstantBuffer>> m_sceneCB = nullptr;
+	shared_ptr<StructuredBuffer<InstanceBuffer>> m_instanceBuffer = nullptr;
 
 	// Local Root Signature Constants
 	PrimitiveConstantBuffer m_planeMaterialCB;

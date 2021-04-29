@@ -96,30 +96,30 @@ void MandelJuliaPacSceneBuilder::init(DxrInternalPtr dxr)
 void MandelJuliaPacSceneBuilder::build()
 {
 	// Add rays to the scene.
-	CreateRays();
+	BuildRays();
 
 	// Add hit groups to the scene.
-	CreateHitGroups();
+	BuildHitGroups();
 
 	// Build geometry to be used in the scene.
 	BuildGeometry();
 
 	// Create constant buffers for the geometry and the scene.
-	CreateConstantBuffers();
+	BuildConstantBuffers();
 
 	// Create AABB primitive attribute buffers.
-	CreateInstanceBuffer();
+	BuildInstanceBuffer();
 
-	CreateAccelerationStructure();
+	BuildAccelerationStructure();
 
 	// Create root signatures for the shaders.
-	CreateRootSignatures();
+	BuildRootSignatures();
 
-	CreateShaderTablesEntries();
+	BuildShaderTablesEntries();
 }
 
 // Create constant buffers.
-void MandelJuliaPacSceneBuilder::CreateConstantBuffers()
+void MandelJuliaPacSceneBuilder::BuildConstantBuffers()
 {
 	auto deviceResources = m_dxr->deviceResources;
 	auto device = deviceResources->GetD3DDevice();
@@ -129,7 +129,7 @@ void MandelJuliaPacSceneBuilder::CreateConstantBuffers()
 }
 
 // Create AABB primitive attributes buffers.
-void MandelJuliaPacSceneBuilder::CreateInstanceBuffer()
+void MandelJuliaPacSceneBuilder::BuildInstanceBuffer()
 {
 	auto deviceResources = m_dxr->deviceResources;
 	auto device = deviceResources->GetD3DDevice();
@@ -150,13 +150,13 @@ void MandelJuliaPacSceneBuilder::CreateInstanceBuffer()
 	m_instanceBuffer->Create(device, nProceduralInstances, frameCount, L"AABB primitive attributes");
 }
 
-void MandelJuliaPacSceneBuilder::CreateRays()
+void MandelJuliaPacSceneBuilder::BuildRays()
 {
 	m_scene->addRay(make_shared<Ray>("Radiance", L"Miss", Payload(RayPayload())));
 	m_scene->addRay(make_shared<Ray>("Shadow", L"Miss_Shadow", Payload(ShadowRayPayload())));
 }
 
-void MandelJuliaPacSceneBuilder::CreateHitGroups()
+void MandelJuliaPacSceneBuilder::BuildHitGroups()
 {
 	// Triangle Hit Groups.
 	m_scene->addHitGroup(make_shared<HitGroup>("Triangle", L"HitGroup_Triangle", L"", L"ClosestHit_Triangle", L""));
@@ -173,12 +173,12 @@ void MandelJuliaPacSceneBuilder::CreateHitGroups()
 	m_scene->addHitGroup(make_shared<HitGroup>("Julia_Shadow", L"HitGroup_Julia_Shadow", L"", L"", L"Intersection_Julia"));
 }
 
-void MandelJuliaPacSceneBuilder::CreateAccelerationStructure()
+void MandelJuliaPacSceneBuilder::BuildAccelerationStructure()
 {
 	m_accelerationStruct = make_shared<AccelerationStructure>(m_scene, m_dxr->device, m_dxr->commandList, m_dxr->deviceResources);
 }
 
-void MandelJuliaPacSceneBuilder::CreateRootSignatures()
+void MandelJuliaPacSceneBuilder::BuildRootSignatures()
 {
 	auto deviceResources = m_dxr->deviceResources;
 	
@@ -217,7 +217,7 @@ void MandelJuliaPacSceneBuilder::CreateRootSignatures()
 	m_scene->addLocalSignature(proceduralSignature);
 }
 
-void MandelJuliaPacSceneBuilder::CreateShaderTablesEntries()
+void MandelJuliaPacSceneBuilder::BuildShaderTablesEntries()
 {
 	m_shaderTable = make_shared<RtxEngine::ShaderTable>(m_scene, m_dxr->deviceResources);
 
