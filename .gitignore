@@ -4,7 +4,6 @@
 
 /Packages
 /Proceduray/src/.vs/Proceduray/v16
-/Samples/Desktop/D3D12xGPU/src/D3D12xGPU.vcxproj.user
 /.vs/VSWorkspaceState.json
 /.vs/slnx.sqlite
 /.vs/ProjectSettings.json
@@ -16,6 +15,6 @@
 /MiniEngine/Build_VS16/x64/Release/Output
 /MiniEngine/Build_VS16/x64
 /Proceduray/Build_VS16/x64
-/Proceduray/src/D3D12RaytracingProceduralGeometry/obj/x64
-/Proceduray/src/D3D12RaytracingProceduralGeometry/D3D12RaytracingProceduralGeometry.vcxproj.user
-/Proceduray/src/D3D12RaytracingProceduralGeometry/bin/x64
+/Proceduray/src/main_project/obj/x64
+/Proceduray/src/main_project/Proceduray.vcxproj.user
+/Proceduray/src/main_project/bin/x64
