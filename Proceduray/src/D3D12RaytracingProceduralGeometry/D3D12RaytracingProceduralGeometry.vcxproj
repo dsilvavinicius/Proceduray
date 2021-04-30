@@ -14,7 +14,7 @@
     <ProjectGuid>{0C266269-AC0C-41B0-9D25-0117DC23CFC7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>D3D12Raytracing</RootNamespace>
-    <ProjectName>D3D12RaytracingProceduralGeometry</ProjectName>
+    <ProjectName>Proceduray</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
