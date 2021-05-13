@@ -26,7 +26,7 @@ Proceduray is an abstraction layer above the procedural geometry sample in the [
 
 ## Setup
 
-Given that requirements are met, 
+Given that requirements are met, just clone the repository, open the Visual Studio 2019 solution in `Proceduray\src` and compile it.
 
 ## Acompaining Technical Report
 
@@ -41,7 +41,7 @@ The `Proceduray\src` directory contains the main Visual Studio 2019 solution. Th
 If Proceduray helps your research project, please cite it:
 
 ```
-@article{da2020proceduray,
+@article{dasilva2020proceduray,
   title={Proceduray--A light-weight engine for procedural primitive ray tracing},
   author={da Silva, Vin{\'\i}cius and Novello, Tiago and Lopes, H{\'e}lio and Velho, Luiz},
   journal={arXiv preprint arXiv:2012.10357},
