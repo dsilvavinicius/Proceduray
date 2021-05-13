@@ -1,53 +1,59 @@
 
-# DirectX-Graphics-Samples
-This repo contains the DirectX 12 Graphics samples that demonstrate how to build graphics intensive applications for Windows 10. We invite you to join us at our [discord server](http://discord.gg/directx). See our [YouTube channel](https://www.youtube.com/MicrosoftDirectX12andGraphicsEducation) for tutorials, our [spec repo](https://microsoft.github.io/DirectX-Specs/) for engineering specs of our features and [devblogs](https://devblogs.microsoft.com/directx/) for blog posts. Follow us on Twitter [@DirectX12](https://twitter.com/directx12) for the latest! See the Related Links section for our full list of DX12-related links.
+# Proceduray
 
-## API Samples
-In the Samples directory, you will find samples that attempt to break off specific features and specific usage scenarios into bite-sized chunks. For example, the ExecuteIndirect sample will show you just enough about execute indirect to get started with that feature without diving too deep into multiengine whereas the nBodyGravity sample will delve into multiengine without touching on the execute indirect feature etc. By doing this, we hope to make it easier to get started with DirectX 12.
+Proceduray is an engine for real-time ray tracing of procedural geometry. Its motivation is the current lack of mid-level abstraction tools for scenes with primitives involving intersection shaders. Those scenes impose strict engine design choices, since they need flexibility in the shader table setup. Proceduray aims to provide a fair tradeoff between that flexibility and productivity. It also aims to be didactic. Shader table behaviour can be very confusing because parameters for indexing it come from different parts of a system, involving both host and device code. This is different in essence than ray tracing triangle meshes (which uses a builtin intersection shader for all objects) or rendering with the traditional graphics or compute pipelines.
 
-Recent API Sample Updates:
-1. [Real-Time Denoised Raytraced Ambient Occlusion](Samples/Desktop/D3D12Raytracing/src/D3D12RaytracingRealTimeDenoisedAmbientOcclusion/readme.md): This sample implements a real-time denoiser for 1spp Ambient Occlusion raytraced via DirectX Raytracing. 
+In summary, Proceduray has the following properties:
 
-![D3D12 Raytracing Real-Time Denoised Ambient Occlusion GUI](Samples/Desktop/D3D12Raytracing/src/D3D12RaytracingRealTimeDenoisedAmbientOcclusion/Screenshot_small.png)
+* Shader table creation flexibility at a reasonable abstraction level.
+* Didactic approach, including an acompaining technical report.
+* A sample scene with several procedural objects, such as fractals and CSG objects. This includes the implementation of the chapter Real-time Rendering of Complex Fractals, from [Ray Tracing Gems 2](https://developer.nvidia.com/blog/ray-tracing-gems-ii-available-august-4th/).
 
-## MiniEngine: A DirectX 12 Engine Starter Kit
-In addition to the samples, we are announcing the first DirectX 12 preview release of the MiniEngine.
+## Teasers
 
-It came from a desire to quickly dive into graphics and performance experiments.  We knew we would need some basic building blocks whenever starting a new 3D app, and we had already written these things at countless previous gigs.  We got tired of reinventing the wheel, so we established our own core library of helper classes and platform abstractions.  We wanted to be able to create a new app by writing just the Init(), Update(), and Render() functions and leveraging as much reusable code as possible.  Today our core library has been redesigned for DirectX 12 and aims to serve as an example of efficient API usage.  It is obviously not exhaustive of what a game engine needs, but it can serve as the cornerstone of something new.  You can also borrow whatever useful code you find.
-
-### Some features of MiniEngine
-* High-quality anti-aliased text rendering
-* Real-time CPU and GPU profiling
-* User-controlled variables
-* Game controller, mouse, and keyboard input
-* A friendly DirectXMath wrapper
-* Perspective camera supporting traditional and reversed Z matrices
-* Asynchronous DDS texture loading and ZLib decompression
-* Large library of shaders
-* Easy shader embedding via a compile-to-header system
-* Easy render target, depth target, and unordered access view creation
-* A thread-safe GPU command context system (WIP)
-* Easy-to-use dynamic constant buffers and descriptor tables
+![](figs/julia1.png "Julia Set 1")
+![](figs/julia2.png "Julia Set 2")
+![](figs/mandel1.png "Mandelbulb 1")
+![](figs/mandel2.png "Mandelbulb 2")
+![](figs/procedural_scene.png "Procedural Scene")
 
 ## Requirements
-* Windows 10 with the May 2019 Update
-* [Visual Studio 2019](https://www.visualstudio.com/) with the [Windows 10 May 2019 Update SDK (18362)](https://developer.microsoft.com/en-US/windows/downloads/windows-10-sdk)
 
-## Contributing
-We're always looking for your help to fix bugs and improve the samples.  File those pull requests and we'll be happy to take a look.
+Proceduray is an abstraction layer above the procedural geometry sample in the [DirectX 12 Graphics Samples](https://github.com/microsoft/DirectX-Graphics-Samples). As such it has the same requirements.
 
-Find more information on DirectX 12 on our blog: http://blogs.msdn.com/b/directx/
+* Windows 10 with the May 2019 Update or later
+* [Visual Studio 2019](https://www.visualstudio.com/) with the [Windows 10 May 2019 Update SDK (18362)] or later (https://developer.microsoft.com/en-US/windows/downloads/windows-10-sdk)
 
-Troubleshooting information for this repository can be found in the site [Wiki](https://github.com/Microsoft/DirectX-Graphics-Samples/wiki).
+## Setup
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+Given that requirements are met, 
+
+## Acompaining Technical Report
+
+The technical report [Proceduray -- A light-weight engine for procedural primitive ray tracing](https://arxiv.org/abs/2012.10357) contains a didactic approach to explain the engine and the design choices behind it. It is self contained and novice-friendly, starting from the ground-up with a discussion about basic DirectX 12 concepts, and building up the abstractions needed based on them.
+
+## Sample
+
+The `Proceduray\src` directory contains the main Visual Studio 2019 solution. The project `Proceduray` contains a sample with several procedural objects, including the full implementation (host and device code) of the chapter Real-time Rendering of Complex Fractals, from [Ray Tracing Gems 2](https://developer.nvidia.com/blog/ray-tracing-gems-ii-available-august-4th/).
+
+## Citing
+
+If Proceduray helps your research project, please cite it:
+
+```
+@article{da2020proceduray,
+  title={Proceduray--A light-weight engine for procedural primitive ray tracing},
+  author={da Silva, Vin{\'\i}cius and Novello, Tiago and Lopes, H{\'e}lio and Velho, Luiz},
+  journal={arXiv preprint arXiv:2012.10357},
+  year={2020}
+}
+```
 
 ## Related links
-* [DirectX API documentation](https://docs.microsoft.com/en-us/windows/win32/directx)
-* [PIX on Windows](https://devblogs.microsoft.com/pix/documentation/)
-* [D3DX12 (the D3D12 Helper Library)](https://github.com/Microsoft/DirectX-Graphics-Samples/tree/master/Libraries/D3DX12)
-* [D3D12 Raytracing Fallback Layer](https://github.com/Microsoft/DirectX-Graphics-Samples/tree/master/Libraries/D3D12RaytracingFallback)
-* [D3D12 Residency Starter Library](https://github.com/Microsoft/DirectX-Graphics-Samples/tree/master/Libraries/D3DX12Residency)
-* [D3D12 MultiGPU Starter Library](https://github.com/Microsoft/DirectX-Graphics-Samples/tree/master/Libraries/D3DX12AffinityLayer)
-* [DirectX Tool Kit](https://github.com/Microsoft/DirectXTK12)
-* [D3DDred debugger extension](https://github.com/Microsoft/DirectX-Debugging-Tools)
+* [Ray-VR](https://www.visgraf.impa.br/ray-vr/)
+* [Ray Tracing Gems 2](https://developer.nvidia.com/blog/ray-tracing-gems-ii-available-august-4th/)
+* [DXR Specs](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html)
+
+## Contributing
+
+Since we have other research projects going, we will not be able to implement new features in Proceduray as fast as we would like. However, we welcome all help at fixing bugs and supporting new features or samples.  We'll be happy to take a look at pull requests.
