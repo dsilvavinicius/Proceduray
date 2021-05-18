@@ -7,7 +7,24 @@ In summary, Proceduray has the following properties:
 
 * Shader table creation flexibility at a reasonable abstraction level.
 * Didactic approach, including an acompaining technical report.
-* A sample scene with several procedural objects, such as fractals and CSG objects. This includes the implementation of the chapter Real-time Rendering of Complex Fractals, from [Ray Tracing Gems 2](https://developer.nvidia.com/blog/ray-tracing-gems-ii-available-august-4th/).
+* A sample scene with several procedural objects, such as fractals and CSG objects. This includes the implementation of the chapter [Real-time Rendering of Complex Fractals](https://github.com/dsilvavinicius/realtime_rendering_of_complex_fractals), from [Ray Tracing Gems 2](https://developer.nvidia.com/blog/ray-tracing-gems-ii-available-august-4th/).
+
+## Citing
+
+If Proceduray helps your research project, please cite it:
+
+```
+@article{dasilva2020proceduray,
+  title={Proceduray--A light-weight engine for procedural primitive ray tracing},
+  author={da Silva, Vin{\'\i}cius and Novello, Tiago and Lopes, H{\'e}lio and Velho, Luiz},
+  journal={arXiv preprint arXiv:2012.10357},
+  year={2020}
+}
+```
+
+## Authors
+
+[Vinícius da Silva](http://dsilvavinicius.github.io), [Tiago Novello](https://sites.google.com/site/tiagonovellodebrito), [Hélio Lopes](http://www-di.inf.puc-rio.br/~lopes) and [Luiz Velho](http://lvelho.impa.br/).
 
 ## Teasers
 
@@ -36,22 +53,10 @@ The technical report [Proceduray -- A light-weight engine for procedural primiti
 
 The `Proceduray\src` directory contains the main Visual Studio 2019 solution. The project `Proceduray` contains a sample with several procedural objects, including the full implementation (host and device code) of the chapter Real-time Rendering of Complex Fractals, from [Ray Tracing Gems 2](https://developer.nvidia.com/blog/ray-tracing-gems-ii-available-august-4th/).
 
-## Citing
-
-If Proceduray helps your research project, please cite it:
-
-```
-@article{dasilva2020proceduray,
-  title={Proceduray--A light-weight engine for procedural primitive ray tracing},
-  author={da Silva, Vin{\'\i}cius and Novello, Tiago and Lopes, H{\'e}lio and Velho, Luiz},
-  journal={arXiv preprint arXiv:2012.10357},
-  year={2020}
-}
-```
-
 ## Related links
-* [Ray-VR](https://www.visgraf.impa.br/ray-vr/)
+* [Real-time Rendering of Complex Fractals](https://github.com/dsilvavinicius/realtime_rendering_of_complex_fractals)
 * [Ray Tracing Gems 2](https://developer.nvidia.com/blog/ray-tracing-gems-ii-available-august-4th/)
+* [Ray-VR](https://www.visgraf.impa.br/ray-vr/)
 * [DXR Specs](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html)
 
 ## Contributing
