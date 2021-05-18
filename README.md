@@ -43,7 +43,7 @@ Proceduray is an abstraction layer above the procedural geometry sample in the [
 
 ## Setup
 
-Given that the requirements are met, just clone the repository, open the Visual Studio 2019 solution in `Proceduray\src`, right click the `Solution 'Proceduray'` in the `Solution Explorer` and choose `Manage NuGet Packages for Solution...` from the floating menu. Then, click the `Restore` button in the upper right corner of the window to install the dependencies. The solution should compile now.
+Given that the requirements are met, just clone the repository, open the Visual Studio 2019 solution in `Proceduray\src`, right click the `Solution 'Proceduray'` in the `Solution Explorer` and choose `Manage NuGet Packages for Solution...` from the floating menu. Then, click the `Restore` button in the upper right corner of the window to install the dependencies. Finally, reload any projects that may be unloaded. The solution should compile now.
 
 ## Acompaining Technical Report
 
