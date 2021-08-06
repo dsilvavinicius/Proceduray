@@ -7,7 +7,7 @@ In summary, Proceduray has the following properties:
 
 * Shader table creation flexibility at a reasonable abstraction level.
 * Didactic approach, including an acompaining technical report.
-* A sample scene with several procedural objects, such as fractals and CSG objects. This includes the implementation of the chapter [Real-time Rendering of Complex Fractals](https://github.com/dsilvavinicius/realtime_rendering_of_complex_fractals), from [Ray Tracing Gems 2](https://developer.nvidia.com/blog/ray-tracing-gems-ii-available-august-4th/).
+* A sample scene with several procedural objects, such as fractals and CSG objects. This includes the implementation of the chapter [Real-time Rendering of Complex Fractals](https://link.springer.com/chapter/10.1007/978-1-4842-7185-8_33), from [Ray Tracing Gems 2](https://www.realtimerendering.com/raytracinggems/rtg2/index.html).
 
 ## Citing
 
